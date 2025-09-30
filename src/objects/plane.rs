@@ -56,8 +56,8 @@ impl Plane {
 
 impl Hittable for Plane {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let normal = self.normal();
-        let denom = normal.dot(ray.direction());
+        let outward_normal = self.normal();
+        let denom = outward_normal.dot(ray.direction());
 
         if denom.abs() < 1e-6 {
             return None;
@@ -81,6 +81,7 @@ impl Hittable for Plane {
 
         // Sample the texture
         let color = self.texture.value_at(u, v, p);
+        let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
 
         Some(HitRecord {
             p,
@@ -89,6 +90,7 @@ impl Hittable for Plane {
             color,
             u,
             v,
+            front_face,
         })
     }
 }
