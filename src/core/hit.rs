@@ -17,28 +17,17 @@ pub struct HitRecord {
     pub u: f32,
     /// Texture coordinate v
     pub v: f32,
+    pub front_face: bool,
 }
- 
+
 impl HitRecord {
-    pub fn new(
-        p: Point3,
-        normal: Vec3,
-        t: f32,
-        color: Color,
-        u: f32,
-        v: f32,
-    ) -> Self {
-        Self {
-            p,
-            normal,
-            t,
-            color,
-            u,
-            v,
-        }
+    pub fn face_normal(ray: &Ray, outward_normal: Vec3) -> (Vec3, bool) {
+        let front_face = ray.direction().dot(outward_normal) < 0.0;
+        let normal = if front_face { outward_normal } else { -outward_normal };
+        (normal, front_face)
     }
 }
- 
+
 pub trait Hittable: Send + Sync {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
 }
