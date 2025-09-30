@@ -7,10 +7,10 @@ fn main() -> std::io::Result<()> {
     let mut scene = Scene::new();
 
     scene.camera_mut().set(
-        Vec3::new(5.0, 4.0, 3.0),
-        Vec3::ZERO,
-        Point3::new(0.0, 1.0, 0.2),
-        70.0,
+        Vec3::new(0.0, 0.5, 5.0),
+        Point3::new(0.0, 0.5, 1.0),
+        Vec3::Y,
+        60.0,
         1.0,
         (800, 600));
 
@@ -21,22 +21,86 @@ fn main() -> std::io::Result<()> {
     ));
     
     scene.add_object(Cube::new(
-        Point3::new(0.0, 1.0, -1.0), // center (1.0 y lifts it above plane)
-        2.0, // size (width, height, depth)
-        Texture::Checkerboard(Color::MAGENTA, Color::PASTEL_CYAN, 1.99),
+        Point3::new(1.0, 0.5, 1.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(1.0, 0.5, 0.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(1.0, 0.5, 2.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(1.0, 0.5, 4.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(1.0, 0.5, 5.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
     ));
 
-    scene.add_object(Cylinder::new(
-        Point3::new(3.0, 0.0, 1.0), // base center
-        0.5,
-        1.0,
-        Texture::Gradient(Color::YELLOW, Color::BLUE, 3.142),
+    scene.add_object(Cube::new(
+        Point3::new(-1.0, 0.5, 1.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(-1.0, 0.5, 2.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(-1.0, 0.5, 4.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(-1.0, 0.5, 5.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(-1.0, 0.5,-1.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(-2.0, 0.5,-2.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(-1.0, 0.5,-2.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(0.0, 0.5,-2.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(1.0, 0.5,-2.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
+    ));
+    scene.add_object(Cube::new(
+        Point3::new(2.0, 0.5,-2.0), // center (1.0 y lifts it above plane)
+        1.0, // size (width, height, depth)
+        Texture::SolidColor(Color::RED),
     ));
 
     scene.add_object(Sphere::new(
-        Point3::new(-1.0, 0.0, 2.0),
-        1.0,
-        Texture::Gradient(Color::PASTEL_PURPLE, Color::RED, 0.0),
+        Point3::new(0.0, 0.1, 4.0),
+        0.1,
+        Texture::Gradient(Color::DARK_PURPLE, Color::RED, 1.571),
     ));
 
     // Add plane to the scene
@@ -44,22 +108,19 @@ fn main() -> std::io::Result<()> {
     scene.add_object(Plane::new(
         Point3::ZERO,
         Vec3::new(20.0, 0.0, 20.0),
-        Texture::Image(image),
+        Texture::Checkerboard(Color::NEON_GREEN, Color::NEON_LIME, 10.0),
     ));
 
     scene.add_light(Light::new_directional(
-        Point3::new(3.0, -5.0, -5.0),
+        Point3::new(0.5, -3.0, -0.5),
         Color::WHITE,
-        1.0,
+        3.0,
     ));
 
-    scene.add_light(Light::new_point(
-        Point3::new(3.0, 5.0, 5.0),
+    scene.add_light(Light::new_directional(
+        Point3::new(0.0, -3.0, -0.5),
         Color::WHITE,
-        20.0,
-        16,
-        0.5,
-        100.0,
+        0.6,
     ));
 
     scene.render("output.ppm")?;
