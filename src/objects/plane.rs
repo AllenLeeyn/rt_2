@@ -56,39 +56,6 @@ impl Plane {
 
 impl Hittable for Plane {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let normal = self.normal();
-        let denom = normal.dot(ray.direction());
-
-        if denom.abs() < 1e-6 {
-            return None;
-        }
-
-        let t = (self.center.y() - ray.origin().y()) / ray.direction().y();
-        if t < t_min || t > t_max {
-            return None;
-        }
-
-        let p = ray.at(t);
-
-        let (min, max) = self.bounding_box();
-
-        if p.x() < min.x() || p.x() > max.x() || p.z() < min.z() || p.z() > max.z() {
-            return None;
-        }
-
-        let u = (p.x() - min.x()) / (max.x() - min.x());
-        let v = (p.z() - min.z()) / (max.z() - min.z());
-
-        // Sample the texture
-        let color = self.texture.value_at(u, v, p);
-
-        Some(HitRecord {
-            p,
-            normal,
-            t,
-            color,
-            u,
-            v,
-        })
+        todo!()
     }
 }

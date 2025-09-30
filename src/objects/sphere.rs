@@ -24,6 +24,10 @@ impl Sphere {
         self.bounding_box
     }
 
+    fn compute_normal(&self, p: Point3) -> Vec3 {
+        todo!()
+    }
+    
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
         let (min, max) = self.bounding_box();
         let u = (p.x() - min.x()) / (max.x() - min.x());
@@ -34,39 +38,6 @@ impl Sphere {
 
 impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let oc = ray.origin() - self.center;
-        let a = ray.direction().length_squared();
-        let half_b = oc.dot(ray.direction());
-        let c = oc.length_squared() - self.radius * self.radius;
-
-        let discriminant = half_b * half_b - a * c;
-        if discriminant < 0.0 {
-            return None;
-        }
-
-        let sqrt_d = discriminant.sqrt();
-
-        // Find nearest root in [t_min, t_max]
-        let mut root = (-half_b - sqrt_d) / a;
-        if root < t_min || root > t_max {
-            root = (-half_b + sqrt_d) / a;
-            if root < t_min || root > t_max {
-                return None;
-            }
-        }
-
-        let p = ray.at(root);
-        let normal = (p - self.center) / self.radius;
-        let (u, v) = self.compute_uv(p);
-        let color = self.texture.value_at(u, v, p);
-
-        Some(HitRecord {
-            p,
-            normal,
-            t: root,
-            color,
-            u,
-            v,
-        })
+        todo!()
     }
 }
