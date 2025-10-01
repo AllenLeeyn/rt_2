@@ -2,6 +2,9 @@ use crate::core::*;
 use crate::scene::*;
 use crate::pixels::*;
 
+use indicatif::ProgressBar;
+use indicatif::ProgressStyle;
+
 pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
     lights: Vec<Light>,
@@ -55,6 +58,13 @@ impl Scene {
 
         let mut image = Image::new(width as usize, height as usize);
 
+        let bar = ProgressBar::new(height as u64);
+        bar.set_style(
+            ProgressStyle::default_bar()
+                .template("{bar:40.cyan/blue} {pos:>7}/{len:7} [{elapsed_precise}]")
+                .unwrap(),
+        );
+
         for y in 0..height {
             for x in 0..width {
                 let s = (x as f32 + 0.5) / width as f32;
@@ -64,6 +74,7 @@ impl Scene {
                 let color = self.ray_color(&ray, s , t, self.max_depth);
                 image.set_pixel(x as usize, y as usize, color);
             }
+            bar.inc(1);
         }
 
         image.save_ppm(path)?;
