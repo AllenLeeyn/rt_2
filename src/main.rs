@@ -144,8 +144,8 @@ fn scene_three(scene: &mut Scene) {
     scene.add_light(Light::new_point(
         Point3::new(0.0, 4.0, 0.0),
         Color::WHITE,
-        30.0,
-        256,
+        8.0,
+        64,
         0.6,
         50.0
     ));

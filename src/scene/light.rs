@@ -63,10 +63,11 @@ impl Light {
         normal.dot(light_dir).max(0.0)
     }
 
-    /// Returns light attenuation factor (can expand this later)
     pub fn attenuation(&self, point: Point3) -> f32 {
-        let dist2 = self.distance_squared(point);
-        self.intensity / (dist2 + 1e-3)
+    let dist = self.distance(point);
+    let quadratic = 0.032;
+
+    self.intensity / (quadratic * dist * dist * dist * dist)
     }
 
     pub fn random_point_on_light(&self) -> Point3 {
@@ -131,7 +132,7 @@ impl Light {
             }
         };
 
-        hit.color.mul(self.color.mul_f32(attenuation * visibility))
+        hit.color * self.color * (attenuation * visibility)
     }
 
 }
