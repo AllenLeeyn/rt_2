@@ -1,4 +1,4 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::pixels::texture::Texture;
 
 #[derive(Clone)]
@@ -44,7 +44,7 @@ impl Plane {
     pub fn center(&self) -> Point3 {
         self.center
     }
-    
+
     pub fn size(&self) -> Vec3 {
         self.size
     }
@@ -55,7 +55,8 @@ impl Plane {
 }
 
 impl Hittable for Plane {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        todo!()
+    fn hit(&self, _ray: &Ray, _t_min: f32, _t_max: f32) -> Option<HitRecord> {
+        // Plane intersection not yet implemented
+        None
     }
 }

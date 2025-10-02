@@ -1,4 +1,4 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::pixels::texture::Texture;
 
 #[derive(Clone)]
@@ -24,10 +24,11 @@ impl Sphere {
         self.bounding_box
     }
 
-    fn compute_normal(&self, p: Point3) -> Vec3 {
-        todo!()
+    fn compute_normal(&self, _p: Point3) -> Vec3 {
+        // Sphere normal computation not yet implemented
+        Vec3::new(0.0, 1.0, 0.0)
     }
-    
+
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
         let (min, max) = self.bounding_box();
         let u = (p.x() - min.x()) / (max.x() - min.x());
@@ -37,7 +38,8 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        todo!()
+    fn hit(&self, _ray: &Ray, _t_min: f32, _t_max: f32) -> Option<HitRecord> {
+        // Sphere intersection not yet implemented
+        None
     }
 }

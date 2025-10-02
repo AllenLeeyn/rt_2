@@ -1,5 +1,3 @@
-use std::ops::Neg;
-
 use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::pixels::texture::Texture;
 
