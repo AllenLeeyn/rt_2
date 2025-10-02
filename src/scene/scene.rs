@@ -2,7 +2,6 @@ use crate::core::*;
 use crate::pixels::*;
 use crate::scene::camera::Camera;
 use crate::scene::light::Light;
-use std::any::Any;
 use std::ops::{Add, Mul};
 
 use indicatif::ProgressBar;
@@ -114,18 +113,19 @@ impl Scene {
             let emitted = hit.material.emitted(hit.u, hit.v, &hit.p).to_vec3();
 
             if let Some((attenuation, scattered)) = hit.material.scatter(ray, &hit) {
-                return emitted.add(
-                    attenuation
-                        .to_vec3()
-                        .mul(self.ray_color(&scattered, depth - 1)),
-                );
-            } else {
-                let mut light_contribution = Vec3::ZERO;
-                for light in &self.lights {
-                    light_contribution = light_contribution
-                        .add(light.contribution_from_hit(&self.objects, &hit).to_vec3());
+                // This branch is for materials that scatter (e.g., Lambertian, Metal)
+                let scattered_light = attenuation.to_vec3().mul(self.ray_color(&scattered, depth - 1));
+
+                let mut direct_light = Vec3::ZERO;
+                if hit.material.is_diffuse() {
+                    for light in &self.lights {
+                        direct_light = direct_light.add(light.contribution_from_hit(&self.objects, &hit).to_vec3());
+                    }
                 }
-                return emitted.add(light_contribution);
+                return emitted.add(scattered_light).add(direct_light);
+            } else {
+                // This branch is for materials that don't scatter (e.g., DiffuseLight)
+                return emitted;
             }
         }
 

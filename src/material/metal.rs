@@ -32,4 +32,8 @@ impl Material for Metal {
     fn color(&self, u: f32, v: f32, p: &Point3) -> Color {
         self.texture.value_at(u, v, *p)
     }
+
+    fn is_diffuse(&self) -> bool {
+        false
+    }
 }

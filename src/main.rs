@@ -45,18 +45,18 @@ fn default_scene(scene: &mut Scene) {
     let light_material = Arc::new(DiffuseLight::new(Texture::SolidColor(Color::WHITE)));
     scene.add_object(Sphere::new(Point3::new(0.0, 1.5, 0.0), 0.2, light_material.clone()));
 
-    /* scene.add_light(Light::new_point(
+    scene.add_light(Light::new_point(
         Point3::new(0.0, 3.0, 1.0),
         Color::WHITE,
-        300.0,
-        16,
-        0.6,
-        50.0,
-    )); */
+        5.0,
+        8,
+        10.0,
+        10.0,
+    ));
 
-    /* scene.add_light(Light::new_directional(
-        Vec3::new(-1.0, -1.0, -1.0),
+    scene.add_light(Light::new_directional(
+        Vec3::new(-2.0, -1.0, 1.0),
         Color::WHITE,
-        100.0,
-    )); */
+        0.2,
+    ));
 }

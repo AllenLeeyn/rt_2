@@ -6,4 +6,7 @@ pub trait Material: Send + Sync {
         Color::BLACK
     }
     fn color(&self, u: f32, v: f32, p: &Point3) -> Color;
+    fn is_diffuse(&self) -> bool {
+        false
+    }
 }
