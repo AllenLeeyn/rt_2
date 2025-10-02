@@ -2,6 +2,7 @@ use crate::core::*;
 use crate::pixels::*;
 use crate::scene::camera::Camera;
 use crate::scene::light::Light;
+use rayon::prelude::*;
 use std::ops::{Add, Mul};
 
 use indicatif::ProgressBar;
@@ -72,23 +73,38 @@ impl Scene {
                 .unwrap(),
         );
 
-        for y in 0..height {
-            for x in 0..width {
-                let mut pixel_color = Vec3::ZERO;
-                for _ in 0..self.samples_per_pixel {
-                    let u = (x as f32 + rand::random::<f32>()) / (width - 1) as f32;
-                    let v = 1.0 - (y as f32 + rand::random::<f32>()) / (height - 1) as f32;
-                    let ray = self.camera().generate_ray(u, v);
-                    pixel_color = pixel_color.add(self.ray_color(&ray, self.max_depth));
+        // Parallelize over rows
+        let rows: Vec<(u32, Vec<Color>)> = (0..height)
+            .into_par_iter()
+            .map(|y| {
+                let mut row_pixels = Vec::with_capacity(width as usize);
+
+                for x in 0..width {
+                    let mut pixel_color = Vec3::ZERO;
+                    for _ in 0..self.samples_per_pixel {
+                        let u = (x as f32 + rand::random::<f32>()) / (width - 1) as f32;
+                        let v = 1.0 - (y as f32 + rand::random::<f32>()) / (height - 1) as f32;
+                        let ray = self.camera().generate_ray(u, v);
+                        pixel_color = pixel_color.add(self.ray_color(&ray, self.max_depth));
+                    }
+
+                    let color = Color::from_vec3(pixel_color / self.samples_per_pixel as f32);
+                    row_pixels.push(color);
                 }
-                image.set_pixel(
-                    x as usize,
-                    y as usize,
-                    Color::from_vec3(pixel_color / self.samples_per_pixel as f32),
-                );
+
+                bar.inc(1); // safe: indicatif ProgressBar is internally synchronized
+                (y, row_pixels)
+            })
+            .collect();
+
+        // Write pixels back into image in order
+        for (y, row) in rows {
+            for (x, color) in row.into_iter().enumerate() {
+                image.set_pixel(x, y as usize, color);
             }
-            bar.inc(1);
         }
+
+        bar.finish();
 
         image.save_ppm(path)?;
         Ok(())
@@ -114,12 +130,15 @@ impl Scene {
 
             if let Some((attenuation, scattered)) = hit.material.scatter(ray, &hit) {
                 // This branch is for materials that scatter (e.g., Lambertian, Metal)
-                let scattered_light = attenuation.to_vec3().mul(self.ray_color(&scattered, depth - 1));
+                let scattered_light = attenuation
+                    .to_vec3()
+                    .mul(self.ray_color(&scattered, depth - 1));
 
                 let mut direct_light = Vec3::ZERO;
                 if hit.material.is_diffuse() {
                     for light in &self.lights {
-                        direct_light = direct_light.add(light.contribution_from_hit(&self.objects, &hit).to_vec3());
+                        direct_light = direct_light
+                            .add(light.contribution_from_hit(&self.objects, &hit).to_vec3());
                     }
                 }
                 return emitted.add(scattered_light).add(direct_light);

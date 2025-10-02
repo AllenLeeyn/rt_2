@@ -55,7 +55,7 @@ fn default_scene(scene: &mut Scene) {
     ));
 
     scene.add_light(Light::new_directional(
-        Vec3::new(-2.0, -1.0, 1.0),
+        Vec3::new(-3.0, -1.0, 1.0),
         Color::WHITE,
         0.2,
     ));
