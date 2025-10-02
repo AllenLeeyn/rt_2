@@ -1,4 +1,4 @@
-use crate::core::{Ray, HitRecord, Color, Point3};
+use crate::core::{Color, HitRecord, Point3, Ray};
 
 pub trait Material: Send + Sync {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)>;

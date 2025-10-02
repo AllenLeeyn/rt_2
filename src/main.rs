@@ -1,9 +1,10 @@
-use rt_2::core::*;
-use rt_2::objects::*;
-use rt_2::pixels::*;
-use rt_2::scene::*;
+use rt_2::core::{Color, Point3, Vec3};
+use rt_2::objects::{Cube, Cylinder, Plane, Sphere};
+use rt_2::pixels::Texture;
+use rt_2::scene::Scene;
 use rt_2::material::{lambertian::*, metal::*, diffuse_light::*};
 use std::sync::Arc;
+use rt_2::scene::light::Light;
 
 fn main() -> std::io::Result<()> {
     let mut scene = Scene::new();
@@ -17,7 +18,7 @@ fn main() -> std::io::Result<()> {
 
 fn default_scene(scene: &mut Scene) {
     scene.camera_mut().set(
-        Point3::new(0.0, 1.0, 3.0),
+        Point3::new(2.0, 1.0, 3.0),
         Vec3::ZERO,
         Vec3::Y,
         60.0,
@@ -41,6 +42,21 @@ fn default_scene(scene: &mut Scene) {
     let material_cylinder = Arc::new(Metal::new(Texture::SolidColor(Color::new_f32(0.5, 0.5, 0.5)), 0.0));
     scene.add_object(Cylinder::new(Point3::new(2.0, -0.5, -1.0), 0.25, 2.0, material_cylinder.clone()));
 
-    let light_material = Arc::new(DiffuseLight::new(Texture::SolidColor(Color::new_f32(4.0, 4.0, 4.0))));
+    let light_material = Arc::new(DiffuseLight::new(Texture::SolidColor(Color::WHITE)));
     scene.add_object(Sphere::new(Point3::new(0.0, 1.5, 0.0), 0.2, light_material.clone()));
+
+    /* scene.add_light(Light::new_point(
+        Point3::new(0.0, 3.0, 1.0),
+        Color::WHITE,
+        300.0,
+        16,
+        0.6,
+        50.0,
+    )); */
+
+    /* scene.add_light(Light::new_directional(
+        Vec3::new(-1.0, -1.0, -1.0),
+        Color::WHITE,
+        100.0,
+    )); */
 }

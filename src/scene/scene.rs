@@ -1,6 +1,8 @@
 use crate::core::*;
 use crate::pixels::*;
 use crate::scene::camera::Camera;
+use crate::scene::light::Light;
+use std::any::Any;
 use std::ops::{Add, Mul};
 
 use indicatif::ProgressBar;
@@ -8,6 +10,7 @@ use indicatif::ProgressStyle;
 
 pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
+    lights: Vec<Light>,
     background: Texture,
     camera: Camera,
     max_depth: u32,
@@ -18,10 +21,11 @@ impl Scene {
     pub fn new() -> Self {
         Scene {
             objects: Vec::new(),
+            lights: Vec::new(),
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
-            max_depth: 50,
-            samples_per_pixel: 100,
+            max_depth: 5,
+            samples_per_pixel: 50,
         }
     }
 
@@ -53,6 +57,10 @@ impl Scene {
         self.objects.push(Box::new(object));
     }
 
+    pub fn add_light(&mut self, light: Light) {
+        self.lights.push(light);
+    }
+
     pub fn render(&mut self, path: &str) -> std::io::Result<()> {
         let (width, height) = self.camera().resolution();
 
@@ -74,7 +82,11 @@ impl Scene {
                     let ray = self.camera().generate_ray(u, v);
                     pixel_color = pixel_color.add(self.ray_color(&ray, self.max_depth));
                 }
-                image.set_pixel(x as usize, y as usize, Color::from_vec3(pixel_color / self.samples_per_pixel as f32));
+                image.set_pixel(
+                    x as usize,
+                    y as usize,
+                    Color::from_vec3(pixel_color / self.samples_per_pixel as f32),
+                );
             }
             bar.inc(1);
         }
@@ -102,9 +114,18 @@ impl Scene {
             let emitted = hit.material.emitted(hit.u, hit.v, &hit.p).to_vec3();
 
             if let Some((attenuation, scattered)) = hit.material.scatter(ray, &hit) {
-                return emitted.add(attenuation.to_vec3().mul(self.ray_color(&scattered, depth - 1)));
+                return emitted.add(
+                    attenuation
+                        .to_vec3()
+                        .mul(self.ray_color(&scattered, depth - 1)),
+                );
             } else {
-                return emitted;
+                let mut light_contribution = Vec3::ZERO;
+                for light in &self.lights {
+                    light_contribution = light_contribution
+                        .add(light.contribution_from_hit(&self.objects, &hit).to_vec3());
+                }
+                return emitted.add(light_contribution);
             }
         }
 
