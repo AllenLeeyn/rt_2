@@ -9,7 +9,7 @@ use clap::Parser;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Scene number to render (1-4)
-    #[arg(short = 's', long = "scene", default_value_t = 4)]
+    #[arg(short = 's', long = "scene", default_value_t = 3)]
     scene: u32,
 
     /// Output filename
@@ -33,7 +33,7 @@ fn main() -> std::io::Result<()> {
         3 => scene_three(&mut scene),
         4 => scene_four(&mut scene),
         _ => {
-            eprintln!("Unknown scene {}, defaulting to scene_four", args.scene);
+            eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
             scene_three(&mut scene);
         }
     }
@@ -117,13 +117,13 @@ fn scene_three(scene: &mut Scene) {
         (400, 300));
     
     scene.add_object(Cube::new(
-        Point3::new(-1.5, 0.5, 0.5), // center (1.0 y lifts it above plane)
+        Point3::new(-1.5, 0.5, 0.5),
         1.0, // size (width, height, depth)
         Texture::Gradient(Color::DARK_RED, Color::RED, 1.571),
     ));
 
     scene.add_object(Cylinder::new(
-        Point3::new(2.0, 0.0, -1.0), // base center
+        Point3::new(2.0, 0.0, -1.0),
         0.25,
         2.0,
         Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0),
@@ -140,19 +140,18 @@ fn scene_three(scene: &mut Scene) {
         Vec3::new(20.0, 0.0, 20.0),
         Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
     ));
-    
+
     scene.add_light(Light::new_point(
-        Point3::new(0.0, 4.0, 0.0),
+        Point3::new(0.0, 3.0, 0.0),
         Color::WHITE,
-        8.0,
-        64,
-        0.6,
+        1.0,
+        128,
+        1.0,
         50.0
     ));
 }
 
 fn scene_four(scene: &mut Scene) {
-    scene_three(scene);
     scene.camera_mut().set(
         Point3::new(-2.0, 2.0, -4.0),
         Vec3::new(0.0, 2.0, 0.0),
@@ -160,10 +159,41 @@ fn scene_four(scene: &mut Scene) {
         60.0,
         1.0,
         (400, 300));
-        
+
+    scene.add_object(Cube::new(
+        Point3::new(-1.5, 0.5, 0.5),
+        1.0,
+        Texture::Gradient(Color::DARK_RED, Color::RED, 1.571),
+    ));
+
+    scene.add_object(Cylinder::new(
+        Point3::new(2.0, 0.0, -1.0),
+        0.25,
+        2.0,
+        Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0),
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(-0.5, 0.5, 0.0),
+        0.5,
+        Texture::SolidColor(Color::GREEN),
+    ));
+
+    scene.add_object(Plane::new(
+        Point3::ZERO,
+        Vec3::new(20.0, 0.0, 20.0),
+        Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
+    ));
+
     scene.add_light(Light::new_directional(
-        Point3::new(-1.0, -4.0, 3.0),
+        Point3::new(-1.5, -6.0, 3.0),
         Color::WHITE,
-        0.1,
+        0.05,
+    ));
+
+    scene.add_light(Light::new_directional(
+        Point3::new(-3.0, -8.0, 3.0),
+        Color::WHITE,
+        0.4,
     ));
 }

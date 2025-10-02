@@ -64,10 +64,18 @@ impl Light {
     }
 
     pub fn attenuation(&self, point: Point3) -> f32 {
-    let dist = self.distance(point);
-    let quadratic = 0.032;
+        let dist = self.distance(point);
+        let min_dist = 1.0;
+        let max_dist = 10.0;
 
-    self.intensity / (quadratic * dist * dist * dist * dist)
+        if dist >= max_dist {
+            return 0.0;
+        }
+
+        let t = (dist - min_dist) / (max_dist - min_dist);
+        let falloff = 1.0 - t * t * (3.0 - 2.0 * t); // smoothstep
+
+        self.intensity * falloff
     }
 
     pub fn random_point_on_light(&self) -> Point3 {
