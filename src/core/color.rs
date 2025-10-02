@@ -94,6 +94,14 @@ impl Color {
         Self{ r, g ,b }
     }
 
+    pub fn new_f32(r: f32, g: f32, b: f32) -> Self {
+        Self {
+            r: (r * 255.999) as u8,
+            g: (g * 255.999) as u8,
+            b: (b * 255.999) as u8,
+        }
+    }
+
     pub fn set(&mut self, r: u8, g: u8, b: u8) {
         self.r = r;
         self.g = g;
@@ -144,6 +152,32 @@ impl Color {
             r: scale(self.r, factor),
             g: scale(self.g, factor),
             b: scale(self.b, factor),
+        }
+    }
+
+    pub fn div_f32(self, factor: f32) -> Color {
+        fn scale(channel: u8, factor: f32) -> u8 {
+            (channel as f32 / factor)
+                .round()
+                .clamp(0.0, 255.0) as u8
+        }
+
+        Color {
+            r: scale(self.r, factor),
+            g: scale(self.g, factor),
+            b: scale(self.b, factor),
+        }
+    }
+
+    pub fn to_vec3(&self) -> crate::core::Vec3 {
+        crate::core::Vec3::new(self.r as f32 / 255.0, self.g as f32 / 255.0, self.b as f32 / 255.0)
+    }
+
+    pub fn from_vec3(v: crate::core::Vec3) -> Self {
+        Self {
+            r: (v.x() * 255.999) as u8,
+            g: (v.y() * 255.999) as u8,
+            b: (v.z() * 255.999) as u8,
         }
     }
 }

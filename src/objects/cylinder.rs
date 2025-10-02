@@ -1,17 +1,18 @@
 use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
-use crate::pixels::texture::Texture;
+use crate::material::material::Material;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Cylinder {
     center: Point3,
     radius: f32,
     height: f32,
-    texture: Texture,
+    material: Arc<dyn Material>,
     bounding_box: (Point3, Point3),
 }
 
 impl Cylinder {
-    pub fn new(center: Point3, radius: f32, height: f32, texture: Texture) -> Self {
+    pub fn new(center: Point3, radius: f32, height: f32, material: Arc<dyn Material>) -> Self {
         let min = Point3::new(
             center.x() - radius,
             center.y(),
@@ -28,7 +29,7 @@ impl Cylinder {
             center,
             radius,
             height,
-            texture,
+            material,
             bounding_box: (min, max),
         }
     }
@@ -69,16 +70,15 @@ impl Cylinder {
             let outward_normal = if y > self.center.y() { Vec3::Y } else { -Vec3::Y };
             let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
             let (u, v) = self.compute_uv(p);
-            let color = self.texture.value_at(u, v, p);
 
             return Some(HitRecord {
                 p,
                 normal,
                 t,
-                color,
                 u,
                 v,
                 front_face,
+                material: &*self.material,
             });
         }
 
@@ -119,16 +119,15 @@ impl Cylinder {
                 let outward_normal = self.compute_normal(p);
                 let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
                 let (u, v) = self.compute_uv(p);
-                let color = self.texture.value_at(u, v, p);
 
                 return Some(HitRecord {
                     p,
                     normal,
                     t,
-                    color,
                     u,
                     v,
                     front_face,
+                    material: &*self.material,
                 });
             }
         }

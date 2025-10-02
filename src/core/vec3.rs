@@ -104,6 +104,11 @@ impl Vec3 {
         let r_out_parallel = -((1.0 - r_out_perp.length_squared()).abs().sqrt()) * n;
         r_out_perp + r_out_parallel
     }
+
+    pub fn near_zero(&self) -> bool {
+        const S: f32 = 1e-8;
+        self.x.abs() < S && self.y.abs() < S && self.z.abs() < S
+    }
 }
 
 pub type Point3 = Vec3;

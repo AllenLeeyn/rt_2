@@ -37,8 +37,16 @@ impl Camera {
     pub fn resolution(&self) -> (u32, u32) {
         self.resolution
     }
-    
-    pub fn set(&mut self, origin: Point3, look_at: Point3, vup: Vec3, vfov: f32, focal_length: f32, resolution: (u32, u32)) {
+
+    pub fn set(
+        &mut self,
+        origin: Point3,
+        look_at: Point3,
+        vup: Vec3,
+        vfov: f32,
+        focal_length: f32,
+        resolution: (u32, u32),
+    ) {
         self.origin = origin;
         self.look_at = look_at;
         self.vup = vup;
@@ -68,19 +76,15 @@ impl Camera {
         self.horizontal = u * viewport_width * self.focal_length;
         self.vertical = v * viewport_height * self.focal_length;
 
-        self.lower_left_corner = self.origin
-            - self.horizontal / 2.0
-            - self.vertical / 2.0
-            - w * self.focal_length;
+        self.lower_left_corner =
+            self.origin - self.horizontal / 2.0 - self.vertical / 2.0 - w * self.focal_length;
     }
 
-    pub fn generate_ray(&self, s: f32, t: f32 ) -> Ray {
-        let point_on_plane = self.lower_left_corner
-            + self.horizontal * s
-            + self.vertical * t;
+    pub fn generate_ray(&self, s: f32, t: f32) -> Ray {
+        let point_on_plane = self.lower_left_corner + self.horizontal * s + self.vertical * t;
         let direction = point_on_plane - self.origin;
 
-        Ray::new( self.origin, direction )
+        Ray::new(self.origin, direction)
     }
 
     pub fn generate_rays(&self) -> Vec<Vec<Ray>> {

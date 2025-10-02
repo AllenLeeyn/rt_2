@@ -1,34 +1,21 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
-use crate::pixels::texture::Texture;
+use crate::core::{Point3, Hittable, HitRecord, Ray};
+use crate::material::material::Material;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f32,
-    texture: Texture,
-    bounding_box: (Point3, Point3),
+    material: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f32, texture: Texture) -> Self {
-        let rvec = Vec3::new(radius, radius, radius);
+    pub fn new(center: Point3, radius: f32, material: Arc<dyn Material>) -> Self {
         Self {
             center,
             radius,
-            texture,
-            bounding_box: (center - rvec, center + rvec),
+            material,
         }
-    }
-
-    fn bounding_box(&self) -> (Point3, Point3) {
-        self.bounding_box
-    }
-
-    fn compute_uv(&self, p: Point3) -> (f32, f32) {
-        let (min, max) = self.bounding_box();
-        let u = (p.x() - min.x()) / (max.x() - min.x());
-        let v = (p.y() - min.y()) / (max.y() - min.y());
-        (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 }
 
@@ -58,17 +45,15 @@ impl Hittable for Sphere {
         let p = ray.at(root);
         let outward_normal = (p - self.center) / self.radius;
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
-        let (u, v) = self.compute_uv(p);
-        let color = self.texture.value_at(u, v, p);
 
         Some(HitRecord {
             p,
             normal,
             t: root,
-            color,
-            u,
-            v,
-            front_face
+            u: 0.0, // Will be fixed later
+            v: 0.0, // Will be fixed later
+            front_face,
+            material: &*self.material,
         })
     }
 }

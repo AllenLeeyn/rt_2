@@ -1,4 +1,4 @@
-pub mod dielectric;
 pub mod lambertian;
-pub mod material;
 pub mod metal;
+pub mod material;
+pub mod diffuse_light;

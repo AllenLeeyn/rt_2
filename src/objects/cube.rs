@@ -1,24 +1,25 @@
 use std::ops::Neg;
+use std::sync::Arc;
 
 use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
-use crate::pixels::texture::Texture;
+use crate::material::material::Material;
 
 #[derive(Clone)]
 pub struct Cube {
     pub min: Point3,
     pub max: Point3,
-    pub texture: Texture,
+    pub material: Arc<dyn Material>,
 }
 
 impl Cube {
-    pub fn new(center: Point3, size: f32, texture: Texture) -> Self {
+    pub fn new(center: Point3, size: f32, material: Arc<dyn Material>) -> Self {
         let half = size / 2.0;
         let min = center - Vec3::new(half, half, half);
         let max = center + Vec3::new(half, half, half);
         Self {
             min,
             max,
-            texture,
+            material,
         }
     }
     
@@ -53,10 +54,13 @@ impl Hittable for Cube {
         let mut tmax = t_max;
 
         for i in 0..3 {
+            // precompute inverse for performance
             let inv_d = 1.0 / ray.direction()[i];
+
             let mut t0 = (self.min[i] - ray.origin()[i]) * inv_d;
             let mut t1 = (self.max[i] - ray.origin()[i]) * inv_d;
 
+            // negative direction?
             if inv_d < 0.0 {
                 std::mem::swap(&mut t0, &mut t1);
             }
@@ -74,16 +78,15 @@ impl Hittable for Cube {
         let outward_normal = self.compute_normal(p);
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
         let (u, v) = self.compute_uv(p);
-        let color = self.texture.value_at(u, v, p);
 
         Some(HitRecord {
             p,
             normal,
             t,
-            color,
             u,
             v,
             front_face,
+            material: &*self.material,
         })
     }
 }

@@ -1,27 +1,32 @@
 use crate::core::*;
-use crate::scene::*;
 use crate::pixels::*;
+use crate::scene::camera::Camera;
+use std::ops::{Add, Mul};
 
 use indicatif::ProgressBar;
 use indicatif::ProgressStyle;
 
 pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
-    lights: Vec<Light>,
     background: Texture,
     camera: Camera,
     max_depth: u32,
+    samples_per_pixel: u32,
 }
 
 impl Scene {
     pub fn new() -> Self {
         Scene {
             objects: Vec::new(),
-            lights: Vec::new(),
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
-            max_depth: 1,
+            max_depth: 50,
+            samples_per_pixel: 100,
         }
+    }
+
+    pub fn set_samples_per_pixel(&mut self, samples: u32) {
+        self.samples_per_pixel = samples;
     }
 
     pub fn set_background(&mut self, texture: Texture) {
@@ -48,11 +53,6 @@ impl Scene {
         self.objects.push(Box::new(object));
     }
 
-    
-    pub fn add_light(&mut self, light: Light) {
-        self.lights.push(light);
-    }
-
     pub fn render(&mut self, path: &str) -> std::io::Result<()> {
         let (width, height) = self.camera().resolution();
 
@@ -67,12 +67,14 @@ impl Scene {
 
         for y in 0..height {
             for x in 0..width {
-                let s = (x as f32 + 0.5) / width as f32;
-                let t = 1.0 - ((y as f32 + 0.5) / height as f32);
-
-                let ray = self.camera().generate_ray(s, t);
-                let color = self.ray_color(&ray, s , t, self.max_depth);
-                image.set_pixel(x as usize, y as usize, color);
+                let mut pixel_color = Vec3::ZERO;
+                for _ in 0..self.samples_per_pixel {
+                    let u = (x as f32 + rand::random::<f32>()) / (width - 1) as f32;
+                    let v = 1.0 - (y as f32 + rand::random::<f32>()) / (height - 1) as f32;
+                    let ray = self.camera().generate_ray(u, v);
+                    pixel_color = pixel_color.add(self.ray_color(&ray, self.max_depth));
+                }
+                image.set_pixel(x as usize, y as usize, Color::from_vec3(pixel_color / self.samples_per_pixel as f32));
             }
             bar.inc(1);
         }
@@ -81,7 +83,11 @@ impl Scene {
         Ok(())
     }
 
-    pub fn ray_color(&self, ray: &Ray, u: f32, v: f32, _depth: u32) -> Color {
+    pub fn ray_color(&self, ray: &Ray, depth: u32) -> Vec3 {
+        if depth <= 0 {
+            return Vec3::ZERO;
+        }
+
         let mut closest_so_far = 50.0;
         let mut final_hit = None;
 
@@ -93,15 +99,17 @@ impl Scene {
         }
 
         if let Some(hit) = final_hit {
-            let mut final_color = Color::BLACK;
+            let emitted = hit.material.emitted(hit.u, hit.v, &hit.p).to_vec3();
 
-            for light in &self.lights {
-                final_color = final_color.add(light.contribution_from_hit(&self.objects, &hit));
+            if let Some((attenuation, scattered)) = hit.material.scatter(ray, &hit) {
+                return emitted.add(attenuation.to_vec3().mul(self.ray_color(&scattered, depth - 1)));
+            } else {
+                return emitted;
             }
-
-            return final_color
         }
-        self.background.value_at(u, v, ray.origin())
-    }
 
+        let unit_direction = ray.direction().normalize();
+        let t = 0.5 * (unit_direction.y() + 1.0);
+        Color::lerp(Color::WHITE, Color::new_f32(0.5, 0.7, 1.0), t).to_vec3()
+    }
 }
