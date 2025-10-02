@@ -66,11 +66,20 @@ impl Cylinder {
         let dz = p.z() - self.center.z();
 
         if dx * dx + dz * dz <= self.radius * self.radius {
-            let normal = if y > self.center.y() { Vec3::Y } else { -Vec3::Y };
+            let outward_normal = if y > self.center.y() { Vec3::Y } else { -Vec3::Y };
+            let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
             let (u, v) = self.compute_uv(p);
             let color = self.texture.value_at(u, v, p);
 
-            return Some(HitRecord::new(p, normal, t, color, u, v))
+            return Some(HitRecord {
+                p,
+                normal,
+                t,
+                color,
+                u,
+                v,
+                front_face,
+            });
         }
 
         None
@@ -107,11 +116,20 @@ impl Cylinder {
             let y_max = y_min + self.height;
 
             if y >= y_min && y <= y_max {
-                let normal = self.compute_normal(p);
+                let outward_normal = self.compute_normal(p);
+                let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
                 let (u, v) = self.compute_uv(p);
                 let color = self.texture.value_at(u, v, p);
 
-                return Some(HitRecord::new(p, normal, t, color, u, v))
+                return Some(HitRecord {
+                    p,
+                    normal,
+                    t,
+                    color,
+                    u,
+                    v,
+                    front_face,
+                });
             }
         }
 

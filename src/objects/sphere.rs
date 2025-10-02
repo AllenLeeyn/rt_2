@@ -56,7 +56,8 @@ impl Hittable for Sphere {
         }
 
         let p = ray.at(root);
-        let normal = (p - self.center) / self.radius;
+        let outward_normal = (p - self.center) / self.radius;
+        let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
         let (u, v) = self.compute_uv(p);
         let color = self.texture.value_at(u, v, p);
 
@@ -67,6 +68,7 @@ impl Hittable for Sphere {
             color,
             u,
             v,
+            front_face
         })
     }
 }
