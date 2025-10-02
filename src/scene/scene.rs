@@ -24,8 +24,8 @@ impl Scene {
             lights: Vec::new(),
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
-            max_depth: 5,
-            samples_per_pixel: 50,
+            max_depth: 10,
+            samples_per_pixel: 100,
         }
     }
 
