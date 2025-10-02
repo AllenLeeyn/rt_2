@@ -148,9 +148,12 @@ impl Scene {
             }
         }
 
-        let unit_direction = ray.direction().normalize();
-        let t = 0.5 * (unit_direction.y() + 1.0);
-        Color::lerp(Color::WHITE, Color::new_f32(0.5, 0.7, 1.0), t).to_vec3()
+
+        Color::DARK_GRAY.to_vec3()
+
+        //let unit_direction = ray.direction().normalize();
+        //let t = 0.5 * (unit_direction.y() + 1.0);
+        //Color::lerp(Color::WHITE, Color::new_f32(0.5, 0.7, 1.0), t).to_vec3()
 
         //self.background.value_at(u, v, ray.origin())
     }

@@ -89,14 +89,6 @@ impl Color {
         Self{ r, g ,b }
     }
 
-    pub fn new_f32(r: f32, g: f32, b: f32) -> Self {
-        Self {
-            r: (r * 255.999) as u8,
-            g: (g * 255.999) as u8,
-            b: (b * 255.999) as u8,
-        }
-    }
-
     pub fn from_u8(r: u8, g: u8, b: u8) -> Self {
         Self {
             r: r as f32 / 255.0,
@@ -105,6 +97,17 @@ impl Color {
         }
     }
 
+    pub fn to_vec3(&self) -> crate::core::Vec3 {
+        crate::core::Vec3::new(self.r as f32 / 255.0, self.g as f32 / 255.0, self.b as f32 / 255.0)
+    }
+
+    pub fn from_vec3(v: crate::core::Vec3) -> Self {
+        Self {
+            r: (v.x() * 255.999) as f32,
+            g: (v.y() * 255.999) as f32,
+            b: (v.z() * 255.999) as f32,
+        }
+    }
 
     pub fn set(&mut self, r: f32, g: f32, b: f32) {
         self.r = r;
@@ -129,19 +132,6 @@ impl Color {
         (gamma_correct(self.r), gamma_correct(self.g), gamma_correct(self.b))
     }
 
-    pub fn div_f32(self, factor: f32) -> Color {
-        fn scale(channel: u8, factor: f32) -> u8 {
-            (channel as f32 / factor)
-                .round()
-                .clamp(0.0, 255.0) as u8
-        }
-
-        Color {
-            r: self.r * rhs.r,
-            g: self.g * rhs.g,
-            b: self.b * rhs.b,
-        }
-    }
 }
 
 use std::fmt;

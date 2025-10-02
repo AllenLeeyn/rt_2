@@ -133,7 +133,7 @@ impl Light {
         };
 
         let surface_color = hit.material.color(hit.u, hit.v, &hit.p);
-        surface_color.mul(self.color.mul_f32(attenuation * visibility))
+        surface_color * (self.color * (attenuation * visibility))
     }
 
 }
