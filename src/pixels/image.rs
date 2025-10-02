@@ -53,7 +53,7 @@ impl Image {
 
         for pixel in img.pixels() {
             let [r, g, b] = pixel.0;
-            pixels.push(Color::new(r, g, b));
+            pixels.push(Color::from_u8(r, g, b));
         }
 
         Ok(Self {

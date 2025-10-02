@@ -50,7 +50,33 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 ```
-
 Read about the [**basic types**](README_basic_types.md) that you will be working with.
 
 Read about the [**scene elements**](README_scene_elements.md) and how to set them up.
+
+## Flags
+This project supports several command-line flags to customize rendering without modifying the source code.
+
+Run your program with flags like this:
+```rust
+cargo run -- [FLAGS]
+```
+
+### Available Flags
+| Flag | Description | Example |
+|------|-------------|---------|
+| `-o <filename>` | Specify output filename instead of the default `output.ppm` | `-o result.ppm` |
+| `-s <scene_num>` | Select which scene to render. Valid values: 1 to 4. Defaults to scene 4. | `-s 2` |
+| `-r <width> <height>` | Set the resolution of the rendered image. Width and height must be positive integers. | `-r 800 600` |
+
+#### Example Usage
+Render scene 2 with resolution 800x600 and save output as `my_render.ppm`:
+```rust
+cargo run -- -s 2 -r 800 600 -o my_render.ppm
+```
+
+If you omit any flags, the program uses default values:
+- Scene 3 is rendered
+- Resolution is whatever is set in the scene (or default)
+- Output is saved to `output.ppm`
+
