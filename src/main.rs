@@ -162,7 +162,7 @@ fn scene_three(scene: &mut Scene) {
 fn scene_four(scene: &mut Scene) {
     scene.camera_mut().set(
         Point3::new(-2.0, 2.0, -4.0),
-        Vec3::new(0.0, 2.0, 0.0),
+        Vec3::new(0.4, 0.75, 0.0),
         Vec3::Y,
         60.0,
         1.0,
@@ -196,13 +196,13 @@ fn scene_four(scene: &mut Scene) {
     scene.add_light(Light::new_directional(
         Point3::new(-1.5, -6.0, 3.0),
         Color::WHITE,
-        0.05,
+        0.25,
     ));
 
     scene.add_light(Light::new_directional(
         Point3::new(-1.0, -4.0, 3.0),
         Color::WHITE,
-        0.1,
+        0.5,
     ));
 }
 
