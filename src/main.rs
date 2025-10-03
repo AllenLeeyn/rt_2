@@ -36,6 +36,7 @@ fn main() -> std::io::Result<()> {
         3 => scene_three(&mut scene),
         4 => scene_four(&mut scene),
         5 => scene_five(&mut scene),
+        6 => scene_six(&mut scene),
         _ => {
             eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
             scene_three(&mut scene);
@@ -151,10 +152,10 @@ fn scene_three(scene: &mut Scene) {
     scene.add_light(Light::new_point(
         Point3::new(0.0, 3.0, 0.0),
         Color::WHITE,
-        4.0,
-        64,
-        0.6,
-        50.0,
+        0.4,
+        16,
+        10.0,
+        10.0,
     ));
 }
 
@@ -289,5 +290,45 @@ fn scene_five(scene: &mut Scene) {
         Vec3::new(-3.0, -1.0, 1.0),
         Color::WHITE,
         0.2,
+    ));
+}
+
+fn scene_six(scene: &mut Scene) {
+    scene.camera_mut().set(
+        Point3::new(3.0, 0.5, 2.5),
+        Vec3::ZERO,
+        Vec3::Y,
+        40.0,
+        1.0,
+        (800, 600),
+    );
+
+
+    let blue_gray = Arc::new(Lambertian::new(
+        Texture::SolidColor(Color::new(80.0, 85.0, 90.0))
+    ));
+    let dark_mirror = Arc::new(Metal::new(
+        Texture::SolidColor(Color::new(165.0, 150.0, 130.0)),
+        0.0,
+    ));
+    let green_metal = Arc::new(Metal::new(
+        Texture::SolidColor(Color::new(115.0, 130.0, 25.0)),
+        0.3,
+    ));
+
+    scene.add_object(Plane::new(
+        Point3::new(0.0, -0.5, 0.0),
+        Vec3::new(20.0, 0.0, 20.0),
+        blue_gray.clone(),
+    ));
+    scene.add_object(Sphere::new(
+        Point3::new(-1.0, 0.0, 0.0),
+        0.5,
+        dark_mirror.clone(),
+    ));
+    scene.add_object(Sphere::new(
+        Point3::new(1.0, 0.0, 0.0),
+        0.5,
+        green_metal.clone(),
     ));
 }
