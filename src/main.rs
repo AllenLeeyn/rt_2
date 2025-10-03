@@ -170,26 +170,26 @@ fn scene_four(scene: &mut Scene) {
     scene.add_object(Cube::new(
         Point3::new(-1.5, 0.5, 0.5),
         1.0,
-        Texture::Gradient(Color::DARK_RED, Color::RED, 1.571),
+        Arc::new(Lambertian::new(Texture::Gradient(Color::DARK_RED, Color::RED, 1.571))),
     ));
 
     scene.add_object(Cylinder::new(
         Point3::new(2.0, 0.0, -1.0),
         0.25,
         2.0,
-        Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0),
+        Arc::new(Lambertian::new(Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0))),
     ));
 
     scene.add_object(Sphere::new(
         Point3::new(-0.5, 0.5, 0.0),
         0.5,
-        Texture::SolidColor(Color::GREEN),
+        Arc::new(Lambertian::new(Texture::SolidColor(Color::GREEN))),
     ));
 
     scene.add_object(Plane::new(
         Point3::ZERO,
         Vec3::new(20.0, 0.0, 20.0),
-        Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
+        Arc::new(Lambertian::new(Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0))),
     ));
 
     scene.add_light(Light::new_directional(
