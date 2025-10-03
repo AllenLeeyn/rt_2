@@ -15,7 +15,7 @@ impl Cube {
         let max = center + Vec3::new(half, half, half);
         Self { min, max, texture }
     }
-    
+
     fn compute_normal(&self, p: Point3) -> Vec3 {
         let center = (self.min + self.max) / 2.0;
         let diff = p - center;
@@ -75,13 +75,13 @@ impl Hittable for Cube {
         let color = self.texture.value_at(u, v, p);
 
         Some(HitRecord {
-            p,
-            normal,
-            t,
-            color,
-            u,
-            v,
-            front_face,
+            p,          // hit_point
+            normal,     // surface normal
+            t,          // distance along ray
+            color,      // surface color
+            u,          // texture coordinate u
+            v,          // texture coordinate v
+            front_face, // whether the ray hits the front face
         })
     }
 }

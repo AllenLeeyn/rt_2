@@ -24,9 +24,9 @@ impl Sphere {
         self.bounding_box
     }
 
-    fn compute_normal(&self, _p: Point3) -> Vec3 {
-        // Sphere normal computation not yet implemented
-        Vec3::new(0.0, 1.0, 0.0)
+    fn compute_normal(&self, p: Point3) -> Vec3 {
+        // Normal at any point on sphere surface is (point - center) / radius
+        (p - self.center) / self.radius
     }
 
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
@@ -38,8 +38,48 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, _ray: &Ray, _t_min: f32, _t_max: f32) -> Option<HitRecord> {
-        // Sphere intersection not yet implemented
-        None
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        // Vector from ray origin to sphere center
+        let oc = ray.origin() - self.center;
+
+        // Quadratic equation coefficients: at² + bt + c = 0
+        let a = ray.direction().length_squared();
+        let half_b = oc.dot(ray.direction());
+        let c = oc.length_squared() - self.radius * self.radius;
+
+        // Discriminant tells us if there are real solutions
+        let discriminant = half_b * half_b - a * c;
+        if discriminant < 0.0 {
+            return None; // No intersection
+        }
+
+        let sqrt_discriminant = discriminant.sqrt();
+
+        // Try both roots of the quadratic equation
+        let mut root = (-half_b - sqrt_discriminant) / a; // Closer intersection
+        if root < t_min || root > t_max {
+            root = (-half_b + sqrt_discriminant) / a; // Farther intersection
+            if root < t_min || root > t_max {
+                return None; // Both intersections outside valid range
+            }
+        }
+
+        // Calculate intersection point and surface properties
+        let t = root;
+        let p = ray.at(t);
+        let outward_normal = self.compute_normal(p);
+        let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
+        let (u, v) = self.compute_uv(p);
+        let color = self.texture.value_at(u, v, p);
+
+        Some(HitRecord {
+            p,
+            normal,
+            t,
+            color,
+            u,
+            v,
+            front_face,
+        })
     }
 }
