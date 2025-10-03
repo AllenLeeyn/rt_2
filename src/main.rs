@@ -76,7 +76,7 @@ fn scene_one(scene: &mut Scene) {
     scene.add_light(Light::new_directional(
         Point3::new(0.0, -4.0, -4.0),
         Color::WHITE,
-        0.5,
+        0.75,
     ));
 }
 
