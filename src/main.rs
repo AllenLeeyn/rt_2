@@ -117,7 +117,7 @@ fn scene_two(scene: &mut Scene) {
 fn scene_three(scene: &mut Scene) {
     scene.camera_mut().set(
         Point3::splat(3.0),
-        Vec3::ZERO,
+        Vec3::new(0.4, 0.8, 0.0),//Vec3::ZERO,
         Vec3::Y,
         60.0,
         1.0,
@@ -150,12 +150,12 @@ fn scene_three(scene: &mut Scene) {
     ));
 
     scene.add_light(Light::new_point(
-        Point3::new(0.0, 3.0, 0.0),
+        Point3::new(1.0, 3.0, 0.0),
         Color::WHITE,
-        0.4,
+        1.0,
         16,
         10.0,
-        10.0,
+        60.0,
     ));
 }
 
