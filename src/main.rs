@@ -217,10 +217,10 @@ fn scene_five(scene: &mut Scene) {
     );
 
     let material_ground = Arc::new(Lambertian::new(Texture::SolidColor(Color::new(
-        0.3, 0.5, 0.0,
+        90.0, 130.0, 0.0,
     ))));
     let material_center = Arc::new(Lambertian::new(Texture::SolidColor(Color::new(
-        0.1, 0.2, 0.5,
+        26.0, 50.0, 120.0,
     ))));
     let material_left = Arc::new(Metal::new(
         Texture::SolidColor(Color::new(200.0, 200.0, 200.0)),
@@ -252,7 +252,7 @@ fn scene_five(scene: &mut Scene) {
         material_right.clone(),
     ));
 
-    let material_cube = Arc::new(Lambertian::new(Texture::SolidColor(Color::GRAY)));
+    let material_cube = Arc::new(Lambertian::new(Texture::SolidColor(Color::GRAY * 254.0)));
     scene.add_object(Cube::new(
         Point3::new(-1.5, 0.0, 0.5),
         1.0,
@@ -280,7 +280,7 @@ fn scene_five(scene: &mut Scene) {
     scene.add_light(Light::new_point(
         Point3::new(0.0, 3.0, 1.0),
         Color::WHITE,
-        5.0,
+        0.01,
         8,
         10.0,
         10.0,
@@ -289,7 +289,7 @@ fn scene_five(scene: &mut Scene) {
     scene.add_light(Light::new_directional(
         Vec3::new(-3.0, -1.0, 1.0),
         Color::WHITE,
-        0.2,
+        0.002,
     ));
 }
 
@@ -300,7 +300,7 @@ fn scene_six(scene: &mut Scene) {
         Vec3::Y,
         40.0,
         1.0,
-        (800, 600),
+        (400, 300),
     );
 
 
