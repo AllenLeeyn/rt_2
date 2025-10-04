@@ -99,7 +99,7 @@ impl Scene {
             let mut final_color = Color::BLACK;
 
             for light in &self.lights {
-                final_color = final_color.add(light.contribution_from_hit(&self.objects, &hit));
+                final_color = final_color + light.contribution_from_hit(&self.objects, &hit);
             }
 
             return final_color;
