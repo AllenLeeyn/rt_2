@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::pixels::*;
+use crate::random_double;
 use crate::scene::*;
 
 use rayon::prelude::*;
@@ -11,6 +12,7 @@ pub struct Scene {
     background: Texture,
     camera: Camera,
     max_depth: u32,
+    sample_size: u32,
 }
 
 impl Scene {
@@ -21,6 +23,7 @@ impl Scene {
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
             max_depth: 1,
+            sample_size: 8,
         }
     }
 
@@ -42,6 +45,10 @@ impl Scene {
 
     pub fn set_max_depth(&mut self, depth: u32) {
         self.max_depth = depth;
+    }
+
+    pub fn set_sample_size(&mut self, size: u32) {
+        self.sample_size = size;
     }
 
     pub fn add_object<T: Hittable + 'static>(&mut self, object: T) {
@@ -75,11 +82,14 @@ impl Scene {
                 let mut row_pixels = Vec::with_capacity(width as usize);
 
                 for x in 0..width {
-                    let u = (x as f32 + 0.5) / (width - 1) as f32;
-                    let v = 1.0 - (y as f32 + 0.5) / (height - 1) as f32;
-                    let ray = self.camera().generate_ray(u, v);
-                    let color = self.ray_color(&ray, u, v, self.max_depth);
-
+                    let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                        for _ in 0..self.sample_size {
+                        let u = (x as f32 + random_double()) / width as f32;
+                        let v = 1.0 - ((y as f32 + random_double()) / height as f32);
+                        let ray = self.camera().generate_ray(u, v);
+                        pixel_color = pixel_color + self.ray_color(&ray, u , v, self.max_depth);
+                    }
+                    let color = pixel_color/ self.sample_size as i32;
                     row_pixels.push(color);
                 }
 

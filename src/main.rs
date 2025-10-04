@@ -19,6 +19,10 @@ struct Args {
     /// Resolution width and height
     #[arg(short = 'r', long = "resolution", value_names = &["WIDTH", "HEIGHT"])]
     resolution: Option<Vec<u32>>,
+    
+    /// Samples per pixel
+    #[arg(short = 'q', long = "quality", default_value_t = 32)]
+    samples: u32,
 }
 
 fn main() -> std::io::Result<()> {
@@ -47,6 +51,7 @@ fn main() -> std::io::Result<()> {
         }
     }
 
+    scene.set_sample_size(args.samples);
     scene.render(&args.output)?;
 
     Ok(())
@@ -145,7 +150,7 @@ fn scene_three(scene: &mut Scene) {
         Point3::new(0.0, 3.0, 0.0),
         Color::WHITE,
         1.0,
-        128,
+        4,
         1.0,
         50.0
     ));

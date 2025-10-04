@@ -162,3 +162,12 @@ impl Mul<f32> for Color {
         }
     }
 }
+
+use std::ops::Div;
+impl Div<i32> for Color {
+    type Output = Color;
+    fn div(self, rhs: i32) -> Color {
+        let rhs = rhs as f32;
+        Color::new(self.r / rhs, self.g / rhs, self.b / rhs)
+    }
+}
