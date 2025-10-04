@@ -119,6 +119,7 @@ impl Color {
 
         (gamma_correct(self.r), gamma_correct(self.g), gamma_correct(self.b))
     }
+
 }
 
 use std::fmt;
@@ -160,5 +161,14 @@ impl Mul<f32> for Color {
             g: self.g * scalar,
             b: self.b * scalar,
         }
+    }
+}
+
+use std::ops::Div;
+impl Div<i32> for Color {
+    type Output = Color;
+    fn div(self, rhs: i32) -> Color {
+        let rhs = rhs as f32;
+        Color::new(self.r / rhs, self.g / rhs, self.b / rhs)
     }
 }

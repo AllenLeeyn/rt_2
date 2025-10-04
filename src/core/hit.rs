@@ -1,6 +1,7 @@
 use crate::core::ray::Ray;
 use crate::core::vec3::{Point3, Vec3};
 use crate::core::color::Color;
+use crate::material::material::Material;
 
 /// Stores data about a ray-object intersection.
 #[derive(Clone)]
@@ -18,6 +19,7 @@ pub struct HitRecord {
     /// Texture coordinate v
     pub v: f32,
     pub front_face: bool,
+    pub material: Material,
 }
 
 impl HitRecord {

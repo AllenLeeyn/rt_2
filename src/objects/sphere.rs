@@ -1,21 +1,21 @@
 use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
-use crate::pixels::texture::Texture;
+use crate::material::Material;
 
 #[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f32,
-    texture: Texture,
+    material: Material,
     bounding_box: (Point3, Point3),
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f32, texture: Texture) -> Self {
+    pub fn new(center: Point3, radius: f32, material: Material) -> Self {
         let rvec = Vec3::new(radius, radius, radius);
         Self {
             center,
             radius,
-            texture,
+            material,
             bounding_box: (center - rvec, center + rvec),
         }
     }
@@ -33,6 +33,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
+
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let oc = ray.origin() - self.center;
         let a = ray.direction().length_squared();
@@ -59,7 +60,7 @@ impl Hittable for Sphere {
         let outward_normal = (p - self.center) / self.radius;
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
         let (u, v) = self.compute_uv(p);
-        let color = self.texture.value_at(u, v, p);
+        let color = self.material.value_at(u, v, p);
 
         Some(HitRecord {
             p,
@@ -68,7 +69,8 @@ impl Hittable for Sphere {
             color,
             u,
             v,
-            front_face
+            front_face, 
+            material: self.material.clone(),
         })
     }
 }

@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::random_double;
 use crate::scene::*;
 use crate::pixels::*;
 
@@ -11,6 +12,7 @@ pub struct Scene {
     background: Texture,
     camera: Camera,
     max_depth: u32,
+    sample_per_pixel: i32,
 }
 
 impl Scene {
@@ -20,7 +22,8 @@ impl Scene {
             lights: Vec::new(),
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
-            max_depth: 1,
+            max_depth: 8,
+            sample_per_pixel: 32,
         }
     }
 
@@ -67,11 +70,15 @@ impl Scene {
 
         for y in 0..height {
             for x in 0..width {
-                let s = (x as f32 + 0.5) / width as f32;
-                let t = 1.0 - ((y as f32 + 0.5) / height as f32);
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                for _ in 0..self.sample_per_pixel {
+                    let s = (x as f32 + random_double()) / width as f32;
+                    let t = 1.0 - ((y as f32 + random_double()) / height as f32);
 
-                let ray = self.camera().generate_ray(s, t);
-                let color = self.ray_color(&ray, s , t, self.max_depth);
+                    let ray = self.camera().generate_ray(s, t);
+                    pixel_color = pixel_color + self.ray_color(&ray, s , t, self.max_depth);
+                }
+                let color = pixel_color/ self.sample_per_pixel;
                 image.set_pixel(x as usize, y as usize, color);
             }
             bar.inc(1);
@@ -81,7 +88,11 @@ impl Scene {
         Ok(())
     }
 
-    pub fn ray_color(&self, ray: &Ray, u: f32, v: f32, _depth: u32) -> Color {
+    pub fn ray_color(&self, ray: &Ray, u: f32, v: f32, depth: u32) -> Color {    
+        if depth == 0 {
+            return Color::BLACK;
+        }
+        
         let mut closest_so_far = 50.0;
         let mut final_hit = None;
 
@@ -99,7 +110,12 @@ impl Scene {
                 final_color = final_color + light.contribution_from_hit(&self.objects, &hit);
             }
 
-            return final_color
+            if let Some(scatter) = hit.material.scatter(ray, &hit) {
+                let bounced_color = self.ray_color(&scatter.scattered_ray, u, v, depth - 1);
+                final_color = final_color + scatter.attenuation * bounced_color;
+            }
+
+            return final_color;
         }
         self.background.value_at(u, v, ray.origin())
     }

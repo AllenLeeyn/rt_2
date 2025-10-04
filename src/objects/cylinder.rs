@@ -1,17 +1,17 @@
 use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
-use crate::pixels::texture::Texture;
+use crate::material::Material;
 
 #[derive(Clone)]
 pub struct Cylinder {
     center: Point3,
     radius: f32,
     height: f32,
-    texture: Texture,
+    material: Material,
     bounding_box: (Point3, Point3),
 }
 
 impl Cylinder {
-    pub fn new(center: Point3, radius: f32, height: f32, texture: Texture) -> Self {
+    pub fn new(center: Point3, radius: f32, height: f32, material: Material) -> Self {
         let min = Point3::new(
             center.x() - radius,
             center.y(),
@@ -28,7 +28,7 @@ impl Cylinder {
             center,
             radius,
             height,
-            texture,
+            material,
             bounding_box: (min, max),
         }
     }
@@ -69,7 +69,7 @@ impl Cylinder {
             let outward_normal = if y > self.center.y() { Vec3::Y } else { -Vec3::Y };
             let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
             let (u, v) = self.compute_uv(p);
-            let color = self.texture.value_at(u, v, p);
+            let color = self.material.value_at(u, v, p);
 
             return Some(HitRecord {
                 p,
@@ -79,6 +79,7 @@ impl Cylinder {
                 u,
                 v,
                 front_face,
+                material: self.material.clone()
             });
         }
 
@@ -119,7 +120,7 @@ impl Cylinder {
                 let outward_normal = self.compute_normal(p);
                 let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
                 let (u, v) = self.compute_uv(p);
-                let color = self.texture.value_at(u, v, p);
+                let color = self.material.value_at(u, v, p);
 
                 return Some(HitRecord {
                     p,
@@ -129,6 +130,7 @@ impl Cylinder {
                     u,
                     v,
                     front_face,
+                    material: self.material.clone()
                 });
             }
         }
@@ -140,21 +142,33 @@ impl Cylinder {
 
 impl Hittable for Cylinder {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        
+        let mut closest_hit: Option<HitRecord> = None;
+        let mut closest_t = t_max;
+
         let y_bottom = self.center.y();
         let y_top = y_bottom + self.height;
-        
-        if let Some(hit) = self.hit_cap(ray, t_min, t_max, y_top) {
-            return Some(hit);
+
+        // Top cap
+        if let Some(hit) = self.hit_cap(ray, t_min, closest_t, y_top) {
+            closest_t = hit.t;
+            closest_hit = Some(hit);
         }
 
-        if let Some(hit) = self.hit_side(ray, t_min, t_max) {
-            return Some(hit);
+        // Side
+        if let Some(hit) = self.hit_side(ray, t_min, closest_t) {
+            if hit.t < closest_t {
+                closest_t = hit.t;
+                closest_hit = Some(hit);
+            }
         }
 
-        if let Some(hit) = self.hit_cap(ray, t_min, t_max, y_bottom) {
-            return Some(hit);
+        // Bottom cap
+        if let Some(hit) = self.hit_cap(ray, t_min, closest_t, y_bottom) {
+            if hit.t < closest_t {
+                closest_hit = Some(hit);
+            }
         }
-        None
+
+        closest_hit
     }
 }

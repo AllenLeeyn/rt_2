@@ -1,42 +1,22 @@
-use std::ops::Neg;
-
 use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
-use crate::pixels::texture::Texture;
+use crate::material::Material;
 
 #[derive(Clone)]
 pub struct Cube {
     pub min: Point3,
     pub max: Point3,
-    pub texture: Texture,
+    material: Material,
 }
 
 impl Cube {
-    pub fn new(center: Point3, size: f32, texture: Texture) -> Self {
+    pub fn new(center: Point3, size: f32, material: Material) -> Self {
         let half = size / 2.0;
         let min = center - Vec3::new(half, half, half);
         let max = center + Vec3::new(half, half, half);
         Self {
             min,
             max,
-            texture,
-        }
-    }
-    
-    fn compute_normal(&self, p: Point3) -> Vec3 {
-        let epsilon = 1e-4;
-
-        if (p.x() - self.min.x()).abs() < epsilon {
-            Vec3::X.neg()
-        } else if (p.x() - self.max.x()).abs() < epsilon {
-            Vec3::X
-        } else if (p.y() - self.min.y()).abs() < epsilon {
-            Vec3::Y.neg()
-        } else if (p.y() - self.max.y()).abs() < epsilon {
-            Vec3::Y
-        } else if (p.z() - self.min.z()).abs() < epsilon {
-            Vec3::Z.neg()
-        } else {
-            Vec3::Z
+            material,
         }
     }
 
@@ -51,6 +31,7 @@ impl Hittable for Cube {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let mut tmin = t_min;
         let mut tmax = t_max;
+        let mut hit_axis = 0;
 
         for i in 0..3 {
             let inv_d = 1.0 / ray.direction()[i];
@@ -61,7 +42,11 @@ impl Hittable for Cube {
                 std::mem::swap(&mut t0, &mut t1);
             }
 
-            tmin = tmin.max(t0);
+            if t0 > tmin {
+                tmin = t0;
+                hit_axis = i; // track axis of entry
+            }
+
             tmax = tmax.min(t1);
 
             if tmax <= tmin {
@@ -71,10 +56,16 @@ impl Hittable for Cube {
 
         let t = tmin;
         let p = ray.at(t);
-        let outward_normal = self.compute_normal(p);
+
+        // Compute normal from hit axis
+        let mut outward_normal = Vec3::ZERO;
+        let dir = ray.direction()[hit_axis];
+
+        outward_normal[hit_axis] = if dir < 0.0 { 1.0 } else { -1.0 };
+
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
         let (u, v) = self.compute_uv(p);
-        let color = self.texture.value_at(u, v, p);
+        let color = self.material.value_at(u, v, p);
 
         Some(HitRecord {
             p,
@@ -84,6 +75,7 @@ impl Hittable for Cube {
             u,
             v,
             front_face,
+            material: self.material.clone(),
         })
     }
 }

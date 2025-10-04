@@ -1,4 +1,5 @@
 use rt_2::core::*;
+use rt_2::material::*;
 use rt_2::objects::*;
 use rt_2::scene::*;
 use rt_2::pixels::*;
@@ -64,7 +65,13 @@ fn scene_one(scene: &mut Scene) {
     scene.add_object(Sphere::new(
         Point3::ZERO,
         2.0,
-        Texture::SolidColor(Color::PASTEL_LIME),
+        Material{
+            texture: Texture::SolidColor(Color::PASTEL_LIME),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
     ));
     
     scene.add_light(Light::new_directional(
@@ -86,18 +93,30 @@ fn scene_two(scene: &mut Scene) {
     scene.add_object(Plane::new(
         Point3::ZERO,
         Vec3::new(5.0, 0.0, 5.0),
-        Texture::Checkerboard(
-            Color::LIGHT_GRAY,
-            Color::GRAY,
-            5.0
-        ),
+        Material{
+            texture: Texture::Checkerboard(
+                Color::LIGHT_GRAY,
+                Color::GRAY,
+                5.0
+            ),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
     ));
     
     let image = Image::load("assets/test.png").unwrap();
     scene.add_object(Cube::new(
         Point3::new(0.0, 0.5, 0.0),
         1.0,
-        Texture::Image(image),
+        Material{
+            texture: Texture::Image(image),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
     ));
     
     scene.add_light(Light::new_directional(
@@ -117,37 +136,97 @@ fn scene_three(scene: &mut Scene) {
         (400, 300));
     
     scene.add_object(Cube::new(
-        Point3::new(-1.5, 0.5, 0.5),
-        1.0, // size (width, height, depth)
-        Texture::Gradient(Color::DARK_RED, Color::RED, 1.571),
+        Point3::new(-2.0, 1.0, 0.0),
+        2.0,
+        Material{
+            texture: Texture::SolidColor(Color::RED),
+            diffuse: 0.0,
+            reflectivity: 1.0,
+            transparency: 0.0,
+            ior:0.0,
+        },
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(-2.75, 2.25, -0.75),
+        0.5,
+        Material{
+            texture: Texture::SolidColor(Color::NEON_PINK),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior:0.0,
+        },
     ));
 
     scene.add_object(Cylinder::new(
-        Point3::new(2.0, 0.0, -1.0),
-        0.25,
+        Point3::new(2.0, 0.0, -0.5),
+        0.1,
         2.0,
-        Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0),
+        Material{
+            texture: Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.5, 0.5, -0.5),
+        0.5,
+        Material{
+            texture: Texture::SolidColor(Color::YELLOW),
+            diffuse: 0.3,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
     ));
 
     scene.add_object(Sphere::new(
         Point3::new(-0.5, 0.5, 0.0),
         0.5,
-        Texture::SolidColor(Color::GREEN),
+        Material{
+            texture: Texture::SolidColor(Color::LIGHT_GREEN),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.9,
+            ior: 1.5,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(-0.5, 0.5, 0.0),
+        -0.45,
+        Material{
+            texture: Texture::SolidColor(Color::DARK_GRAY),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.9,
+            ior: 1.5,
+        },
     ));
 
     scene.add_object(Plane::new(
         Point3::ZERO,
         Vec3::new(20.0, 0.0, 20.0),
-        Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
+        Material{
+            texture: Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
+            diffuse: 0.00,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
     ));
 
     scene.add_light(Light::new_point(
-        Point3::new(0.0, 3.0, 0.0),
+        Point3::new(0.0, 4.0, 0.0),
         Color::WHITE,
         1.0,
-        128,
-        1.0,
-        50.0
+        4,
+        0.8,
+        1.0
     ));
 }
 
@@ -159,32 +238,55 @@ fn scene_four(scene: &mut Scene) {
         60.0,
         1.0,
         (400, 300));
-
+    
     scene.add_object(Cube::new(
         Point3::new(-1.5, 0.5, 0.5),
         1.0,
-        Texture::Gradient(Color::DARK_RED, Color::RED, 1.571),
+        Material{
+            texture: Texture::Gradient(Color::DARK_RED, Color::RED, 1.571),
+            diffuse: 0.1,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
     ));
 
     scene.add_object(Cylinder::new(
         Point3::new(2.0, 0.0, -1.0),
         0.25,
         2.0,
-        Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0),
+        Material{
+            texture: Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
     ));
 
     scene.add_object(Sphere::new(
         Point3::new(-0.5, 0.5, 0.0),
         0.5,
-        Texture::SolidColor(Color::GREEN),
+        Material{
+            texture: Texture::SolidColor(Color::GREEN),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
     ));
 
     scene.add_object(Plane::new(
         Point3::ZERO,
         Vec3::new(20.0, 0.0, 20.0),
-        Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
+        Material{
+            texture: Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
     ));
-
     scene.add_light(Light::new_directional(
         Point3::new(-1.5, -6.0, 3.0),
         Color::WHITE,

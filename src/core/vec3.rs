@@ -70,6 +70,13 @@ impl Vec3 {
     pub fn dot(&self, v: Vec3) -> f32 {
         self.x() * v.x() + self.y() * v.y() + self.z() * v.z()
     }
+
+    pub fn near_zero(&self) -> bool {
+        let epsilon = 1e-8;
+        self.x.abs() < epsilon &&
+        self.y.abs() < epsilon &&
+        self.z.abs() < epsilon
+    }
     
     pub fn random_unit_vector() -> Vec3 {
         let mut rng = rand::rng();
@@ -91,6 +98,15 @@ impl Vec3 {
             if p.length_squared() < 1.0 {
                 return p;
             }
+        }
+    }
+    
+    pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+        let in_unit_sphere = Vec3::random_in_unit_sphere();
+        if in_unit_sphere.dot(normal) > 0.0 {
+            in_unit_sphere
+        } else {
+            -in_unit_sphere
         }
     }
     

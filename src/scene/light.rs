@@ -95,7 +95,6 @@ impl Light {
     ) -> Color {
         let (_light_dir, _light_dist, attenuation, visibility) = match self.light_type {
             LightType::Point => {
-                let mut visible = 0;
                 let mut total_diffuse = 0.0;
 
                 for _ in 0..self.samples {
@@ -106,23 +105,20 @@ impl Light {
                     let shadow_origin = hit.p + hit.normal * 1e-3;
                     let shadow_ray = Ray::new(shadow_origin, light_dir);
 
-                    let in_shadow = objects.iter().any(|obj| {
-                        obj.hit(&shadow_ray, 1e-3, light_dist).is_some()
-                    });
+                    let transmission = transparency_along_ray(&shadow_ray, objects, light_dist);
 
-                    if !in_shadow {
-                        visible += 1;
-                        total_diffuse += self.diffuse(hit.normal, light_dir);
+                    if transmission > 0.0 {
+                        let diffuse = self.diffuse(hit.normal, light_dir);
+                        total_diffuse += transmission * diffuse;
                     }
                 }
-
-                let visibility = visible as f32 / self.samples as f32;
+            
                 let avg_diffuse = total_diffuse / self.samples as f32;
                 let attenuation = self.attenuation(hit.p);
 
                 let main_light_dir = self.direction_from(hit.p);
 
-                (main_light_dir, self.distance(hit.p), attenuation, visibility * avg_diffuse)
+                (main_light_dir, self.distance(hit.p), attenuation, avg_diffuse)
             }, 
 
             LightType::Directional { direction } => {
@@ -143,4 +139,36 @@ impl Light {
         hit.color * self.color * (attenuation * visibility)
     }
 
+}
+
+fn transparency_along_ray(ray: &Ray, objects: &[Box<dyn Hittable>], max_distance: f32) -> f32 {
+    let mut transparency = 1.0;
+    let mut t_min = 1e-3;
+
+    while t_min < max_distance {
+        let mut closest_hit: Option<HitRecord> = None;
+        let mut closest_t = max_distance;
+
+        for obj in objects {
+            if let Some(hit) = obj.hit(ray, t_min, closest_t) {
+                closest_t = hit.t;
+                closest_hit = Some(hit);
+            }
+        }
+
+        if let Some(hit) = closest_hit {
+            let opacity = 1.0 - hit.material.transparency.clamp(0.0, 1.0);
+            transparency *= 1.0 - opacity;
+
+            if transparency < 0.01 {
+                return 0.0;
+            }
+
+            t_min = closest_t + 1e-3;
+        } else {
+            break;
+        }
+    }
+
+    transparency
 }
