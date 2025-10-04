@@ -33,6 +33,7 @@ impl Cube {
             Vec3::new(0.0, 0.0, diff.z().signum())
         }
     }
+    
     // Compute UV coordinates for texture mapping (2D texture on 3D surface)
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
         let u = (p.x() - self.min.x()) / (self.max.x() - self.min.x());

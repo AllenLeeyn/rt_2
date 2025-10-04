@@ -29,25 +29,25 @@ impl Cylinder {
         }
     }
 
-    fn bounding_box(&self) -> (Point3, Point3) {
-        self.bounding_box
-    }
     // Compute normal vector at a point on the cylinder surface
     fn compute_normal(&self, p: Point3) -> Vec3 {
         let dx = p.x() - self.center.x();
         let dz = p.z() - self.center.z();
         Vec3::new(dx, 0.0, dz).normalize()
     }
+
     // Compute UV coordinates for a point on the cylinder surface
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
         let u = (p.x() - self.center.x() + self.radius) / (2.0 * self.radius);
         let v = (p.y() - self.center.y()) / self.height;
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
+
     // Set a new texture for the cylinder
     pub fn set_texture(&mut self, texture: Texture) {
         self.texture = texture;
     }
+
     // Helper function to check intersection with a cap (top or bottom)
     fn hit_cap(&self, ray: &Ray, t_min: f32, t_max: f32, y: f32) -> Option<HitRecord> {
         // Skip if ray direction is too small (parallel to plane)

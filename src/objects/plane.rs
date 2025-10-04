@@ -33,10 +33,6 @@ impl Plane {
         }
     }
 
-    // fn bounding_box(&self) -> (Point3, Point3) {
-    //     self.bounding_box
-    // }
-
     fn normal(&self) -> Vec3 {
         Vec3::Y
     }
