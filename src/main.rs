@@ -33,6 +33,7 @@ fn main() -> std::io::Result<()> {
         2 => scene_two(&mut scene),
         3 => scene_three(&mut scene),
         4 => scene_four(&mut scene),
+        5 => scene_five(&mut scene),
         _ => {
             eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
             scene_three(&mut scene);
@@ -297,5 +298,77 @@ fn scene_four(scene: &mut Scene) {
         Point3::new(-3.0, -8.0, 3.0),
         Color::WHITE,
         0.4,
+    ));
+}
+
+
+fn scene_five(scene: &mut Scene) {
+    scene.camera_mut().set(
+        Point3::new(0.0, 0.5, 1.0),
+        Vec3::new(0.0, 0.5, 0.0),
+        Vec3::Y,
+        60.0,
+        1.0,
+        (400, 300));
+
+    scene.set_background(
+        Texture::Gradient(Color::PASTEL_BLUE,
+            Color::WHITE, 1.571));
+
+    scene.add_object(Plane::new(
+        Point3::ZERO,
+        Vec3::new(20.0, 0.0, 20.0),
+        Material{
+            texture: Texture::SolidColor(Color::YELLOW),
+            diffuse: 0.5,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.0, 0.5, -1.0),
+        0.5,
+        Material{
+            texture: Texture::SolidColor(Color::new(0.7, 0.3, 0.3)),
+            diffuse: 0.5,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(-1.0, 0.5, -1.0),
+        0.5,
+        Material{
+            texture: Texture::SolidColor(Color::new(0.8, 0.8, 0.8)),
+            diffuse: 0.0,
+            reflectivity: 1.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(1.0, 0.5, -1.0),
+        0.5,
+        Material{
+            texture: Texture::SolidColor(Color::new(0.8, 0.7, 0.3)),
+            diffuse: 0.0,
+            reflectivity: 0.6,
+            transparency: 0.9,
+            ior: 1.5,
+        },
+    ));
+
+    scene.add_light(Light::new_point(
+        Point3::new(0.0, 3.0, 1.0),
+        Color::WHITE,
+        1.0,
+        4,
+        0.8,
+        1.0
     ));
 }
