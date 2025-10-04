@@ -1,6 +1,7 @@
 use crate::core::*;
-use crate::scene::*;
 use crate::pixels::*;
+use crate::scene::*;
+use indicatif::{ProgressBar, ProgressStyle};
 
 pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
@@ -45,15 +46,25 @@ impl Scene {
         self.objects.push(Box::new(object));
     }
 
-    
     pub fn add_light(&mut self, light: Light) {
         self.lights.push(light);
     }
 
     pub fn render(&mut self, path: &str) -> std::io::Result<()> {
         let (width, height) = self.camera().resolution();
-
         let mut image = Image::new(width as usize, height as usize);
+
+        // Create progress bar
+        let pb = ProgressBar::new(height as u64);
+        pb.set_style(
+            ProgressStyle::with_template(
+                "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos:>3}/{len:3} lines ({percent}%) {eta}"
+            )
+            .unwrap()
+            .progress_chars("█▉▊▋▌▍▎▏  ")
+        );
+
+        println!("🚀 Starting render: {}x{} pixels", width, height);
 
         for y in 0..height {
             for x in 0..width {
@@ -61,10 +72,13 @@ impl Scene {
                 let t = 1.0 - ((y as f32 + 0.5) / height as f32);
 
                 let ray = self.camera().generate_ray(s, t);
-                let color = self.ray_color(&ray, s , t, self.max_depth);
+                let color = self.ray_color(&ray, s, t, self.max_depth);
                 image.set_pixel(x as usize, y as usize, color);
             }
+            pb.inc(1);
         }
+
+        println!("💾 Saving to: {}", path);
 
         image.save_ppm(path)?;
         Ok(())
@@ -88,9 +102,8 @@ impl Scene {
                 final_color = final_color.add(light.contribution_from_hit(&self.objects, &hit));
             }
 
-            return final_color
+            return final_color;
         }
         self.background.value_at(u, v, ray.origin())
     }
-
 }
