@@ -179,7 +179,7 @@ fn scene_three(scene: &mut Scene) {
         Material{
             texture: Texture::SolidColor(Color::YELLOW),
             diffuse: 0.3,
-            reflectivity: 0.0,
+            reflectivity: 0.5,
             transparency: 0.0,
             ior: 0.0,
         },
@@ -214,7 +214,7 @@ fn scene_three(scene: &mut Scene) {
         Vec3::new(20.0, 0.0, 20.0),
         Material{
             texture: Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
-            diffuse: 0.00,
+            diffuse: 1.00,
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
