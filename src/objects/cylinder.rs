@@ -7,7 +7,7 @@ pub struct Cylinder {
     radius: f32,
     height: f32,
     texture: Texture,
-    bounding_box: (Point3, Point3),
+    _bounding_box: (Point3, Point3),
 }
 
 impl Cylinder {
@@ -25,7 +25,7 @@ impl Cylinder {
             radius,
             height,
             texture,
-            bounding_box: (min, max),
+            _bounding_box: (min, max),
         }
     }
 

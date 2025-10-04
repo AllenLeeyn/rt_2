@@ -1,6 +1,8 @@
 use crate::core::*;
 use crate::pixels::*;
 use crate::scene::*;
+
+use rayon::prelude::*;
 use indicatif::{ProgressBar, ProgressStyle};
 
 pub struct Scene {
@@ -66,19 +68,35 @@ impl Scene {
 
         println!("🚀 Starting render: {}x{} pixels", width, height);
 
-        for y in 0..height {
-            for x in 0..width {
-                let s = (x as f32 + 0.5) / width as f32;
-                let t = 1.0 - ((y as f32 + 0.5) / height as f32);
+        // Parallelize over rows
+        let rows: Vec<(u32, Vec<Color>)> = (0..height)
+            .into_par_iter()
+            .map(|y| {
+                let mut row_pixels = Vec::with_capacity(width as usize);
 
-                let ray = self.camera().generate_ray(s, t);
-                let color = self.ray_color(&ray, s, t, self.max_depth);
-                image.set_pixel(x as usize, y as usize, color);
-            }
-            pb.inc(1);
-        }
+                for x in 0..width {
+                    let u = (x as f32 + 0.5) / (width - 1) as f32;
+                    let v = 1.0 - (y as f32 + 0.5) / (height - 1) as f32;
+                    let ray = self.camera().generate_ray(u, v);
+                    let color = self.ray_color(&ray, u, v, self.max_depth);
+
+                    row_pixels.push(color);
+                }
+
+                pb.inc(1);
+                (y, row_pixels)
+            })
+            .collect();
+
+        pb.finish();
 
         println!("💾 Saving to: {}", path);
+        for (y, row) in rows {
+            for (x, color) in row.into_iter().enumerate() {
+                image.set_pixel(x, y as usize, color);
+            }
+        }
+
 
         image.save_ppm(path)?;
         Ok(())
