@@ -1,13 +1,16 @@
 use std::ops::Neg;
 
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
-use crate::pixels::texture::Texture;
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
+use crate::material::MaterialType;
+use crate::pixels::texture::{Texture, TexturedMaterial};
 
 #[derive(Clone)]
 pub struct Cube {
     pub min: Point3,
     pub max: Point3,
     pub texture: Texture,
+    material: Option<MaterialType>,
+    textured_material: Option<TexturedMaterial>,
 }
 
 impl Cube {
@@ -15,13 +18,31 @@ impl Cube {
         let half = size / 2.0;
         let min = center - Vec3::new(half, half, half);
         let max = center + Vec3::new(half, half, half);
-        Self {
-            min,
-            max,
+        Self { 
+            min, 
+            max, 
             texture,
+            material: None,
+            textured_material: None,
         }
     }
-    
+
+    pub fn set_material(&mut self, material: MaterialType) {
+        self.material = Some(material);
+    }
+
+    pub fn set_textured_material(&mut self, textured_material: TexturedMaterial) {
+        self.textured_material = Some(textured_material);
+    }
+
+    pub fn material(&self) -> Option<&MaterialType> {
+        self.material.as_ref()
+    }
+
+    pub fn textured_material(&self) -> Option<&TexturedMaterial> {
+        self.textured_material.as_ref()
+    }
+
     fn compute_normal(&self, p: Point3) -> Vec3 {
         let epsilon = 1e-4;
 
@@ -84,6 +105,8 @@ impl Hittable for Cube {
             u,
             v,
             front_face,
+            material: self.material.clone(),
+            textured_material: self.textured_material.clone(),
         })
     }
 }

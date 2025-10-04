@@ -37,8 +37,16 @@ impl Camera {
     pub fn resolution(&self) -> (u32, u32) {
         self.resolution
     }
-    
-    pub fn set(&mut self, origin: Point3, look_at: Point3, vup: Vec3, vfov: f32, focal_length: f32, resolution: (u32, u32)) {
+
+    pub fn set(
+        &mut self,
+        origin: Point3,
+        look_at: Point3,
+        vup: Vec3,
+        vfov: f32,
+        focal_length: f32,
+        resolution: (u32, u32),
+    ) {
         self.origin = origin;
         self.look_at = look_at;
         self.vup = vup;

@@ -1,6 +1,7 @@
 use crate::core::*;
-use crate::scene::*;
+use crate::material::{Material, MaterialType};
 use crate::pixels::*;
+use crate::scene::*;
 
 use indicatif::ProgressBar;
 use indicatif::ProgressStyle;
@@ -11,6 +12,7 @@ pub struct Scene {
     background: Texture,
     camera: Camera,
     max_depth: u32,
+    samples_per_pixel: u32,
 }
 
 impl Scene {
@@ -20,7 +22,8 @@ impl Scene {
             lights: Vec::new(),
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
-            max_depth: 1,
+            max_depth: 10,
+            samples_per_pixel: 16,
         }
     }
 
@@ -44,11 +47,14 @@ impl Scene {
         self.max_depth = depth;
     }
 
+    pub fn set_samples_per_pixel(&mut self, samples: u32) {
+        self.samples_per_pixel = samples;
+    }
+
     pub fn add_object<T: Hittable + 'static>(&mut self, object: T) {
         self.objects.push(Box::new(object));
     }
 
-    
     pub fn add_light(&mut self, light: Light) {
         self.lights.push(light);
     }
@@ -67,12 +73,25 @@ impl Scene {
 
         for y in 0..height {
             for x in 0..width {
-                let s = (x as f32 + 0.5) / width as f32;
-                let t = 1.0 - ((y as f32 + 0.5) / height as f32);
+                let mut pixel_color = Color::BLACK;
+                
+                for _ in 0..self.samples_per_pixel {
+                    // adding small randoms for anti-aliasing
+                    let s = (x as f32 + rand::random::<f32>()) / width as f32;
+                    let t = 1.0 - ((y as f32 + rand::random::<f32>()) / height as f32);
 
-                let ray = self.camera().generate_ray(s, t);
-                let color = self.ray_color(&ray, s , t, self.max_depth);
-                image.set_pixel(x as usize, y as usize, color);
+                    let ray = self.camera().generate_ray(s, t);
+                    pixel_color = pixel_color + self.ray_color(&ray, s, t, self.max_depth);
+                }
+
+                pixel_color = pixel_color / self.samples_per_pixel as f32;
+                pixel_color = Color::new(
+                    pixel_color.r().sqrt(),
+                    pixel_color.g().sqrt(),
+                    pixel_color.b().sqrt(),
+                );
+                
+                image.set_pixel(x as usize, y as usize, pixel_color);
             }
             bar.inc(1);
         }
@@ -81,11 +100,15 @@ impl Scene {
         Ok(())
     }
 
-    pub fn ray_color(&self, ray: &Ray, u: f32, v: f32, _depth: u32) -> Color {
+    pub fn ray_color(&self, ray: &Ray, u: f32, v: f32, depth: u32) -> Color {
+        if depth == 0 {
+            return Color::BLACK;
+        }
+
         let mut closest_so_far = 50.0;
         let mut final_hit = None;
 
-        for object in &self.objects {
+        for object in self.objects.iter() {
             if let Some(hit) = object.hit(ray, 0.001, closest_so_far) {
                 closest_so_far = hit.t;
                 final_hit = Some(hit);
@@ -93,15 +116,46 @@ impl Scene {
         }
 
         if let Some(hit) = final_hit {
-            let mut final_color = Color::BLACK;
+            if let Some(mat) = &hit.material {
+                match mat {
+                    MaterialType::Lambertian(_) => {
+                        if let Some((scattered, attenuation)) = mat.scatter(ray, &hit) {
+                            let bounced = self.ray_color(&scattered, u, v, depth - 1);
 
-            for light in &self.lights {
-                final_color = final_color + light.contribution_from_hit(&self.objects, &hit);
+                            let mut direct = Color::BLACK;
+                            for light in &self.lights {
+                                direct = direct + light.contribution_from_hit(&self.objects, &hit);
+                            }
+
+                            let diffuse_weight = hit.textured_material
+                                .as_ref()
+                                .map(|tm| tm.get_alpha())
+                                .unwrap_or(1.0);
+
+                            return attenuation * (bounced * 0.2 + direct * 0.8 * diffuse_weight);
+                        } else {
+                            return Color::BLACK;
+                        }
+                    }
+
+                    MaterialType::Metal(_) | MaterialType::Dielectric(_) => {
+                        if let Some((scattered, attenuation)) = mat.scatter(ray, &hit) {
+                            let bounced = self.ray_color(&scattered, u, v, depth - 1);
+                            return attenuation * bounced;
+                        } else {
+                            return Color::BLACK;
+                        }
+                    }
+                }
+            } else {
+                let mut final_color = Color::BLACK;
+                for light in &self.lights {
+                    final_color = final_color + light.contribution_from_hit(&self.objects, &hit);
+                }
+                return final_color * hit.color;
             }
-
-            return final_color
         }
+
         self.background.value_at(u, v, ray.origin())
     }
-
 }

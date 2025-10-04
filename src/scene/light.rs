@@ -1,6 +1,20 @@
 use crate::core::*;
+use crate::material::MaterialType;
 
 use rand::Rng;
+
+const DIELECTRIC_MIN_SHADOW: f32 = 0.04;     // at least 4% light loss
+const DIELECTRIC_DENSITY: f32 = 0.6;         // absorption per unit of distance
+const DIELECTRIC_TINT_POWER: f32 = 1.0;      // for strengthening the tint
+
+const METAL_SHADOW_TINT: f32 = 0.06;         // simulated color bleed for shadows
+const METAL_TINT_POWER: f32 = 1.0;
+
+#[derive(Clone, Copy)]
+struct ShadowResult {
+    transmit: Color,
+    add: Color,
+}
 
 #[derive(Debug, Clone, Copy)]
 pub enum LightType {
@@ -19,7 +33,14 @@ pub struct Light {
 }
 
 impl Light {
-    pub fn new_point(position: Point3, color: Color, intensity: f32, samples: usize, radius: f32, softness: f32) -> Self {
+    pub fn new_point(
+        position: Point3,
+        color: Color,
+        intensity: f32,
+        samples: usize,
+        radius: f32,
+        softness: f32,
+    ) -> Self {
         Self {
             light_type: LightType::Point,
             position,
@@ -33,8 +54,10 @@ impl Light {
 
     pub fn new_directional(direction: Vec3, color: Color, intensity: f32) -> Self {
         Self {
-            light_type: LightType::Directional { direction: direction.normalize() },
-            position: Point3::ZERO, // unused
+            light_type: LightType::Directional {
+                direction: direction.normalize(),
+            },
+            position: Point3::ZERO,
             color,
             intensity,
             samples: 1,
@@ -63,6 +86,7 @@ impl Light {
         normal.dot(light_dir).max(0.0)
     }
 
+    /// Returns light attenuation factor
     pub fn attenuation(&self, point: Point3) -> f32 {
         let dist = self.distance(point);
         let min_dist = 1.0;
@@ -88,15 +112,113 @@ impl Light {
         self.position + Vec3::new(dx, 0.0, dz) // area light on XZ plane
     }
 
-    pub fn contribution_from_hit(
+    /// Calculate how much light reflects vs transmits at a surface based on viewing angle
+    /// Returns a value f32 between 0 and 1 (1 = full reflection, 0 = full transmission)
+    /// At glancing angles, more light reflects; at perpendicular angles, more transmits
+    /// This is an approximation of the Fresnel effect (Schlick's method)
+    fn schlick(cosine: f32, index_of_refraction: f32) -> f32 {
+        let r0 = (1.0 - index_of_refraction) / (1.0 + index_of_refraction);
+        let r0 = r0 * r0;
+        r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
+    }
+
+    /// Trace a shadow ray from light to surface, calculating how much light gets through
+    /// Returns: 
+    /// how much light passes through (0=blocked, 1=full visibility) (transmit)
+    /// small color contribution from materials the ray passes through (add)
+    fn transmission_along_ray(
         &self,
         objects: &[Box<dyn Hittable>],
-        hit: &HitRecord,
-    ) -> Color {
-        let (_light_dir, _light_dist, attenuation, visibility) = match self.light_type {
+        mut ray: Ray,
+        mut t_max: f32,
+    ) -> ShadowResult {
+        let mut throughput = Color::WHITE;
+        let mut add = Color::BLACK;
+        let mut safety = 0;
+        let mut saw_dielectric = false;
+
+        while throughput.luminance() > 1e-3 && t_max > 1e-3 && safety < 64 {
+            safety += 1;
+
+            let mut closest = t_max;
+            let mut hit_opt = None;
+            for obj in objects.iter() {
+                if let Some(h) = obj.hit(&ray, 1e-3, closest) {
+                    closest = h.t;
+                    hit_opt = Some(h);
+                }
+            }
+
+            let Some(hit) = hit_opt else { break; };
+
+            match &hit.material {
+                Some(MaterialType::Lambertian(_)) => { 
+                    return ShadowResult { transmit: Color::BLACK, add }; 
+                }
+
+                Some(MaterialType::Metal(_metal)) => {
+                    // Add tiny color bleed
+                    let tint_strength = hit.textured_material
+                        .as_ref()
+                        .map(|tm| (1.0 - tm.transparency).powf(METAL_TINT_POWER))
+                        .unwrap_or(1.0);
+                    let tint = hit.color * (METAL_SHADOW_TINT * tint_strength);
+                    add = add + tint;
+                    return ShadowResult { transmit: Color::BLACK, add };
+                }
+
+                Some(MaterialType::Dielectric(diel)) => {
+                    saw_dielectric = true;
+
+                    // even 100% transparent loses a few percent
+                    let cos = (-ray.direction()).dot(hit.normal).abs().min(1.0);
+                    let r = Self::schlick(cos, diel.refractive_index);
+                    let t = 1.0 - r;
+
+                    let tex_influence = hit.textured_material
+                        .as_ref()
+                        .map(|tm| (1.0 - tm.transparency).powf(DIELECTRIC_TINT_POWER))
+                        .unwrap_or(0.0);
+                    let tint = Color::lerp(Color::WHITE, hit.color, tex_influence);
+
+                    let seg = closest;
+                    let absorb = Color::new(
+                        tint.r().powf(DIELECTRIC_DENSITY * seg),
+                        tint.g().powf(DIELECTRIC_DENSITY * seg),
+                        tint.b().powf(DIELECTRIC_DENSITY * seg),
+                    );
+
+                    throughput = throughput * (absorb * t);
+
+                    // move the ray origin slightly forward so it doesn't hit the same object again
+                    let new_origin = hit.p + ray.direction() * 1e-3;
+                    t_max -= closest;
+                    ray = Ray::new(new_origin, ray.direction());
+                }
+
+                None => { 
+                    return ShadowResult { transmit: Color::BLACK, add }; 
+                }
+            }
+        }
+
+        // minimum shadow
+        if saw_dielectric {
+            let max_trans = 1.0 - DIELECTRIC_MIN_SHADOW;
+            throughput = Color::new(
+                throughput.r().min(max_trans),
+                throughput.g().min(max_trans),
+                throughput.b().min(max_trans),
+            );
+        }
+
+        ShadowResult { transmit: throughput, add }
+    }
+
+    pub fn contribution_from_hit(&self, objects: &[Box<dyn Hittable>], hit: &HitRecord) -> Color {
+        match self.light_type {
             LightType::Point => {
-                let mut visible = 0;
-                let mut total_diffuse = 0.0;
+                let mut accum = Color::BLACK;
 
                 for _ in 0..self.samples {
                     let sample_point = self.random_point_on_light();
@@ -106,41 +228,33 @@ impl Light {
                     let shadow_origin = hit.p + hit.normal * 1e-3;
                     let shadow_ray = Ray::new(shadow_origin, light_dir);
 
-                    let in_shadow = objects.iter().any(|obj| {
-                        obj.hit(&shadow_ray, 1e-3, light_dist).is_some()
-                    });
+                    let ShadowResult { transmit, add } =
+                        self.transmission_along_ray(objects, shadow_ray, light_dist);
 
-                    if !in_shadow {
-                        visible += 1;
-                        total_diffuse += self.diffuse(hit.normal, light_dir);
+                    if transmit.luminance() > 0.0 || add.luminance() > 0.0 {
+                        let lambert = self.diffuse(hit.normal, light_dir);
+                        accum = accum + (transmit * lambert) + (add * lambert);
                     }
                 }
 
-                let visibility = visible as f32 / self.samples as f32;
-                let avg_diffuse = total_diffuse / self.samples as f32;
-                let attenuation = self.attenuation(hit.p);
+                let avg = accum / (self.samples as f32);
+                let att = self.attenuation(hit.p);
 
-                let main_light_dir = self.direction_from(hit.p);
-
-                (main_light_dir, self.distance(hit.p), attenuation, visibility * avg_diffuse)
-            }, 
+                self.color * hit.color * (avg * att)
+            }
 
             LightType::Directional { direction } => {
-                let light_dir = -direction.normalize(); // from light to hit point
-
+                let light_dir = -direction.normalize();
                 let shadow_origin = hit.p + hit.normal * 1e-3;
                 let shadow_ray = Ray::new(shadow_origin, light_dir);
 
-                let in_shadow = objects.iter().any(|obj| obj.hit(&shadow_ray, 1e-3, 1000.0).is_some());
+                let ShadowResult { transmit, add } =
+                    self.transmission_along_ray(objects, shadow_ray, 1.0e6);
 
-                let diffuse = self.diffuse(hit.normal, light_dir);
-                let visibility = if in_shadow { 0.0 } else { 1.0 };
+                let lambert = self.diffuse(hit.normal, light_dir);
 
-                (light_dir, 1.0, self.intensity, visibility * diffuse)
+                self.color * hit.color * ((transmit * lambert + add * lambert) * self.intensity)
             }
-        };
-
-        hit.color * self.color * (attenuation * visibility)
+        }
     }
-
 }

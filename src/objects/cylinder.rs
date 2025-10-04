@@ -1,5 +1,6 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
-use crate::pixels::texture::Texture;
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
+use crate::material::MaterialType;
+use crate::pixels::texture::{Texture, TexturedMaterial};
 
 #[derive(Clone)]
 pub struct Cylinder {
@@ -7,16 +8,14 @@ pub struct Cylinder {
     radius: f32,
     height: f32,
     texture: Texture,
+    material: Option<MaterialType>,
+    textured_material: Option<TexturedMaterial>,
     bounding_box: (Point3, Point3),
 }
 
 impl Cylinder {
     pub fn new(center: Point3, radius: f32, height: f32, texture: Texture) -> Self {
-        let min = Point3::new(
-            center.x() - radius,
-            center.y(),
-            center.z() - radius,
-        );
+        let min = Point3::new(center.x() - radius, center.y(), center.z() - radius);
 
         let max = Point3::new(
             center.x() + radius,
@@ -29,8 +28,26 @@ impl Cylinder {
             radius,
             height,
             texture,
+            material: None,
+            textured_material: None,
             bounding_box: (min, max),
         }
+    }
+
+    pub fn set_material(&mut self, material: MaterialType) {
+        self.material = Some(material);
+    }
+
+    pub fn set_textured_material(&mut self, textured_material: TexturedMaterial) {
+        self.textured_material = Some(textured_material);
+    }
+
+    pub fn material(&self) -> Option<&MaterialType> {
+        self.material.as_ref()
+    }
+
+    pub fn textured_material(&self) -> Option<&TexturedMaterial> {
+        self.textured_material.as_ref()
     }
 
     fn bounding_box(&self) -> (Point3, Point3) {
@@ -66,7 +83,11 @@ impl Cylinder {
         let dz = p.z() - self.center.z();
 
         if dx * dx + dz * dz <= self.radius * self.radius {
-            let outward_normal = if y > self.center.y() { Vec3::Y } else { -Vec3::Y };
+            let outward_normal = if y > self.center.y() {
+                Vec3::Y
+            } else {
+                -Vec3::Y
+            };
             let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
             let (u, v) = self.compute_uv(p);
             let color = self.texture.value_at(u, v, p);
@@ -79,6 +100,8 @@ impl Cylinder {
                 u,
                 v,
                 front_face,
+                material: self.material.clone(),
+                textured_material: self.textured_material.clone(),
             });
         }
 
@@ -129,21 +152,21 @@ impl Cylinder {
                     u,
                     v,
                     front_face,
+                    material: self.material.clone(),
+                    textured_material: self.textured_material.clone(),
                 });
             }
         }
 
         None
     }
-
 }
 
 impl Hittable for Cylinder {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        
         let y_bottom = self.center.y();
         let y_top = y_bottom + self.height;
-        
+
         if let Some(hit) = self.hit_cap(ray, t_min, t_max, y_top) {
             return Some(hit);
         }

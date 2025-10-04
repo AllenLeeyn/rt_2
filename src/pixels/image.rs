@@ -13,7 +13,11 @@ pub struct Image {
 
 impl Image {
     pub fn new(width: usize, height: usize) -> Self {
-        Self { width, height, pixels: Vec::with_capacity(width * height) }
+        Self {
+            width,
+            height,
+            pixels: Vec::with_capacity(width * height),
+        }
     }
 
     pub fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
@@ -24,7 +28,7 @@ impl Image {
             self.pixels.push(color);
         }
     }
-    
+
     pub fn save_ppm(&self, path: &str) -> std::io::Result<()> {
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
@@ -39,7 +43,7 @@ impl Image {
 
         Ok(())
     }
-    
+
     pub fn load(path: &str) -> std::io::Result<Self> {
         // Load the image using the image crate
         let img = ImageReader::open(path)
@@ -62,7 +66,7 @@ impl Image {
             pixels,
         })
     }
-    
+
     pub fn get_pixel(&self, x: usize, y: usize) -> Color {
         self.pixels[y * self.width + x]
     }

@@ -1,6 +1,8 @@
+use crate::core::color::Color;
 use crate::core::ray::Ray;
 use crate::core::vec3::{Point3, Vec3};
-use crate::core::color::Color;
+use crate::material::MaterialType;
+use crate::pixels::texture::TexturedMaterial;
 
 /// Stores data about a ray-object intersection.
 #[derive(Clone)]
@@ -18,12 +20,20 @@ pub struct HitRecord {
     /// Texture coordinate v
     pub v: f32,
     pub front_face: bool,
+    /// Material at the hit point (if any)
+    pub material: Option<MaterialType>,
+    /// Textured material information (if any)
+    pub textured_material: Option<TexturedMaterial>,
 }
 
 impl HitRecord {
     pub fn face_normal(ray: &Ray, outward_normal: Vec3) -> (Vec3, bool) {
         let front_face = ray.direction().dot(outward_normal) < 0.0;
-        let normal = if front_face { outward_normal } else { -outward_normal };
+        let normal = if front_face {
+            outward_normal
+        } else {
+            -outward_normal
+        };
         (normal, front_face)
     }
 }

@@ -1,4 +1,4 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::pixels::texture::Texture;
 
 #[derive(Clone)]
@@ -44,7 +44,7 @@ impl Plane {
     pub fn center(&self) -> Point3 {
         self.center
     }
-    
+
     pub fn size(&self) -> Vec3 {
         self.size
     }
@@ -91,6 +91,8 @@ impl Hittable for Plane {
             u,
             v,
             front_face,
+            material: None,
+            textured_material: None,
         })
     }
 }

@@ -5,7 +5,7 @@ use rand::Rng;
 
 use crate::sq;
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, PartialEq)]
 pub struct Vec3 {
     x: f32,
     y: f32,
@@ -13,12 +13,31 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    
-    pub const ONE: Vec3 = Self { x: 1.0, y: 1.0, z: 1.0 };
-    pub const ZERO: Vec3 = Self { x: 0.0, y: 0.0, z: 0.0 };
-    pub const X: Vec3 = Self { x: 1.0, y: 0.0, z: 0.0 };
-    pub const Y: Vec3 = Self { x: 0.0, y: 1.0, z: 0.0 };
-    pub const Z: Vec3 = Self { x: 0.0, y: 0.0, z: 1.0 };
+    pub const ONE: Vec3 = Self {
+        x: 1.0,
+        y: 1.0,
+        z: 1.0,
+    };
+    pub const ZERO: Vec3 = Self {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    pub const X: Vec3 = Self {
+        x: 1.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    pub const Y: Vec3 = Self {
+        x: 0.0,
+        y: 1.0,
+        z: 0.0,
+    };
+    pub const Z: Vec3 = Self {
+        x: 0.0,
+        y: 0.0,
+        z: 1.0,
+    };
 
     pub fn x(&self) -> f32 {
         self.x
@@ -27,7 +46,7 @@ impl Vec3 {
     pub fn y(&self) -> f32 {
         self.y
     }
-    
+
     pub fn z(&self) -> f32 {
         self.z
     }
@@ -37,7 +56,11 @@ impl Vec3 {
     }
 
     pub fn splat(val: f32) -> Self {
-        Self { x: val, y: val, z: val }
+        Self {
+            x: val,
+            y: val,
+            z: val,
+        }
     }
 
     pub fn length_squared(&self) -> f32 {
@@ -66,19 +89,27 @@ impl Vec3 {
             self.x() * v.y() - self.y() * v.x(),
         )
     }
-    
+
     pub fn dot(&self, v: Vec3) -> f32 {
         self.x() * v.x() + self.y() * v.y() + self.z() * v.z()
     }
-    
+
+    // Generate a random unit vector using the "Marsaglia method"
     pub fn random_unit_vector() -> Vec3 {
         let mut rng = rand::rng();
-        let a = rng.random_range(0.0..2.0 * std::f32::consts::PI);
-        let z = rng.random_range(-1.0..1.0) as f32;
-        let r = (1.0 - z * z).sqrt();
-        Vec3::new(r * a.cos(), r * a.sin(), z)
+        
+        loop {
+            let x = rng.random_range(-1.0..1.0);
+            let y = rng.random_range(-1.0..1.0);
+            let z = rng.random_range(-1.0..1.0);
+            
+            let p = Vec3::new(x, y, z);
+            if p.length_squared() < 1.0 {
+                return p.normalize();
+            }
+        }
     }
-    
+
     pub fn random_in_unit_sphere() -> Vec3 {
         let mut rng = rand::rng();
 
@@ -93,16 +124,61 @@ impl Vec3 {
             }
         }
     }
-    
-    pub fn reflect(&self, n: Vec3) -> Vec3 {
-        self.clone() - 2.0 * self.dot(n) * n
+
+    // Generate a random vector for camera defocus
+    pub fn random_in_unit_disk() -> Vec3 {
+        let mut rng = rand::rng();
+        
+        loop {
+            let x = rng.random_range(-1.0..1.0);
+            let y = rng.random_range(-1.0..1.0);
+            
+            let p = Vec3::new(x, y, 0.0);
+            if p.length_squared() < 1.0 {
+                return p;
+            }
+        }
     }
-    
+
+    // Generate a random vector in a hemisphere around a given normal
+    // Apparently more efficient for Lambertian scattering
+    pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+        let in_unit_sphere = Self::random_in_unit_sphere();
+        if in_unit_sphere.dot(normal) > 0.0 {
+            in_unit_sphere
+        } else {
+            -in_unit_sphere
+        }
+    }
+
+    // Generate a random vector with cosine-weighted distribution for Lambertian diffuse reflection
+    pub fn random_cosine_direction() -> Vec3 {
+        let mut rng = rand::rng();
+        let r1: f32 = rng.random_range(0.0..1.0);
+        let r2: f32 = rng.random_range(0.0..1.0);
+
+        let z = (1.0 - r2).sqrt();
+        let phi = 2.0 * std::f32::consts::PI * r1;
+        let x = phi.cos() * r2.sqrt();
+        let y = phi.sin() * r2.sqrt();
+
+        Vec3::new(x, y, z)
+    }
+
+    pub fn reflect(&self, n: Vec3) -> Vec3 {
+        *self - 2.0 * self.dot(n) * n
+    }
+
     pub fn refract(&self, n: Vec3, etai_over_etat: f32) -> Vec3 {
         let cos_theta = (-*self).dot(n).min(1.0);
         let r_out_perp = etai_over_etat * (*self + cos_theta * n);
         let r_out_parallel = -((1.0 - r_out_perp.length_squared()).abs().sqrt()) * n;
         r_out_perp + r_out_parallel
+    }
+
+    pub fn near_zero(&self) -> bool {
+        const S: f32 = 1e-8;
+        self.x.abs() < S && self.y.abs() < S && self.z.abs() < S
     }
 }
 
@@ -152,8 +228,8 @@ impl Mul for Vec3 {
     fn mul(self, v: Vec3) -> Self::Output {
         Vec3::new(self.x * v.x, self.y * v.y, self.z * v.z)
     }
-
 }
+
 impl MulAssign<f32> for Vec3 {
     fn mul_assign(&mut self, t: f32) {
         *self = *self * t;

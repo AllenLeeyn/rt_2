@@ -1,11 +1,14 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
-use crate::pixels::texture::Texture;
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
+use crate::material::MaterialType;
+use crate::pixels::texture::{Texture, TexturedMaterial};
 
 #[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f32,
     texture: Texture,
+    material: Option<MaterialType>,
+    textured_material: Option<TexturedMaterial>,
     bounding_box: (Point3, Point3),
 }
 
@@ -16,12 +19,52 @@ impl Sphere {
             center,
             radius,
             texture,
+            material: None,
+            textured_material: None,
+            bounding_box: (center - rvec, center + rvec),
+        }
+    }
+
+    pub fn new_with_material(
+        center: Point3,
+        radius: f32,
+        texture: Texture,
+        material: MaterialType,
+    ) -> Self {
+        let rvec = Vec3::new(radius, radius, radius);
+        Self {
+            center,
+            radius,
+            texture,
+            material: Some(material),
+            textured_material: None,
+            bounding_box: (center - rvec, center + rvec),
+        }
+    }
+
+    pub fn new_with_textured_material(
+        center: Point3,
+        radius: f32,
+        textured_material: TexturedMaterial,
+        material: MaterialType,
+    ) -> Self {
+        let rvec = Vec3::new(radius, radius, radius);
+        Self {
+            center,
+            radius,
+            texture: textured_material.texture.clone(),
+            material: Some(material),
+            textured_material: Some(textured_material),
             bounding_box: (center - rvec, center + rvec),
         }
     }
 
     fn bounding_box(&self) -> (Point3, Point3) {
         self.bounding_box
+    }
+
+    pub fn material(&self) -> Option<&MaterialType> {
+        self.material.as_ref()
     }
 
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
@@ -59,7 +102,12 @@ impl Hittable for Sphere {
         let outward_normal = (p - self.center) / self.radius;
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
         let (u, v) = self.compute_uv(p);
-        let color = self.texture.value_at(u, v, p);
+
+        let color = if let Some(textured_material) = &self.textured_material {
+            textured_material.get_color(u, v, p)
+        } else {
+            self.texture.value_at(u, v, p)
+        };
 
         Some(HitRecord {
             p,
@@ -68,7 +116,9 @@ impl Hittable for Sphere {
             color,
             u,
             v,
-            front_face
+            front_face,
+            material: self.material.clone(),
+            textured_material: self.textured_material.clone(),
         })
     }
 }
