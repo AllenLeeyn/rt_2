@@ -361,7 +361,7 @@ fn scene_six(scene: &mut Scene) {
     ));
 
     let mut cylinder = Cylinder::new(
-        Point3::new(-2.0, 0.6, 0.0),
+        Point3::new(-2.0, 0.0, 0.0),
         0.4,
         1.2,
         Texture::Gradient(
