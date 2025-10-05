@@ -23,6 +23,10 @@ struct Args {
     /// Samples per pixel
     #[arg(short = 'q', long = "quality", default_value_t = 32)]
     samples: u32,
+
+    /// depth per pixel
+    #[arg(short = 'd', long = "depth", default_value_t = 10)]
+    depth: u32,
 }
 
 fn main() -> std::io::Result<()> {
@@ -52,6 +56,7 @@ fn main() -> std::io::Result<()> {
     }
 
     scene.set_sample_size(args.samples);
+    scene.set_max_depth(args.depth);
     scene.render(&args.output)?;
 
     Ok(())
