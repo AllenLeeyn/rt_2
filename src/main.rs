@@ -1,8 +1,9 @@
 use rt_2::core::*;
 use rt_2::objects::*;
+use rt_2::random_double;
 use rt_2::scene::*;
 use rt_2::pixels::*;
-
+use rt_2::particle_system::*;
 use clap::Parser;
 
 #[derive(Parser, Debug)]
@@ -40,6 +41,7 @@ fn main() -> std::io::Result<()> {
         2 => scene_two(&mut scene),
         3 => scene_three(&mut scene),
         4 => scene_four(&mut scene),
+        5 => scene_five(&mut scene),
         _ => {
             eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
             scene_three(&mut scene);
@@ -205,5 +207,48 @@ fn scene_four(scene: &mut Scene) {
         Point3::new(-3.0, -8.0, 3.0),
         Color::WHITE,
         0.4,
+    ));
+}
+
+fn scene_five(scene: &mut Scene) {
+    scene.camera_mut().set(
+        Point3::new(-2.0, 2.0, -4.0),
+        Vec3::new(0.0, 2.0, 0.0),
+        Vec3::Y,
+        60.0,
+        1.0,
+        (400, 300));
+
+    scene.add_object(Plane::new(
+        Point3::ZERO,
+        Vec3::new(20.0, 0.0, 20.0),
+        Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
+    ));
+
+    let psys = ParticleSys::new(
+        Point3::new(-2.0, 0.0, -2.0), // min corner of bounding box
+        Point3::new(2.0, 3.0, 2.0),   // max corner
+        10, // number of particles
+        move |pos| {
+            let size = 0.1 + random_double() * 0.2;
+            Box::new(Sphere::new(
+                pos,
+                size,
+                Texture::SolidColor(Color::new(random_double(), random_double(), random_double()))
+            )) as Box<dyn Hittable>
+        },
+    );
+
+    for sphere in psys.generate() {
+        scene.add_boxed_object(sphere);
+    }
+
+    scene.add_light(Light::new_point(
+        Point3::new(0.0, 3.0, 0.0),
+        Color::WHITE,
+        1.0,
+        4,
+        1.0,
+        50.0
     ));
 }
