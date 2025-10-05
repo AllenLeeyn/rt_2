@@ -55,6 +55,10 @@ impl Scene {
         self.objects.push(Box::new(object));
     }
 
+    pub fn add_boxed_object(&mut self, object: Box<dyn Hittable>) {
+        self.objects.push(object);
+    }
+
     pub fn add_light(&mut self, light: Light) {
         self.lights.push(light);
     }

@@ -1,9 +1,10 @@
 use rt_2::core::*;
 use rt_2::material::*;
 use rt_2::objects::*;
+use rt_2::random_double;
 use rt_2::scene::*;
 use rt_2::pixels::*;
-
+use rt_2::particle_system::*;
 use clap::Parser;
 
 #[derive(Parser, Debug)]
