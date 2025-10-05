@@ -19,7 +19,14 @@ pub struct Light {
 }
 
 impl Light {
-    pub fn new_point(position: Point3, color: Color, intensity: f32, samples: usize, radius: f32, softness: f32) -> Self {
+    pub fn new_point(
+        position: Point3,
+        color: Color,
+        intensity: f32,
+        samples: usize,
+        radius: f32,
+        softness: f32,
+    ) -> Self {
         Self {
             light_type: LightType::Point,
             position,
@@ -33,7 +40,9 @@ impl Light {
 
     pub fn new_directional(direction: Vec3, color: Color, intensity: f32) -> Self {
         Self {
-            light_type: LightType::Directional { direction: direction.normalize() },
+            light_type: LightType::Directional {
+                direction: direction.normalize(),
+            },
             position: Point3::ZERO, // unused
             color,
             intensity,
@@ -88,11 +97,7 @@ impl Light {
         self.position + Vec3::new(dx, 0.0, dz) // area light on XZ plane
     }
 
-    pub fn contribution_from_hit(
-        &self,
-        objects: &[Box<dyn Hittable>],
-        hit: &HitRecord,
-    ) -> Color {
+    pub fn contribution_from_hit(&self, objects: &[Box<dyn Hittable>], hit: &HitRecord) -> Color {
         let (_light_dir, _light_dist, attenuation, visibility) = match self.light_type {
             LightType::Point => {
                 let mut visible = 0;
@@ -106,9 +111,9 @@ impl Light {
                     let shadow_origin = hit.p + hit.normal * 1e-3;
                     let shadow_ray = Ray::new(shadow_origin, light_dir);
 
-                    let in_shadow = objects.iter().any(|obj| {
-                        obj.hit(&shadow_ray, 1e-3, light_dist).is_some()
-                    });
+                    let in_shadow = objects
+                        .iter()
+                        .any(|obj| obj.hit(&shadow_ray, 1e-3, light_dist).is_some());
 
                     if !in_shadow {
                         visible += 1;
@@ -122,8 +127,13 @@ impl Light {
 
                 let main_light_dir = self.direction_from(hit.p);
 
-                (main_light_dir, self.distance(hit.p), attenuation, visibility * avg_diffuse)
-            }, 
+                (
+                    main_light_dir,
+                    self.distance(hit.p),
+                    attenuation,
+                    visibility * avg_diffuse,
+                )
+            }
 
             LightType::Directional { direction } => {
                 let light_dir = -direction.normalize(); // from light to hit point
@@ -131,7 +141,9 @@ impl Light {
                 let shadow_origin = hit.p + hit.normal * 1e-3;
                 let shadow_ray = Ray::new(shadow_origin, light_dir);
 
-                let in_shadow = objects.iter().any(|obj| obj.hit(&shadow_ray, 1e-3, 1000.0).is_some());
+                let in_shadow = objects
+                    .iter()
+                    .any(|obj| obj.hit(&shadow_ray, 1e-3, 1000.0).is_some());
 
                 let diffuse = self.diffuse(hit.normal, light_dir);
                 let visibility = if in_shadow { 0.0 } else { 1.0 };
@@ -142,5 +154,4 @@ impl Light {
 
         hit.color * self.color * (attenuation * visibility)
     }
-
 }

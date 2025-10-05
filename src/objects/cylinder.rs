@@ -60,11 +60,12 @@ impl Cylinder {
         if t < t_min || t > t_max {
             return None;
         }
-
+        // Compute intersection point and check if within cap radius
         let p = ray.at(t);
         let dx = p.x() - self.center.x();
         let dz = p.z() - self.center.z();
 
+        // Check if the intersection point is within the cap radius dx2 + dz2 > r2
         if dx * dx + dz * dz > self.radius * self.radius {
             return None;
         }
@@ -92,13 +93,13 @@ impl Cylinder {
 
     fn hit_side(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         // Simple cylinder-ray intersection (infinite cylinder, then clip by height)
-        let oc_x = ray.origin().x() - self.center.x();
-        let oc_z = ray.origin().z() - self.center.z();
-
-        let a =
-            ray.direction().x() * ray.direction().x() + ray.direction().z() * ray.direction().z();
-        let b = 2.0 * (oc_x * ray.direction().x() + oc_z * ray.direction().z());
-        let c = oc_x * oc_x + oc_z * oc_z - self.radius * self.radius;
+        let offset_x = ray.origin().x() - self.center.x();
+        let offset_z = ray.origin().z() - self.center.z();
+        
+        // 
+        let a = ray.direction().x() * ray.direction().x() + ray.direction().z() * ray.direction().z();
+        let b = 2.0 * (offset_x * ray.direction().x() + offset_z * ray.direction().z());
+        let c = offset_x * offset_x + offset_z * offset_z - self.radius * self.radius;
 
         let discriminant = b * b - 4.0 * a * c;
         if discriminant < 0.0 || a.abs() < 0.001 {
