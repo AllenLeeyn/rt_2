@@ -25,12 +25,16 @@ impl Cube {
         let v = (p.y() - self.min.y()) / (self.max.y() - self.min.y());
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
+
+    pub fn set_material(&mut self, material: Material) {
+        self.material = material;
+    }
 }
 
 impl Hittable for Cube {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let mut tmin = t_min;
-        let mut tmax = t_max;
+        let mut t_entry = t_min;
+        let mut t_exit = t_max;
         let mut hit_axis = 0;
 
         for i in 0..3 {
@@ -42,19 +46,19 @@ impl Hittable for Cube {
                 std::mem::swap(&mut t0, &mut t1);
             }
 
-            if t0 > tmin {
-                tmin = t0;
+            if t0 > t_entry {
+                t_entry = t0;
                 hit_axis = i; // track axis of entry
             }
 
-            tmax = tmax.min(t1);
+            t_exit = t_exit.min(t1);
 
-            if tmax <= tmin {
+            if t_exit <= t_entry {
                 return None;
             }
         }
 
-        let t = tmin;
+        let t = t_entry;
         let p = ray.at(t);
 
         // Compute normal from hit axis

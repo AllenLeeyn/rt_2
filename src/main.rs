@@ -20,6 +20,14 @@ struct Args {
     /// Resolution width and height
     #[arg(short = 'r', long = "resolution", value_names = &["WIDTH", "HEIGHT"])]
     resolution: Option<Vec<u32>>,
+    
+    /// Samples per pixel
+    #[arg(short = 'q', long = "quality", default_value_t = 32)]
+    samples: u32,
+
+    /// depth per pixel
+    #[arg(short = 'd', long = "depth", default_value_t = 10)]
+    depth: u32,
 }
 
 fn main() -> std::io::Result<()> {
@@ -49,6 +57,8 @@ fn main() -> std::io::Result<()> {
         }
     }
 
+    scene.set_sample_size(args.samples);
+    scene.set_max_depth(args.depth);
     scene.render(&args.output)?;
 
     Ok(())
@@ -357,8 +367,32 @@ fn scene_five(scene: &mut Scene) {
         Material{
             texture: Texture::SolidColor(Color::new(0.8, 0.7, 0.3)),
             diffuse: 0.0,
-            reflectivity: 0.6,
-            transparency: 0.9,
+            reflectivity: 0.0,
+            transparency: 1.0,
+            ior: 1.6,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(1.0, 0.5, -1.0),
+        -0.45,
+        Material{
+            texture: Texture::SolidColor(Color::DARK_PURPLE),
+            diffuse: 0.0,
+            reflectivity: 0.,
+            transparency: 0.7,
+            ior: 1.5,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(1.0, 0.5, -1.0),
+        0.3,
+        Material{
+            texture: Texture::SolidColor(Color::DARK_ORANGE),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.6,
             ior: 1.5,
         },
     ));

@@ -3,8 +3,8 @@ use crate::random_double;
 use crate::scene::*;
 use crate::pixels::*;
 
-use indicatif::ProgressBar;
-use indicatif::ProgressStyle;
+use rayon::prelude::*;
+use indicatif::{ProgressBar, ProgressStyle};
 
 pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
@@ -12,7 +12,7 @@ pub struct Scene {
     background: Texture,
     camera: Camera,
     max_depth: u32,
-    sample_per_pixel: i32,
+    sample_size: u32,
 }
 
 impl Scene {
@@ -22,8 +22,8 @@ impl Scene {
             lights: Vec::new(),
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
-            max_depth: 8,
-            sample_per_pixel: 128,
+            max_depth: 1,
+            sample_size: 8,
         }
     }
 
@@ -47,41 +47,64 @@ impl Scene {
         self.max_depth = depth;
     }
 
+    pub fn set_sample_size(&mut self, size: u32) {
+        self.sample_size = size;
+    }
+
     pub fn add_object<T: Hittable + 'static>(&mut self, object: T) {
         self.objects.push(Box::new(object));
     }
 
-    
     pub fn add_light(&mut self, light: Light) {
         self.lights.push(light);
     }
 
     pub fn render(&mut self, path: &str) -> std::io::Result<()> {
         let (width, height) = self.camera().resolution();
-
         let mut image = Image::new(width as usize, height as usize);
 
-        let bar = ProgressBar::new(height as u64);
-        bar.set_style(
-            ProgressStyle::default_bar()
-                .template("{bar:40.cyan/blue} {pos:>7}/{len:7} [{elapsed_precise}]")
-                .unwrap(),
+        // Create progress bar
+        let pb = ProgressBar::new(height as u64);
+        pb.set_style(
+            ProgressStyle::with_template(
+                "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos:>3}/{len:3} lines ({percent}%) {eta}"
+            )
+            .unwrap()
+            .progress_chars("█▉▊▋▌▍▎▏  ")
         );
 
-        for y in 0..height {
-            for x in 0..width {
-                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _ in 0..self.sample_per_pixel {
-                    let s = (x as f32 + random_double()) / width as f32;
-                    let t = 1.0 - ((y as f32 + random_double()) / height as f32);
+        println!("🚀 Starting render: {}x{} pixels", width, height);
 
-                    let ray = self.camera().generate_ray(s, t);
-                    pixel_color = pixel_color + self.ray_color(&ray, s , t, self.max_depth);
+        // Parallelize over rows
+        let rows: Vec<(u32, Vec<Color>)> = (0..height)
+            .into_par_iter()
+            .map(|y| {
+                let mut row_pixels = Vec::with_capacity(width as usize);
+
+                for x in 0..width {
+                    let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                        for _ in 0..self.sample_size {
+                        let u = (x as f32 + random_double()) / width as f32;
+                        let v = 1.0 - ((y as f32 + random_double()) / height as f32);
+                        let ray = self.camera().generate_ray(u, v);
+                        pixel_color = pixel_color + self.ray_color(&ray, u , v, self.max_depth);
+                    }
+                    let color = pixel_color/ self.sample_size as i32;
+                    row_pixels.push(color);
                 }
-                let color = pixel_color/ self.sample_per_pixel;
-                image.set_pixel(x as usize, y as usize, color);
+
+                pb.inc(1);
+                (y, row_pixels)
+            })
+            .collect();
+
+        pb.finish();
+
+        println!("💾 Saving to: {}", path);
+        for (y, row) in rows {
+            for (x, color) in row.into_iter().enumerate() {
+                image.set_pixel(x, y as usize, color);
             }
-            bar.inc(1);
         }
 
         image.save_ppm(path)?;
@@ -119,5 +142,4 @@ impl Scene {
         }
         self.background.value_at(u, v, ray.origin())
     }
-
 }

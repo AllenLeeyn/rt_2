@@ -11,7 +11,7 @@ pub struct Plane {
 
 impl Plane {
     pub fn new(center: Point3, size: Vec3, material: Material) -> Self {
-        let half_size = size * 0.5;
+        let half_size = size / 2.0;
 
         let min = Point3::new(
             center.x() - half_size.x(),
@@ -33,18 +33,21 @@ impl Plane {
         }
     }
 
-    fn bounding_box(&self) -> (Point3, Point3) {
-        self.bounding_box
-    }
-
     fn normal(&self) -> Vec3 {
         Vec3::Y
+    }
+
+    fn compute_uv(&self, p: Point3) -> (f32, f32) {
+        let half_size = self.size / 2.0;
+        let u = (p.x() - (self.center.x() - half_size.x())) / self.size.x();
+        let v = (p.z() - (self.center.z() - half_size.z())) / self.size.z();
+        (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 
     pub fn center(&self) -> Point3 {
         self.center
     }
-    
+
     pub fn size(&self) -> Vec3 {
         self.size
     }
@@ -56,31 +59,34 @@ impl Plane {
 
 impl Hittable for Plane {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let outward_normal = self.normal();
-        let denom = outward_normal.dot(ray.direction());
-
-        if denom.abs() < 1e-6 {
+        // Check if ray is parallel to plane (no intersection)
+        if ray.direction().y().abs() < 1e-8 {
             return None;
         }
 
+        // Calculate intersection parameter t
         let t = (self.center.y() - ray.origin().y()) / ray.direction().y();
+
+        // Check if intersection is within valid range
         if t < t_min || t > t_max {
             return None;
         }
 
+        // Calculate intersection point
         let p = ray.at(t);
 
-        let (min, max) = self.bounding_box();
-
+        // Check if intersection point is within plane bounds
+        let (min, max) = self.bounding_box;
         if p.x() < min.x() || p.x() > max.x() || p.z() < min.z() || p.z() > max.z() {
             return None;
         }
 
-        let u = (p.x() - min.x()) / (max.x() - min.x());
-        let v = (p.z() - min.z()) / (max.z() - min.z());
-
         // Sample the texture
+        let (u, v) = self.compute_uv(p);
         let color = self.material.value_at(u, v, p);
+
+        // Calculate surface properties
+        let outward_normal = self.normal();
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
 
         Some(HitRecord {
