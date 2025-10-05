@@ -1,3 +1,4 @@
+use rand::Rng;
 use rt_2::core::*;
 use rt_2::material::*;
 use rt_2::objects::*;
@@ -43,6 +44,7 @@ fn main() -> std::io::Result<()> {
         3 => scene_three(&mut scene),
         4 => scene_four(&mut scene),
         5 => scene_five(&mut scene),
+        6 => scene_six(&mut scene),
         _ => {
             eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
             scene_three(&mut scene);
@@ -406,4 +408,130 @@ fn scene_five(scene: &mut Scene) {
         0.8,
         1.0
     ));
+}
+
+fn scene_six(scene: &mut Scene) {
+    scene.camera_mut().set(
+        Point3::new(-0.1, 0.7, 0.3),
+        Vec3::new(-0.05, 0.57, 0.0),
+        Vec3::Y,
+        60.0,
+        1.0,
+        (400, 300));
+
+    scene.set_background(
+        Texture::Gradient(Color::PASTEL_BLUE,
+            Color::WHITE, 1.571));
+
+    scene.add_object(Plane::new(
+        Point3::ZERO,
+        Vec3::new(20.0, 0.0, 20.0),
+        Material{
+            texture: Texture::SolidColor(Color::PASTEL_BLUE),
+            diffuse: 0.5,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.25, 0.4, -2.0),
+        0.4,
+        Material{
+            texture: Texture::SolidColor(Color::DARK_GRAY),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.9,
+            ior: 1.5,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.0, 0.4, -3.0),
+        0.4,
+        Material{
+            texture: Texture::SolidColor(Color::DARK_ORANGE),
+            diffuse: 1.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.5, 0.4, -1.0),
+        0.4,
+        Material{
+            texture: Texture::SolidColor(Color::GRAY),
+            diffuse: 0.0,
+            reflectivity: 1.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
+    ));
+
+    // Setup ParticleSys to create random spheres within a box
+    let particle_sys = ParticleSys::new(
+        Point3::new(-5.0, 0.0, -5.0), // min corner
+        Point3::new(5.0, 0.01, 5.0),  // max corner
+        1000,                          // number of particles
+        |pos: Point3| {
+            let radius = 0.03 + random_double() * 0.05;
+            let material = random_material();
+
+            Box::new(Sphere::new(
+                Point3::new(pos.x(), radius, pos.z()),
+                radius,
+                material
+            )) as Box<dyn Hittable>
+        },
+        0.1
+    );
+
+    // Generate and add particles to the scene
+    for particle in particle_sys.generate() {
+        scene.add_boxed_object(particle);
+    }
+
+    scene.add_light(Light::new_point(
+        Point3::new(0.0, 3.0, 1.0),
+        Color::WHITE,
+        1.0,
+        4,
+        0.8,
+        1.0
+    ));
+}
+
+fn random_material() -> Material {
+    let mut rng = rand::rng();
+
+    let color = Color::new(random_double(), random_double(), random_double());
+    let texture = Texture::SolidColor(color);
+
+    match rng.random_range(0..3) {
+        0 => Material {
+            texture,
+            diffuse: 0.5,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+        },
+        1 => Material {
+            texture,
+            diffuse: rng.random_range(0.0..0.2),
+            reflectivity: 0.9,
+            transparency: 0.0,
+            ior: 0.0,
+        },
+        2 => Material {
+            texture,
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: rng.random_range(0.5..0.95),
+            ior: rng.random_range(1.3..1.7),
+        },
+        _ => unreachable!(),
+    }
 }
