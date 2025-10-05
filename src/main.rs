@@ -228,15 +228,16 @@ fn scene_five(scene: &mut Scene) {
     let psys = ParticleSys::new(
         Point3::new(-2.0, 0.0, -2.0), // min corner of bounding box
         Point3::new(2.0, 3.0, 2.0),   // max corner
-        10, // number of particles
+        30, // number of particles
         move |pos| {
             let size = 0.1 + random_double() * 0.2;
-            Box::new(Sphere::new(
+            Box::new(Cube::new(
                 pos,
                 size,
                 Texture::SolidColor(Color::new(random_double(), random_double(), random_double()))
             )) as Box<dyn Hittable>
         },
+        0.15
     );
 
     for sphere in psys.generate() {
