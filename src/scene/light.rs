@@ -92,10 +92,14 @@ impl Light {
         &self,
         objects: &[Box<dyn Hittable>],
         hit: &HitRecord,
+        ray: &Ray,
     ) -> Color {
-        let (_light_dir, _light_dist, attenuation, visibility) = match self.light_type {
+        let view_dir = -ray.direction().normalize();
+
+        let (_light_dir, _light_dist, attenuation, visibility, specular) = match self.light_type {
             LightType::Point => {
                 let mut total_diffuse = 0.0;
+                let mut total_specular = 0.0;
 
                 for _ in 0..self.samples {
                     let sample_point = self.random_point_on_light();
@@ -109,16 +113,22 @@ impl Light {
 
                     if transmission > 0.0 {
                         let diffuse = self.diffuse(hit.normal, light_dir);
-                        total_diffuse += transmission * diffuse;
+                        let specular = hit.material.phong_specular(light_dir, view_dir, hit.normal);
+
+                        total_diffuse += diffuse * transmission;
+                        total_specular += specular * transmission;
                     }
                 }
             
                 let avg_diffuse = total_diffuse / self.samples as f32;
+                let avg_specular = total_specular / self.samples as f32;
                 let attenuation = self.attenuation(hit.p);
 
                 let main_light_dir = self.direction_from(hit.p);
 
-                (main_light_dir, self.distance(hit.p), attenuation, avg_diffuse)
+                let specular_color = self.color * attenuation * avg_specular * hit.material.specular;
+                
+                (main_light_dir, self.distance(hit.p), attenuation, avg_diffuse, specular_color)
             }, 
 
             LightType::Directional { direction } => {
@@ -132,11 +142,14 @@ impl Light {
                 let diffuse = self.diffuse(hit.normal, light_dir);
                 let visibility = if in_shadow { 0.0 } else { 1.0 };
 
-                (light_dir, 1.0, self.intensity, visibility * diffuse)
+                
+                let specular_color = self.color * hit.material.phong_specular(light_dir, view_dir, hit.normal);
+
+                (light_dir, 1.0, self.intensity, visibility * diffuse, specular_color)
             }
         };
 
-        hit.color * self.color * (attenuation * visibility)
+        hit.color * self.color * (attenuation * visibility) + specular
     }
 
 }

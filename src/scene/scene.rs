@@ -134,7 +134,7 @@ impl Scene {
             let mut final_color = Color::BLACK;
 
             for light in &self.lights {
-                final_color = final_color + light.contribution_from_hit(&self.objects, &hit);
+                final_color = final_color + light.contribution_from_hit(&self.objects, &hit, ray);
             }
 
             // 📌 Emission directly contributes to color
@@ -142,7 +142,10 @@ impl Scene {
 
             if let Some(scatter) = hit.material.scatter(ray, &hit) {
                 let bounced_color = self.ray_color(&scatter.scattered_ray, u, v, depth - 1);
-                final_color = (final_color * (1.0 - hit.material.transparency).max(0.1)) + scatter.attenuation * bounced_color;
+                final_color = ( final_color *
+                        (1.0 - hit.material.transparency).max(0.01) *
+                        (1.0 - hit.material.reflectivity).max(0.01)
+                    ) + scatter.attenuation * bounced_color;
             } else {
                 final_color = emitted;
             }
