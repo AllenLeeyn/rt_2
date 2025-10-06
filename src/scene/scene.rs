@@ -2,9 +2,12 @@ use crate::core::*;
 use crate::pixels::*;
 use crate::random_double;
 use crate::scene::*;
+use crate::scene::storage::{LightData, ObjectData, SceneData};
+use crate::objects::{Cube, Cylinder, Plane, Sphere};
 
 use rayon::prelude::*;
 use indicatif::{ProgressBar, ProgressStyle};
+use std::fs;
 
 pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
@@ -26,6 +29,41 @@ impl Scene {
             sample_size: 8,
         }
     }
+
+    pub fn load_from_file(path: &str) -> Result<Scene, Box<dyn std::error::Error>> {
+        let data = fs::read_to_string(path)?;
+        let scene_data: SceneData = serde_json::from_str(&data)?;
+
+        let mut scene = Scene::new();
+
+        for object in scene_data.objects {
+            match object {
+                ObjectData::Sphere(s) => scene.add_object(Sphere::from(s)),
+                ObjectData::Plane(p) => scene.add_object(Plane::from(p)),
+                ObjectData::Cube(c) => scene.add_object(Cube::from(c)),
+                ObjectData::Cylinder(cy) => scene.add_object(Cylinder::from(cy)),
+            }
+        }
+
+        for light in scene_data.lights {
+            match light {
+                LightData::Point(l) => scene.add_light(l.into()),
+                LightData::Directional(d) => scene.add_light(d.into()),
+            }
+        }
+        let camera_data = scene_data.camera;
+        scene.camera_mut().set(
+            camera_data.position,
+            camera_data.look_at,
+            camera_data.up,
+            camera_data.fov,
+            camera_data.aspect_ratio,
+            camera_data.resolution,
+        );
+
+        Ok(scene)
+    }
+
 
     pub fn set_background(&mut self, texture: Texture) {
         self.background = texture;

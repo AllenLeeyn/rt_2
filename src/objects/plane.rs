@@ -14,15 +14,15 @@ impl Plane {
         let half_size = size / 2.0;
 
         let min = Point3::new(
-            center.x() - half_size.x(),
-            center.y() - 1e-4,
-            center.z() - half_size.z(),
+            center.x - half_size.x,
+            center.y - 1e-4,
+            center.z - half_size.z,
         );
 
         let max = Point3::new(
-            center.x() + half_size.x(),
-            center.y() + 1e-4,
-            center.z() + half_size.z(),
+            center.x + half_size.x,
+            center.y + 1e-4,
+            center.z + half_size.z,
         );
 
         Self {
@@ -39,8 +39,8 @@ impl Plane {
 
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
         let half_size = self.size / 2.0;
-        let u = (p.x() - (self.center.x() - half_size.x())) / self.size.x();
-        let v = (p.z() - (self.center.z() - half_size.z())) / self.size.z();
+        let u = (p.x - (self.center.x - half_size.x)) / self.size.x;
+        let v = (p.z - (self.center.z - half_size.z)) / self.size.z;
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 
@@ -60,12 +60,12 @@ impl Plane {
 impl Hittable for Plane {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         // Check if ray is parallel to plane (no intersection)
-        if ray.direction().y().abs() < 1e-8 {
+        if ray.direction().y.abs() < 1e-8 {
             return None;
         }
 
         // Calculate intersection parameter t
-        let t = (self.center.y() - ray.origin().y()) / ray.direction().y();
+        let t = (self.center.y - ray.origin().y) / ray.direction().y;
 
         // Check if intersection is within valid range
         if t < t_min || t > t_max {
@@ -77,7 +77,7 @@ impl Hittable for Plane {
 
         // Check if intersection point is within plane bounds
         let (min, max) = self.bounding_box;
-        if p.x() < min.x() || p.x() > max.x() || p.z() < min.z() || p.z() > max.z() {
+        if p.x < min.x || p.x > max.x || p.z < min.z || p.z > max.z {
             return None;
         }
 

@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
@@ -5,11 +6,11 @@ use rand::Rng;
 
 use crate::sq;
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Vec3 {
-    x: f32,
-    y: f32,
-    z: f32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl Vec3 {
@@ -19,18 +20,6 @@ impl Vec3 {
     pub const X: Vec3 = Self { x: 1.0, y: 0.0, z: 0.0 };
     pub const Y: Vec3 = Self { x: 0.0, y: 1.0, z: 0.0 };
     pub const Z: Vec3 = Self { x: 0.0, y: 0.0, z: 1.0 };
-
-    pub fn x(&self) -> f32 {
-        self.x
-    }
-
-    pub fn y(&self) -> f32 {
-        self.y
-    }
-    
-    pub fn z(&self) -> f32 {
-        self.z
-    }
 
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
@@ -61,20 +50,20 @@ impl Vec3 {
 
     pub fn cross(&self, v: Vec3) -> Self {
         Vec3::new(
-            self.y() * v.z() - self.z() * v.y(),
-            self.z() * v.x() - self.x() * v.z(),
-            self.x() * v.y() - self.y() * v.x(),
+            self.y * v.z - self.z * v.y,
+            self.z * v.x - self.x * v.z,
+            self.x * v.y - self.y * v.x,
         )
     }
     
     pub fn dot(&self, v: Vec3) -> f32 {
-        self.x() * v.x() + self.y() * v.y() + self.z() * v.z()
+        self.x * v.x + self.y * v.y + self.z * v.z
     }
     
     pub fn random_unit_vector() -> Vec3 {
         let mut rng = rand::rng();
-        let a = rng.random_range(0.0..2.0 * std::f32::consts::PI);
-        let z = rng.random_range(-1.0..1.0) as f32;
+        let a: f32 = rng.random_range(0.0..2.0 * std::f32::consts::PI);
+        let z: f32 = rng.random_range(-1.0..1.0);
         let r = (1.0 - z * z).sqrt();
         Vec3::new(r * a.cos(), r * a.sin(), z)
     }
@@ -83,9 +72,9 @@ impl Vec3 {
         let mut rng = rand::rng();
 
         loop {
-            let x = rng.random_range(-1.0..1.0);
-            let y = rng.random_range(-1.0..1.0);
-            let z = rng.random_range(-1.0..1.0);
+            let x: f32 = rng.random_range(-1.0..1.0);
+            let y: f32 = rng.random_range(-1.0..1.0);
+            let z: f32 = rng.random_range(-1.0..1.0);
 
             let p = Vec3::new(x, y, z);
             if p.length_squared() < 1.0 {

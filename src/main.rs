@@ -8,7 +8,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Scene number to render (1-4)
+    /// Scene number to render (1-4), or 0 to load from file
     #[arg(short = 's', long = "scene", default_value_t = 3)]
     scene: u32,
 
@@ -32,19 +32,33 @@ struct Args {
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
 
-    let mut scene = Scene::new();
-
-    // Select scene
-    match args.scene {
-        1 => scene_one(&mut scene),
-        2 => scene_two(&mut scene),
-        3 => scene_three(&mut scene),
-        4 => scene_four(&mut scene),
-        _ => {
-            eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
-            scene_three(&mut scene);
+    let mut scene = if args.scene == 0 {
+        match Scene::load_from_file("scene.json") {
+            Ok(s) => {
+                println!("Loaded scene from scene.json");
+                s
+            },
+            Err(e) => {
+                eprintln!("Could not load scene from scene.json: {}. Falling back to scene three.", e);
+                let mut s = Scene::new();
+                scene_three(&mut s);
+                s
+            }
         }
-    }
+    } else {
+        let mut s = Scene::new();
+        match args.scene {
+            1 => scene_one(&mut s),
+            2 => scene_two(&mut s),
+            3 => scene_three(&mut s),
+            4 => scene_four(&mut s),
+            _ => {
+                eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
+                scene_three(&mut s);
+            }
+        }
+        s
+    };
 
     // Set resolution if provided and exactly 2 values passed
     if let Some(res) = &args.resolution {

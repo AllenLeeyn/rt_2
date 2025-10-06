@@ -31,8 +31,8 @@ impl Sphere {
 
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
         let (min, max) = self.bounding_box();
-        let u = (p.x() - min.x()) / (max.x() - min.x());
-        let v = (p.y() - min.y()) / (max.y() - min.y());
+        let u = (p.x - min.x) / (max.x - min.x);
+        let v = (p.y - min.y) / (max.y - min.y);
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 }
