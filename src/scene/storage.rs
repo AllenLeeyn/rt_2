@@ -31,28 +31,28 @@ pub enum ObjectData {
     Cylinder(CylinderData),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SphereData {
     pub center: Point3,
     pub radius: f32,
     pub texture: TextureData,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PlaneData {
     pub center: Point3,
     pub size: Vec3,
     pub texture: TextureData,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CubeData {
     pub center: Point3,
     pub size: f32,
     pub texture: TextureData,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CylinderData {
     pub center: Point3,
     pub radius: f32,
@@ -68,13 +68,19 @@ pub enum TextureData {
     Image(String),
 }
 
+impl Default for TextureData {
+    fn default() -> Self {
+        TextureData::SolidColor(Color::WHITE)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LightData {
     Point(PointLightData),
     Directional(DirectionalLightData),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PointLightData {
     pub position: Point3,
     pub color: Color,
@@ -84,7 +90,7 @@ pub struct PointLightData {
     pub softness: f32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct DirectionalLightData {
     pub direction: Vec3,
     pub color: Color,
