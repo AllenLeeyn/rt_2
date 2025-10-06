@@ -124,7 +124,7 @@ impl Scene {
         let mut final_hit = None;
 
         for object in &self.objects {
-            if let Some(hit) = object.hit(ray, 0.001, closest_so_far) {
+            if let Some(hit) = object.hit(ray, 1e-6, closest_so_far) {
                 closest_so_far = hit.t;
                 final_hit = Some(hit);
             }
@@ -137,9 +137,14 @@ impl Scene {
                 final_color = final_color + light.contribution_from_hit(&self.objects, &hit);
             }
 
+            // 📌 Emission directly contributes to color
+            let emitted = hit.material.emitted(hit.u, hit.v, hit.p);
+
             if let Some(scatter) = hit.material.scatter(ray, &hit) {
                 let bounced_color = self.ray_color(&scatter.scattered_ray, u, v, depth - 1);
-                final_color = final_color + scatter.attenuation * bounced_color;
+                final_color = (final_color * (1.0 - hit.material.transparency).max(0.1)) + scatter.attenuation * bounced_color;
+            } else {
+                final_color = emitted;
             }
 
             return final_color;

@@ -10,7 +10,7 @@ pub struct Material {
     pub reflectivity: f32,          // 0 = none, 1 = mirror
     pub transparency: f32,          // 0 = opaque, 1 = fully transparent
     pub ior: f32,                   // Index of refraction
-    //pub emission: Option<Color>,    // Light source?
+    pub emission: Option<Color>,    // Light source?
 }
 
 #[derive(Debug, Clone)]
@@ -22,6 +22,10 @@ pub struct ScatterResult {
 impl Material {
     pub fn value_at(&self, u: f32, v: f32, point: Point3) -> Color {
         self.texture.value_at(u, v, point)
+    }
+    
+    pub fn emitted(&self, u: f32, v: f32, p: Point3) -> Color {
+        self.emission.unwrap_or(self.texture.value_at(u, v, p))
     }
 
     pub fn scatter(&self, ray_in: &Ray, hit: &HitRecord) -> Option<ScatterResult> {

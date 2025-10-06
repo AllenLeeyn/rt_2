@@ -85,6 +85,7 @@ fn scene_one(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
     
@@ -117,6 +118,7 @@ fn scene_two(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
     
@@ -130,6 +132,7 @@ fn scene_two(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
     
@@ -155,9 +158,10 @@ fn scene_three(scene: &mut Scene) {
         Material{
             texture: Texture::SolidColor(Color::RED),
             diffuse: 0.0,
-            reflectivity: 1.0,
-            transparency: 0.0,
-            ior:0.0,
+            reflectivity: 0.1,
+            transparency: 0.8,
+            ior: 1.7,
+            emission: None
         },
     ));
 
@@ -166,10 +170,11 @@ fn scene_three(scene: &mut Scene) {
         0.5,
         Material{
             texture: Texture::SolidColor(Color::NEON_PINK),
-            diffuse: 0.0,
+            diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
             ior:0.0,
+            emission: None
         },
     ));
 
@@ -179,10 +184,11 @@ fn scene_three(scene: &mut Scene) {
         2.0,
         Material{
             texture: Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0),
-            diffuse: 0.0,
+            diffuse: 0.5,
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -195,6 +201,7 @@ fn scene_three(scene: &mut Scene) {
             reflectivity: 0.5,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -207,6 +214,7 @@ fn scene_three(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.9,
             ior: 1.5,
+            emission: None
         },
     ));
 
@@ -219,6 +227,7 @@ fn scene_three(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.9,
             ior: 1.5,
+            emission: None
         },
     ));
 
@@ -231,6 +240,20 @@ fn scene_three(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.0, 4.0, 0.0),
+        0.5,
+        Material{
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            ior: 0.0,
+            emission: Some(Color::WHITE * 10.0)
         },
     ));
 
@@ -262,6 +285,7 @@ fn scene_four(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -275,6 +299,7 @@ fn scene_four(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -287,6 +312,7 @@ fn scene_four(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -299,6 +325,7 @@ fn scene_four(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
     scene.add_light(Light::new_directional(
@@ -313,7 +340,6 @@ fn scene_four(scene: &mut Scene) {
         0.4,
     ));
 }
-
 
 fn scene_five(scene: &mut Scene) {
     scene.camera_mut().set(
@@ -337,6 +363,7 @@ fn scene_five(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -349,6 +376,7 @@ fn scene_five(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -361,6 +389,7 @@ fn scene_five(scene: &mut Scene) {
             reflectivity: 1.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -373,6 +402,7 @@ fn scene_five(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 1.0,
             ior: 1.6,
+            emission: None
         },
     ));
 
@@ -385,6 +415,7 @@ fn scene_five(scene: &mut Scene) {
             reflectivity: 0.,
             transparency: 0.7,
             ior: 1.5,
+            emission: None
         },
     ));
 
@@ -397,6 +428,7 @@ fn scene_five(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.6,
             ior: 1.5,
+            emission: None
         },
     ));
 
@@ -432,6 +464,7 @@ fn scene_six(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -444,6 +477,7 @@ fn scene_six(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.9,
             ior: 1.5,
+            emission: None
         },
     ));
 
@@ -456,6 +490,7 @@ fn scene_six(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -468,6 +503,7 @@ fn scene_six(scene: &mut Scene) {
             reflectivity: 1.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
     ));
 
@@ -517,6 +553,7 @@ fn random_material() -> Material {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
         1 => Material {
             texture,
@@ -524,6 +561,7 @@ fn random_material() -> Material {
             reflectivity: 0.9,
             transparency: 0.0,
             ior: 0.0,
+            emission: None
         },
         2 => Material {
             texture,
@@ -531,6 +569,7 @@ fn random_material() -> Material {
             reflectivity: 0.0,
             transparency: rng.random_range(0.5..0.95),
             ior: rng.random_range(1.3..1.7),
+            emission: None
         },
         _ => unreachable!(),
     }

@@ -19,6 +19,45 @@ impl Cube {
             material,
         }
     }
+    
+    fn compute_normal(&self, p: Point3) -> Vec3 {
+        // Determine which face was hit by comparing the hit point to the box faces.
+        // Use an epsilon to tolerate floating point error.
+        let eps = 1e-4;
+
+        if (p.x() - self.min.x()).abs() < eps {
+            return Vec3::new(-1.0, 0.0, 0.0);
+        }
+        if (p.x() - self.max.x()).abs() < eps {
+            return Vec3::new(1.0, 0.0, 0.0);
+        }
+
+        if (p.y() - self.min.y()).abs() < eps {
+            return Vec3::new(0.0, -1.0, 0.0);
+        }
+        if (p.y() - self.max.y()).abs() < eps {
+            return Vec3::new(0.0, 1.0, 0.0);
+        }
+
+        if (p.z() - self.min.z()).abs() < eps {
+            return Vec3::new(0.0, 0.0, -1.0);
+        }
+        if (p.z() - self.max.z()).abs() < eps {
+            return Vec3::new(0.0, 0.0, 1.0);
+        }
+
+        // Fallback: choose largest component of difference from center (rare)
+        let center = (self.min + self.max) / 2.0;
+        let diff = p - center;
+        let abs = Vec3::new(diff.x().abs(), diff.y().abs(), diff.z().abs());
+        if abs.x() > abs.y() && abs.x() > abs.z() {
+            Vec3::new(diff.x().signum(), 0.0, 0.0)
+        } else if abs.y() > abs.z() {
+            Vec3::new(0.0, diff.y().signum(), 0.0)
+        } else {
+           Vec3::new(0.0, 0.0, diff.z().signum())
+        }
+    }
 
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
         let u = (p.x() - self.min.x()) / (self.max.x() - self.min.x());
@@ -33,9 +72,8 @@ impl Cube {
 
 impl Hittable for Cube {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let mut t_entry = t_min;
+        let mut t_enter = t_min;
         let mut t_exit = t_max;
-        let mut hit_axis = 0;
 
         for i in 0..3 {
             let inv_d = 1.0 / ray.direction()[i];
@@ -46,40 +84,36 @@ impl Hittable for Cube {
                 std::mem::swap(&mut t0, &mut t1);
             }
 
-            if t0 > t_entry {
-                t_entry = t0;
-                hit_axis = i; // track axis of entry
-            }
-
+            t_enter = t_enter.max(t0);
             t_exit = t_exit.min(t1);
 
-            if t_exit <= t_entry {
+            if t_exit <= t_enter {
                 return None;
             }
         }
 
-        let t = t_entry;
+        // If ray starts inside the box, t_enter may equal t_min; choose t_exit then.
+        let t_hit = if t_enter <= t_min { t_exit } else { t_enter };
+        if t_hit < t_min || t_hit > t_max {
+            return None;
+        }
+ 
+        let t = t_hit;
         let p = ray.at(t);
-
-        // Compute normal from hit axis
-        let mut outward_normal = Vec3::ZERO;
-        let dir = ray.direction()[hit_axis];
-
-        outward_normal[hit_axis] = if dir < 0.0 { 1.0 } else { -1.0 };
-
+        let outward_normal = self.compute_normal(p);
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
         let (u, v) = self.compute_uv(p);
         let color = self.material.value_at(u, v, p);
 
         Some(HitRecord {
-            p,
-            normal,
-            t,
-            color,
-            u,
-            v,
-            front_face,
-            material: self.material.clone(),
+            p,          // hit_point
+            normal,     // surface normal
+            t,          // distance along ray
+            color,      // surface color
+            u,          // texture coordinate u
+            v,          // texture coordinate v
+            front_face, // whether the ray hits the front face
+            material: self.material.clone()
         })
     }
 }
