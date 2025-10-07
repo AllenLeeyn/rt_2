@@ -152,7 +152,7 @@ fn scene_two(scene: &mut Scene) {
 fn scene_three(scene: &mut Scene) {
     scene.camera_mut().set(
         Point3::splat(3.0),
-        Vec3::ZERO,
+        Vec3::new(0.0, 1.5, 0.0),
         Vec3::Y,
         60.0,
         1.0,
@@ -165,7 +165,7 @@ fn scene_three(scene: &mut Scene) {
             texture: Texture::SolidColor(Color::RED),
             diffuse: 0.0,
             reflectivity: 0.0,
-            transparency: 0.95,
+            transparency: 0.9,
             ior: 1.7,
             emission: None,
             specular: 20.0,
@@ -189,34 +189,43 @@ fn scene_three(scene: &mut Scene) {
     ));
 
     scene.add_object(Cylinder::new(
-        Point3::new(2.0, 0.0, -0.5),
-        0.1,
+        Point3::new(1.0, 0.0, -3.5),
+        0.3,
         2.0,
         Material{
-            texture: Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0),
-            diffuse: 0.5,
-            reflectivity: 0.0,
+            texture: Texture::Checkerboard(Color::YELLOW, Color::PASTEL_BLUE, 1.0),
+            diffuse: 0.0,
+            reflectivity: 0.8,
             transparency: 0.0,
             ior: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
+            specular: 8.0,
+            shininess: 16.0,
         },
     ));
 
     scene.add_object(Sphere::new(
-        Point3::new(0.5, 0.5, -0.5),
-        0.5,
+        Point3::new(0.5, 3.0, -0.5),
+        -0.2,
         Material{
             texture: Texture::SolidColor(Color::YELLOW),
-            diffuse: 0.2,
-            reflectivity: 1.0,
-            transparency: 0.0,
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.9,
             ior: 1.0,
             emission: None,
-            specular: 30.0,
-            shininess: 256.0,
+            specular: 4.0,
+            shininess: 4.0,
         },
+    ));
+
+    scene.add_light(Light::new_point(
+        Point3::new(0.5, 3.0, -0.5),
+        Color::WHITE,
+        0.5,
+        1,
+        0.1,
+        1.0
     ));
 
     scene.add_object(Sphere::new(
@@ -230,7 +239,7 @@ fn scene_three(scene: &mut Scene) {
             ior: 1.5,
             emission: None,
             specular: 30.0,
-            shininess: 256.0,
+            shininess: 1024.0,
         },
     ));
 
@@ -264,14 +273,6 @@ fn scene_three(scene: &mut Scene) {
         },
     ));
 
-    scene.add_light(Light::new_point(
-        Point3::new(0.0, 4.0, 0.0),
-        Color::WHITE,
-        0.5,
-        2,
-        0.8,
-        1.0
-    ));
 }
 
 fn scene_four(scene: &mut Scene) {

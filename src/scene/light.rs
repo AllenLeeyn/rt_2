@@ -126,7 +126,7 @@ impl Light {
 
                 let main_light_dir = self.direction_from(hit.p);
 
-                let specular_color = self.color * attenuation * avg_specular * hit.material.specular;
+                let specular_color = self.color * avg_specular * hit.material.specular;
                 
                 (main_light_dir, self.distance(hit.p), attenuation, avg_diffuse, specular_color)
             }, 
@@ -141,9 +141,8 @@ impl Light {
 
                 let diffuse = self.diffuse(hit.normal, light_dir);
                 let visibility = if in_shadow { 0.0 } else { 1.0 };
-
                 
-                let specular_color = self.color * hit.material.phong_specular(light_dir, view_dir, hit.normal);
+                let specular_color = self.color * hit.material.phong_specular(light_dir, view_dir, hit.normal) * hit.material.specular;
 
                 (light_dir, 1.0, self.intensity, visibility * diffuse, specular_color)
             }
