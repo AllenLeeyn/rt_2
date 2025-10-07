@@ -158,17 +158,19 @@ fn scene_three(scene: &mut Scene) {
         1.0,
         (400, 300));
     
+    scene.set_background(Texture::SolidColor(Color::PASTEL_BLUE));
+    
     scene.add_object(Cube::new(
         Point3::new(-2.0, 1.0, 0.0),
-        2.0,
+        2.001,
         Material{
             texture: Texture::SolidColor(Color::RED),
             diffuse: 0.0,
-            reflectivity: 0.0,
-            transparency: 0.9,
-            ior: 1.7,
+            reflectivity: 0.1,
+            transparency: 0.95,
+            ior: 1.5,
             emission: None,
-            specular: 20.0,
+            specular: 0.0,
             shininess: 128.0,
         },
     ));
@@ -178,13 +180,13 @@ fn scene_three(scene: &mut Scene) {
         0.5,
         Material{
             texture: Texture::SolidColor(Color::NEON_PINK),
-            diffuse: 1.0,
+            diffuse: 0.5,
             reflectivity: 0.0,
             transparency: 0.0,
             ior:0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
+            specular: 0.3,
+            shininess: 8.0,
         },
     ));
 
@@ -194,66 +196,81 @@ fn scene_three(scene: &mut Scene) {
         2.0,
         Material{
             texture: Texture::Checkerboard(Color::YELLOW, Color::PASTEL_BLUE, 1.0),
-            diffuse: 0.0,
+            diffuse: 0.05,
             reflectivity: 0.8,
             transparency: 0.0,
             ior: 0.0,
             emission: None,
-            specular: 8.0,
-            shininess: 16.0,
+            specular: 16.0,
+            shininess: 24.0,
         },
     ));
 
     scene.add_object(Sphere::new(
         Point3::new(0.5, 3.0, -0.5),
-        -0.2,
+        0.2,
         Material{
-            texture: Texture::SolidColor(Color::YELLOW),
+            texture: Texture::SolidColor(Color::WHITE),
             diffuse: 0.0,
             reflectivity: 0.0,
-            transparency: 0.9,
+            transparency: 0.0,
             ior: 1.0,
             emission: None,
-            specular: 4.0,
-            shininess: 4.0,
+            specular: 8.0,
+            shininess: 8.0,
         },
     ));
 
     scene.add_light(Light::new_point(
         Point3::new(0.5, 3.0, -0.5),
         Color::WHITE,
-        0.5,
+        1.0,
         1,
-        0.1,
+        0.5,
         1.0
     ));
 
     scene.add_object(Sphere::new(
-        Point3::new(-0.5, 0.5, 0.0),
-        0.5,
+        Point3::new(-0.2, 0.6, -1.1),
+        0.6,
         Material{
-            texture: Texture::SolidColor(Color::LIGHT_GREEN),
-            diffuse: 0.0,
+            texture: Texture::SolidColor(Color::ORANGE),
+            diffuse: 1.0,
             reflectivity: 0.0,
-            transparency: 0.9,
-            ior: 1.5,
+            transparency: 0.0,
+            ior: 0.0,
             emission: None,
-            specular: 30.0,
-            shininess: 1024.0,
+            specular: 0.1,
+            shininess: 16.0,
         },
     ));
 
     scene.add_object(Sphere::new(
-        Point3::new(-0.5, 0.5, 0.0),
-        -0.45,
+        Point3::new(-0.4, 0.5, -0.0),
+        0.5,
         Material{
-            texture: Texture::SolidColor(Color::DARK_GRAY),
+            texture: Texture::SolidColor(Color::GREEN),
             diffuse: 0.0,
             reflectivity: 0.0,
-            transparency: 0.9,
-            ior: 1.5,
+            transparency: 0.92,
+            ior: 1.49,
             emission: None,
-            specular: 0.0,
+            specular: 8.0,
+            shininess: 128.0,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(-0.4, 0.5, -0.0),
+        -0.45,
+        Material{
+            texture: Texture::SolidColor(Color::GREEN),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.98,
+            ior: 1.49,
+            emission: None,
+            specular: 8.0,
             shininess: 128.0,
         },
     ));
@@ -263,13 +280,13 @@ fn scene_three(scene: &mut Scene) {
         Vec3::new(20.0, 0.0, 20.0),
         Material{
             texture: Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
-            diffuse: 1.00,
+            diffuse: 0.5,
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
+            specular: 0.1,
+            shininess: 0.1,
         },
     ));
 
@@ -472,8 +489,8 @@ fn scene_five(scene: &mut Scene) {
 
 fn scene_six(scene: &mut Scene) {
     scene.camera_mut().set(
-        Point3::new(-0.1, 0.7, 0.3),
-        Vec3::new(-0.05, 0.57, 0.0),
+        Point3::new(-0.1, 0.6, 0.7),
+        Vec3::new(-0.05, 0.35, 0.0),
         Vec3::Y,
         60.0,
         1.0,
@@ -508,8 +525,8 @@ fn scene_six(scene: &mut Scene) {
             transparency: 0.9,
             ior: 1.5,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
+            specular: 4.0,
+            shininess: 128.0,
         },
     ));
 
@@ -538,18 +555,18 @@ fn scene_six(scene: &mut Scene) {
             transparency: 0.0,
             ior: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
+            specular: 12.0,
+            shininess: 64.0,
         },
     ));
 
     // Setup ParticleSys to create random spheres within a box
     let particle_sys = ParticleSys::new(
-        Point3::new(-5.0, 0.0, -5.0), // min corner
-        Point3::new(5.0, 0.01, 5.0),  // max corner
-        1000,                          // number of particles
+        Point3::new(-4.0, 0.0, -6.0), // min corner
+        Point3::new(4.0, 0.01, 2.0),  // max corner
+        200,                          // number of particles
         |pos: Point3| {
-            let radius = 0.03 + random_double() * 0.05;
+            let radius = 0.07 + random_double() * 0.03;
             let material = random_material();
 
             Box::new(Sphere::new(
@@ -558,7 +575,7 @@ fn scene_six(scene: &mut Scene) {
                 material
             )) as Box<dyn Hittable>
         },
-        0.1
+        0.15
     );
 
     // Generate and add particles to the scene
@@ -595,13 +612,13 @@ fn random_material() -> Material {
         },
         1 => Material {
             texture,
-            diffuse: rng.random_range(0.0..0.2),
+            diffuse: rng.random_range(0.01..0.2),
             reflectivity: 0.9,
             transparency: 0.0,
             ior: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
+            specular: 6.0,
+            shininess: 128.0,
         },
         2 => Material {
             texture,
@@ -610,8 +627,8 @@ fn random_material() -> Material {
             transparency: rng.random_range(0.5..0.95),
             ior: rng.random_range(1.3..1.7),
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
+            specular: 3.0,
+            shininess: 64.0,
         },
         _ => unreachable!(),
     }
