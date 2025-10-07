@@ -223,7 +223,7 @@ fn scene_five(scene: &mut Scene) {
         26.0, 50.0, 120.0,
     ))));
     let material_left = Arc::new(Metal::new(
-        Texture::SolidColor(Color::new(200.0, 200.0, 200.0)),
+        Texture::SolidColor(Color::new(20.0, 20.0, 250.0)),
         0.3,
     ));
     let material_right = Arc::new(Metal::new(
@@ -270,7 +270,7 @@ fn scene_five(scene: &mut Scene) {
         material_cylinder.clone(),
     ));
 
-    let light_material = Arc::new(DiffuseLight::new(Texture::SolidColor(Color::WHITE)));
+    let light_material = Arc::new(DiffuseLight::new(Texture::SolidColor(Color::WHITE * 20.0)));
     scene.add_object(Sphere::new(
         Point3::new(0.0, 1.5, 0.0),
         0.2,

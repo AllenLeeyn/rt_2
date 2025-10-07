@@ -25,7 +25,7 @@ impl Scene {
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
             max_depth: 10,
-            samples_per_pixel: 75,
+            samples_per_pixel: 10000,
         }
     }
 
