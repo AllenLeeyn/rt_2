@@ -2,7 +2,7 @@ use crate::core::{Hittable, Point3};
 
 pub struct ParticleSys<F>
 where
-    F: Fn(Point3) -> Box<dyn Hittable>,
+    F: Fn(usize, Point3) -> Box<dyn Hittable>,
 {
     pub min: Point3,
     pub max: Point3,
@@ -13,7 +13,7 @@ where
 
 impl<F> ParticleSys<F>
 where
-    F: Fn(Point3) -> Box<dyn Hittable>,
+    F: Fn(usize, Point3) -> Box<dyn Hittable>,
 {
     pub fn new(min: Point3, max: Point3, count: usize, pattern: F, min_dist: f32) -> Self {
         Self {
@@ -58,8 +58,10 @@ where
                 break;
             }
 
+
+            let index = points.len();
             points.push(candidate);
-            particles.push((self.pattern)(candidate));
+            particles.push((self.pattern)(index, candidate));
         }
 
         particles
