@@ -565,8 +565,8 @@ fn scene_six(scene: &mut Scene) {
         0.2, 1.2,
         Material { 
             texture: Texture::SolidColor(Color::new(0.8, 0.6, 0.4)),
-            diffuse: 0.2, 
-            reflectivity: 0.3,
+            diffuse: 0.5, 
+            reflectivity: 0.5,
             transparency: 0.0,
             ior: 0.0,
             emission: None,
@@ -576,7 +576,7 @@ fn scene_six(scene: &mut Scene) {
     );
 
     scene.add_object(Sphere::new(
-        Point3::new(4.0, 6.0, 4.0),
+        Point3::new(-4.0, 6.0, -4.0),
         0.75,
         Material { 
             texture: Texture::SolidColor(Color::ORANGE),
@@ -584,7 +584,7 @@ fn scene_six(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             ior: 0.0,
-            emission: Some(Color::PASTEL_ORANGE * 10.0),
+            emission: Some(Color::ORANGE * 10.0),
             specular: 0.0,
             shininess: 0.0
         })
@@ -620,6 +620,66 @@ fn scene_six(scene: &mut Scene) {
         })
     );
 
+    scene.add_object(Sphere::new(
+        Point3::new(0.6, 1.2, 0.0),
+        0.4,
+        Material { 
+            texture: Texture::SolidColor(Color::GREEN),
+            diffuse: 0.0, 
+            reflectivity: 0.0,
+            transparency: 0.9,
+            ior: 1.5,
+            emission: None,
+            specular: 4.0,
+            shininess: 128.0
+        })
+    );
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.6, 1.2, 0.0),
+        -0.35,
+        Material { 
+            texture: Texture::SolidColor(Color::GREEN),
+            diffuse: 0.0, 
+            reflectivity: 0.0,
+            transparency: 0.95,
+            ior: 1.5,
+            emission: None,
+            specular: 0.0,
+            shininess: 0.0
+        })
+    );
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.0, 1.3, 0.6),
+        0.3,
+        Material { 
+            texture: Texture::SolidColor(Color::GREEN),
+            diffuse: 0.0, 
+            reflectivity: 0.0,
+            transparency: 0.9,
+            ior: 1.5,
+            emission: None,
+            specular: 4.0,
+            shininess: 128.0
+        })
+    );
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.0, 1.3, 0.6),
+        -0.25,
+        Material { 
+            texture: Texture::SolidColor(Color::GREEN),
+            diffuse: 0.0, 
+            reflectivity: 0.0,
+            transparency: 0.95,
+            ior: 1.5,
+            emission: None,
+            specular: 0.0,
+            shininess: 0.0
+        })
+    );
+
     // Setup ParticleSys to create random spheres within a box
     let grounds = ParticleSys::new(
         Point3::new(-5.0, -0.5, -5.0), // min corner
@@ -634,12 +694,12 @@ fn scene_six(scene: &mut Scene) {
             let x = -5.0 + col as f32 * spacing;
             let z = -5.0 + row as f32 * spacing;
 
-            let size = 0.95 + random_double() * 0.03;
+            let size = 1.0 + random_double() * 0.02;
             
             let green_shade = Color::new(
-                0.1 + random_double() * 0.0,   // R
-                0.6 + random_double() * 0.3,    // G
-                0.1 + random_double() * 0.05,   // B
+                0.1 + random_double() * 0.1,   // R
+                0.5 + random_double() * 0.5,    // G
+                0.1 + random_double() * 0.1,   // B
             );
             let material = Material {
                 texture: Texture::SolidColor(green_shade),
@@ -667,9 +727,9 @@ fn scene_six(scene: &mut Scene) {
     }
     
     let stars = ParticleSys::new(
-        Point3::new(-40.0, 10.0, -40.0), // min corner
-        Point3::new(10.0, 25.0, 10.0),  // max corner
-        80,                          // number of particles
+        Point3::new(-30.0, 10.0, -30.0), // min corner
+        Point3::new(0.0, 25.0, 0.0),  // max corner
+        40,                          // number of particles
         |_i: usize, pos: Point3| {
             let material = Material {
                 texture: Texture::SolidColor(Color::WHITE),
