@@ -10,6 +10,7 @@ pub struct Plane {
 }
 
 impl Plane {
+    // Create a new plane centered at 'center' with given 'size' and 'texture'
     pub fn new(center: Point3, size: Vec3, texture: Texture) -> Self {
         let half_size = size / 2.0;
 

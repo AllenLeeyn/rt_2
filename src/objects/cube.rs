@@ -7,7 +7,7 @@ pub struct Cube {
     pub max: Point3,
     pub texture: Texture,
 }
-
+// A cube is defined by its minimum and maximum corner points
 impl Cube {
     pub fn new(center: Point3, size: f32, texture: Texture) -> Self {
         let half = size / 2.0;
@@ -16,6 +16,7 @@ impl Cube {
         Self { min, max, texture }
     }
 
+    // Compute normal vector at a point on the cube surface
     fn compute_normal(&self, p: Point3) -> Vec3 {
         let center = (self.min + self.max) / 2.0;
         let diff = p - center;
@@ -25,12 +26,13 @@ impl Cube {
         let dy = (diff.y() / extents.y()).abs();
         let dz = (diff.z() / extents.z()).abs();
 
+        // Determine which face was hit based on the largest component
         if dx > dy && dx > dz {
-            Vec3::new(diff.x().signum(), 0.0, 0.0)
+            Vec3::new(diff.x().signum(), 0.0, 0.0) // Normal points outward along x-axis
         } else if dy > dz {
-            Vec3::new(0.0, diff.y().signum(), 0.0)
+            Vec3::new(0.0, diff.y().signum(), 0.0) // Normal points outward along y-axis
         } else {
-            Vec3::new(0.0, 0.0, diff.z().signum())
+            Vec3::new(0.0, 0.0, diff.z().signum()) // Normal points outward along z-axis
         }
     }
     
