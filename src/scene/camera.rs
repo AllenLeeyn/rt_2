@@ -37,8 +37,16 @@ impl Camera {
     pub fn resolution(&self) -> (u32, u32) {
         self.resolution
     }
-    
-    pub fn set(&mut self, origin: Point3, look_at: Point3, vup: Vec3, vfov: f32, focal_length: f32, resolution: (u32, u32)) {
+
+    pub fn set(
+        &mut self,
+        origin: Point3,
+        look_at: Point3,
+        vup: Vec3,
+        vfov: f32,
+        focal_length: f32,
+        resolution: (u32, u32),
+    ) {
         self.origin = origin;
         self.look_at = look_at;
         self.vup = vup;
@@ -74,13 +82,13 @@ impl Camera {
             - w * self.focal_length;
     }
 
-    pub fn generate_ray(&self, s: f32, t: f32 ) -> Ray {
+    pub fn generate_ray(&self, horizontal_offset: f32, vertical_offset: f32) -> Ray {
         let point_on_plane = self.lower_left_corner
-            + self.horizontal * s
-            + self.vertical * t;
+            + self.horizontal * horizontal_offset
+            + self.vertical * vertical_offset;
         let direction = point_on_plane - self.origin;
 
-        Ray::new( self.origin, direction )
+        Ray::new(self.origin, direction)
     }
 
     pub fn generate_rays(&self) -> Vec<Vec<Ray>> {
@@ -91,10 +99,10 @@ impl Camera {
             let mut row = Vec::with_capacity(width as usize);
 
             for x in 0..width {
-                let s = (x as f32 + 0.5) / width as f32;
-                let t = 1.0 - ((y as f32 + 0.5) / height as f32); // flip y
+                let horizontal_offset = (x as f32 + 0.5) / width as f32;
+                let vertical_offset = 1.0 - ((y as f32 + 0.5) / height as f32); // flip y
 
-                let ray = self.generate_ray(s, t);
+                let ray = self.generate_ray(horizontal_offset, vertical_offset);
                 row.push(ray);
             }
 

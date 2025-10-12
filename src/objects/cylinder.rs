@@ -34,16 +34,16 @@ impl Cylinder {
     }
 
     // Compute normal vector at a point on the cylinder surface
-    fn compute_normal(&self, p: Point3) -> Vec3 {
-        let dx = p.x() - self.center.x();
-        let dz = p.z() - self.center.z();
+    fn compute_normal(&self, point: Point3) -> Vec3 {
+        let dx = point.x() - self.center.x();
+        let dz = point.z() - self.center.z();
         Vec3::new(dx, 0.0, dz).normalize()
     }
 
     // Compute UV coordinates for a point on the cylinder surface
-    fn compute_uv(&self, p: Point3) -> (f32, f32) {
-        let u = (p.x() - self.center.x() + self.radius) / (2.0 * self.radius);
-        let v = (p.y() - self.center.y()) / self.height;
+    fn compute_uv(&self, point: Point3) -> (f32, f32) {
+        let u = (point.x() - self.center.x() + self.radius) / (2.0 * self.radius);
+        let v = (point.y() - self.center.y()) / self.height;
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 
@@ -65,9 +65,9 @@ impl Cylinder {
             return None;
         }
 
-        let p = ray.at(t);
-        let dx = p.x() - self.center.x();
-        let dz = p.z() - self.center.z();
+        let point = ray.at(t);
+        let dx = point.x() - self.center.x();
+        let dz = point.z() - self.center.z();
 
         if dx * dx + dz * dz > self.radius * self.radius {
             return None;
@@ -80,11 +80,11 @@ impl Cylinder {
         };
 
         let (normal, front_face) = HitRecord::face_normal(ray, normal);
-        let (u, v) = self.compute_uv(p);
-        let color = self.material.value_at(u, v, p);
+        let (u, v) = self.compute_uv(point);
+        let color = self.material.value_at(u, v);
 
         Some(HitRecord {
-            p,
+            p: point,
             normal,
             t,
             color,
@@ -117,17 +117,17 @@ impl Cylinder {
         // Try closest intersection first
         for &t in &[t1, t2] {
             if t >= t_min && t <= t_max {
-                let p = ray.at(t);
-                let y = p.y() - self.center.y();
+                let point = ray.at(t);
+                let y = point.y() - self.center.y();
 
                 if y >= 0.0 && y <= self.height {
-                    let outward_normal = self.compute_normal(p);
+                    let outward_normal = self.compute_normal(point);
                     let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
-                    let (u, v) = self.compute_uv(p);
-                    let color = self.material.value_at(u, v, p);
+                    let (u, v) = self.compute_uv(point);
+                    let color = self.material.value_at(u, v);
 
                     return Some(HitRecord {
-                        p,
+                        p: point,
                         normal,
                         t,
                         color,

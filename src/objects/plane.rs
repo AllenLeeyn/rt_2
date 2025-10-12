@@ -1,4 +1,4 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::material::Material;
 
 #[derive(Clone)]
@@ -83,7 +83,7 @@ impl Hittable for Plane {
 
         // Sample the texture
         let (u, v) = self.compute_uv(p);
-        let color = self.material.value_at(u, v, p);
+        let color = self.material.value_at(u, v);
 
         // Calculate surface properties
         let outward_normal = self.normal();

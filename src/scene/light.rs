@@ -19,7 +19,14 @@ pub struct Light {
 }
 
 impl Light {
-    pub fn new_point(position: Point3, color: Color, intensity: f32, samples: usize, radius: f32, softness: f32) -> Self {
+    pub fn new_point(
+        position: Point3,
+        color: Color,
+        intensity: f32,
+        samples: usize,
+        radius: f32,
+        softness: f32,
+    ) -> Self {
         Self {
             light_type: LightType::Point,
             position,
@@ -33,7 +40,9 @@ impl Light {
 
     pub fn new_directional(direction: Vec3, color: Color, intensity: f32) -> Self {
         Self {
-            light_type: LightType::Directional { direction: direction.normalize() },
+            light_type: LightType::Directional {
+                direction: direction.normalize(),
+            },
             position: Point3::ZERO, // unused
             color,
             intensity,
@@ -119,7 +128,7 @@ impl Light {
                         total_specular += specular * transmission;
                     }
                 }
-            
+
                 let avg_diffuse = total_diffuse / self.samples as f32;
                 let avg_specular = total_specular / self.samples as f32;
                 let attenuation = self.attenuation(hit.p);
@@ -127,9 +136,15 @@ impl Light {
                 let main_light_dir = self.direction_from(hit.p);
 
                 let specular_color = self.color * avg_specular * hit.material.specular;
-                
-                (main_light_dir, self.distance(hit.p), attenuation, avg_diffuse, specular_color)
-            }, 
+
+                (
+                    main_light_dir,
+                    self.distance(hit.p),
+                    attenuation,
+                    avg_diffuse,
+                    specular_color,
+                )
+            }
 
             LightType::Directional { direction } => {
                 let light_dir = -direction.normalize(); // from light to hit point
@@ -137,20 +152,29 @@ impl Light {
                 let shadow_origin = hit.p + hit.normal * 1e-3;
                 let shadow_ray = Ray::new(shadow_origin, light_dir);
 
-                let in_shadow = objects.iter().any(|obj| obj.hit(&shadow_ray, 1e-3, 1000.0).is_some());
+                let in_shadow = objects
+                    .iter()
+                    .any(|obj| obj.hit(&shadow_ray, 1e-3, 1000.0).is_some());
 
                 let diffuse = self.diffuse(hit.normal, light_dir);
                 let visibility = if in_shadow { 0.0 } else { 1.0 };
-                
-                let specular_color = self.color * hit.material.phong_specular(light_dir, view_dir, hit.normal) * hit.material.specular;
 
-                (light_dir, 1.0, self.intensity, visibility * diffuse, specular_color)
+                let specular_color = self.color
+                    * hit.material.phong_specular(light_dir, view_dir, hit.normal)
+                    * hit.material.specular;
+
+                (
+                    light_dir,
+                    1.0,
+                    self.intensity,
+                    visibility * diffuse,
+                    specular_color,
+                )
             }
         };
 
         hit.color * self.color * (attenuation * visibility) + specular
     }
-
 }
 
 fn transparency_along_ray(ray: &Ray, objects: &[Box<dyn Hittable>], max_distance: f32) -> f32 {

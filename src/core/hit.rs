@@ -1,6 +1,6 @@
+use crate::core::color::Color;
 use crate::core::ray::Ray;
 use crate::core::vec3::{Point3, Vec3};
-use crate::core::color::Color;
 use crate::material::material::Material;
 
 /// Stores data about a ray-object intersection.
@@ -25,7 +25,11 @@ pub struct HitRecord {
 impl HitRecord {
     pub fn face_normal(ray: &Ray, outward_normal: Vec3) -> (Vec3, bool) {
         let front_face = ray.direction().dot(outward_normal) < 0.0;
-        let normal = if front_face { outward_normal } else { -outward_normal };
+        let normal = if front_face {
+            outward_normal
+        } else {
+            -outward_normal
+        };
         (normal, front_face)
     }
 }

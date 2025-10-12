@@ -8,7 +8,7 @@ where
     pub max: Point3,
     pub count: usize,
     pub pattern: F,
-    pub min_dist: f32,  // minimum allowed distance between particles
+    pub min_dist: f32, // minimum allowed distance between particles
 }
 
 impl<F> ParticleSys<F>
@@ -44,7 +44,9 @@ where
             );
 
             // Retry until candidate is far enough from all others, or max_attempts reached
-            while points.iter().any(|p| p.distance(candidate) < self.min_dist) && attempts < max_attempts {
+            while points.iter().any(|p| p.distance(candidate) < self.min_dist)
+                && attempts < max_attempts
+            {
                 candidate = Point3::new(
                     rng.random_range(self.min.x()..self.max.x()),
                     rng.random_range(self.min.y()..self.max.y()),
@@ -54,10 +56,11 @@ where
             }
 
             if attempts == max_attempts {
-                eprintln!("Warning: max attempts reached, could not place more particles without overlap");
+                eprintln!(
+                    "Warning: max attempts reached, could not place more particles without overlap"
+                );
                 break;
             }
-
 
             let index = points.len();
             points.push(candidate);

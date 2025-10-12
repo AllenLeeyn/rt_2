@@ -1,5 +1,5 @@
 use crate::core::*;
-use crate::random_double;
+use crate::random_float;
 use crate::scene::*;
 use crate::pixels::*;
 
@@ -63,7 +63,7 @@ impl Scene {
         self.lights.push(light);
     }
 
-    pub fn render(&mut self, path: &str) -> std::io::Result<()> {
+    pub fn render(&mut self, path: &str, parallelized: bool) -> std::io::Result<()> {
         let (width, height) = self.camera().resolution();
         let mut image = Image::new(width as usize, height as usize);
 
@@ -77,34 +77,43 @@ impl Scene {
             .progress_chars("█▉▊▋▌▍▎▏  ")
         );
 
-        println!("🚀 Starting render: {}x{} pixels", width, height);
+        println!("Starting render: {width}x{height} pixels");
+        if parallelized {
+            println!("Using parallelized rendering");
+        } else {
+            println!("Using single-threaded rendering");
+        }
 
-        // Parallelize over rows
-        let rows: Vec<(u32, Vec<Color>)> = (0..height)
-            .into_par_iter()
-            .map(|y| {
-                let mut row_pixels = Vec::with_capacity(width as usize);
-
-                for x in 0..width {
-                    let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                        for _ in 0..self.sample_size {
-                        let u = (x as f32 + random_double()) / width as f32;
-                        let v = 1.0 - ((y as f32 + random_double()) / height as f32);
-                        let ray = self.camera().generate_ray(u, v);
-                        pixel_color = pixel_color + self.ray_color(&ray, u , v, self.max_depth);
-                    }
-                    let color = pixel_color/ self.sample_size as i32;
-                    row_pixels.push(color);
+        // Common rendering logic for each row
+        let render_row = |y: u32| {
+            let mut row_pixels = Vec::with_capacity(width as usize);
+            for x in 0..width {
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                for _ in 0..self.sample_size {
+                    let horizontal_offset = (x as f32 + random_float()) / width as f32;
+                    let vertical_offset = 1.0 - ((y as f32 + random_float()) / height as f32);
+                    let ray = self
+                        .camera()
+                        .generate_ray(horizontal_offset, vertical_offset);
+                    pixel_color = pixel_color
+                        + self.ray_color(&ray, horizontal_offset, vertical_offset, self.max_depth);
                 }
+                let color = pixel_color / self.sample_size as i32;
+                row_pixels.push(color);
+            }
+            pb.inc(1);
+            (y, row_pixels)
+        };
 
-                pb.inc(1);
-                (y, row_pixels)
-            })
-            .collect();
+        let rows: Vec<(u32, Vec<Color>)> = if parallelized {
+            (0..height).into_par_iter().map(render_row).collect()
+        } else {
+            (0..height).map(render_row).collect()
+        };
 
         pb.finish();
 
-        println!("💾 Saving to: {}", path);
+        println!("Saving to: {path}");
         for (y, row) in rows {
             for (x, color) in row.into_iter().enumerate() {
                 image.set_pixel(x, y as usize, color);
@@ -115,7 +124,13 @@ impl Scene {
         Ok(())
     }
 
-    pub fn ray_color(&self, ray: &Ray, u: f32, v: f32, depth: u32) -> Color {    
+    pub fn ray_color(
+        &self,
+        ray: &Ray,
+        horizontal_offset: f32,
+        vertical_offset: f32,
+        depth: u32,
+    ) -> Color {
         if depth == 0 {
             return Color::BLACK;
         }
@@ -131,27 +146,29 @@ impl Scene {
         }
 
         if let Some(hit) = final_hit {
-            let mut final_color = Color::BLACK;
+            let base = hit.material.texture.value_at(hit.u, hit.v);
+            let glow = hit.material.emission.unwrap_or(Color::BLACK);
+            let r = hit.material.reflectivity.clamp(0.0, 1.0);
+            let t = hit.material.transparency.clamp(0.0, 1.0);
+            let d = (1.0 - r - t).max(0.0);  // how much of the material is diffuse
+
+            let mut final_color = glow;
 
             for light in &self.lights {
-                final_color = final_color + light.contribution_from_hit(&self.objects, &hit, ray);
+                let li = light.contribution_from_hit(&self.objects, &hit, ray);
+                final_color = final_color + base * d * li;
             }
 
-            // 📌 Emission directly contributes to color
-            let emitted = hit.material.emitted(hit.u, hit.v, hit.p);
-
-            if let Some(scatter) = hit.material.scatter(ray, &hit) {
-                let bounced_color = self.ray_color(&scatter.scattered_ray, u, v, depth - 1);
-                final_color = ( final_color *
-                        (1.0 - hit.material.transparency).max(0.01) *
-                        (1.0 - hit.material.reflectivity).max(0.01)
-                    ) + scatter.attenuation * bounced_color;
-            } else {
-                final_color = emitted;
+            if depth > 0 {
+                if let Some(scatter) = hit.material.scatter(ray, &hit) {
+                    let bounced = self.ray_color(&scatter.scattered_ray, horizontal_offset, vertical_offset, depth - 1);
+                    final_color = final_color + scatter.attenuation * bounced;
+                }
             }
 
             return final_color;
         }
-        self.background.value_at(u, v, ray.origin())
+        self.background
+            .value_at(horizontal_offset, vertical_offset)
     }
 }

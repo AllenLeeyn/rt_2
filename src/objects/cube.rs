@@ -1,4 +1,4 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::material::Material;
 
 #[derive(Clone)]
@@ -13,13 +13,9 @@ impl Cube {
         let half = size / 2.0;
         let min = center - Vec3::new(half, half, half);
         let max = center + Vec3::new(half, half, half);
-        Self {
-            min,
-            max,
-            material,
-        }
+        Self { min, max, material }
     }
-    
+
     fn compute_normal(&self, p: Point3) -> Vec3 {
         // Determine which face was hit by comparing the hit point to the box faces.
         // Use an epsilon to tolerate floating point error.
@@ -55,7 +51,7 @@ impl Cube {
         } else if abs.y() > abs.z() {
             Vec3::new(0.0, diff.y().signum(), 0.0)
         } else {
-           Vec3::new(0.0, 0.0, diff.z().signum())
+            Vec3::new(0.0, 0.0, diff.z().signum())
         }
     }
 
@@ -97,13 +93,13 @@ impl Hittable for Cube {
         if t_hit < t_min || t_hit > t_max {
             return None;
         }
- 
+
         let t = t_hit;
         let p = ray.at(t);
         let outward_normal = self.compute_normal(p);
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
         let (u, v) = self.compute_uv(p);
-        let color = self.material.value_at(u, v, p);
+        let color = self.material.value_at(u, v);
 
         Some(HitRecord {
             p,          // hit_point
@@ -113,7 +109,7 @@ impl Hittable for Cube {
             u,          // texture coordinate u
             v,          // texture coordinate v
             front_face, // whether the ray hits the front face
-            material: self.material.clone()
+            material: self.material.clone(),
         })
     }
 }

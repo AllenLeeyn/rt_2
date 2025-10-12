@@ -6,11 +6,11 @@ pub mod objects;
 pub mod particle_system;
 
 use std::ops::Mul;
-pub fn sq<T: Mul<Output = T> + Copy>(v: T) -> T {
-    v * v
+pub fn square<T: Mul<Output = T> + Copy>(value: T) -> T {
+    value * value
 }
 
 use rand::Rng;
-pub fn random_double() -> f32 {
+pub fn random_float() -> f32 {
     rand::rng().random::<f32>()
 }
