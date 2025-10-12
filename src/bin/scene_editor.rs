@@ -1,11 +1,15 @@
 use eframe::{self, egui};
+use glam::{vec3, Mat3};
 use rfd::FileDialog;
 use serde_json;
 use std::fs;
+use std::process::Command;
+use std::thread;
 
 // Import the SceneData and related structs from the main project
 use rt_2::core::color::Color;
 use rt_2::core::vec3::{Point3, Vec3};
+use rt_2::pixels::Image;
 use rt_2::scene::storage::{
     CameraData, CubeData, CylinderData, DirectionalLightData, LightData, ObjectData, PlaneData,
     PointLightData, SceneData, SphereData, TextureData,
@@ -16,6 +20,12 @@ enum ViewType {
     TopDown,
     Front,
     Side,
+    ThreeD,
+}
+
+struct CameraControls {
+    rotation: f32,
+    zoom: f32,
 }
 
 struct SceneEditorApp {
@@ -23,6 +33,9 @@ struct SceneEditorApp {
     json_string: String,
     error_message: Option<String>,
     current_view: ViewType,
+    camera_controls: CameraControls,
+    is_rendering: bool,
+    render_message: Option<String>,
 }
 
 impl SceneEditorApp {
@@ -59,6 +72,7 @@ impl SceneEditorApp {
                     rect.center().x + p.z * scene_scale, // Z maps to screen X
                     rect.center().y - p.y * scene_scale, // Y maps to screen Y (inverted)
                 ),
+                _ => (0.0, 0.0), // Should not happen
             };
             egui::pos2(screen_x, screen_y)
         };
@@ -136,6 +150,173 @@ impl SceneEditorApp {
                         radius_pixels,
                         egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
                     );
+                }
+            }
+        }
+    }
+
+    fn get_cube_vertices(center: Point3, size: f32) -> [Point3; 8] {
+        let half_size = size / 2.0;
+        [
+            Point3::new(center.x - half_size, center.y - half_size, center.z - half_size),
+            Point3::new(center.x + half_size, center.y - half_size, center.z - half_size),
+            Point3::new(center.x + half_size, center.y + half_size, center.z - half_size),
+            Point3::new(center.x - half_size, center.y + half_size, center.z - half_size),
+            Point3::new(center.x - half_size, center.y - half_size, center.z + half_size),
+            Point3::new(center.x + half_size, center.y - half_size, center.z + half_size),
+            Point3::new(center.x + half_size, center.y + half_size, center.z + half_size),
+            Point3::new(center.x - half_size, center.y + half_size, center.z + half_size),
+        ]
+    }
+
+    fn get_cylinder_vertices(center: Point3, radius: f32, height: f32, segments: usize) -> (Vec<Point3>, Vec<Point3>) {
+        let mut top_vertices = Vec::new();
+        let mut bottom_vertices = Vec::new();
+        let half_height = height / 2.0;
+
+        for i in 0..=segments {
+            let angle = i as f32 * 2.0 * std::f32::consts::PI / segments as f32;
+            let x = center.x + radius * angle.cos();
+            let z = center.z + radius * angle.sin();
+            top_vertices.push(Point3::new(x, center.y + half_height, z));
+            bottom_vertices.push(Point3::new(x, center.y - half_height, z));
+        }
+
+        (top_vertices, bottom_vertices)
+    }
+
+    fn get_plane_vertices(center: Point3, size: Vec3) -> [Point3; 4] {
+        let half_size_x = size.x / 2.0;
+        let half_size_z = size.z / 2.0;
+        [
+            Point3::new(center.x - half_size_x, center.y, center.z - half_size_z),
+            Point3::new(center.x + half_size_x, center.y, center.z - half_size_z),
+            Point3::new(center.x + half_size_x, center.y, center.z + half_size_z),
+            Point3::new(center.x - half_size_x, center.y, center.z + half_size_z),
+        ]
+    }
+
+    fn draw_scene_3d(&mut self, ui: &mut egui::Ui) {
+        let painter = ui.painter();
+        let rect = ui.max_rect();
+        painter.rect_filled(rect, 0.0, egui::Color32::DARK_GRAY);
+
+        let camera = &mut self.scene_data.camera;
+        let fov_rad = camera.fov.to_radians();
+        let aspect_ratio = camera.aspect_ratio;
+
+        // Camera controls
+        ui.input(|i| {
+            if i.pointer.is_decidedly_dragging() {
+                self.camera_controls.rotation += i.pointer.delta().x * 0.01;
+            }
+            self.camera_controls.zoom -= i.raw_scroll_delta.y * 0.1;
+        });
+
+        let rotation_matrix = Mat3::from_rotation_y(self.camera_controls.rotation);
+        let camera_pos = rotation_matrix.mul_vec3(vec3(0.0, 0.0, self.camera_controls.zoom));
+        camera.position = Point3::new(camera_pos.x, camera_pos.y, camera_pos.z);
+
+        let to_screen_pos = |p: Point3| {
+            let p_camera = p - camera.position; // Point relative to camera
+
+            // Simplified perspective projection
+            let proj_x = p_camera.x / (p_camera.z * (fov_rad / 2.0).tan());
+            let proj_y = p_camera.y / (p_camera.z * (fov_rad / 2.0).tan() / aspect_ratio);
+
+            let screen_x = rect.center().x + proj_x * rect.width() / 2.0;
+            let screen_y = rect.center().y - proj_y * rect.height() / 2.0;
+
+            egui::pos2(screen_x, screen_y)
+        };
+
+        // Draw Objects
+        for object in &self.scene_data.objects {
+            match object {
+                ObjectData::Sphere(sphere) => {
+                    // Draw meridians and parallels
+                    let num_segments = 12;
+                    for i in 0..num_segments {
+                        let angle = i as f32 * std::f32::consts::PI * 2.0 / num_segments as f32;
+                        let mut points = Vec::new();
+                        for j in 0..=num_segments {
+                            let sub_angle = j as f32 * std::f32::consts::PI / num_segments as f32;
+                            let x = sphere.center.x + sphere.radius * sub_angle.sin() * angle.cos();
+                            let y = sphere.center.y + sphere.radius * sub_angle.cos();
+                            let z = sphere.center.z + sphere.radius * sub_angle.sin() * angle.sin();
+                            points.push(to_screen_pos(Point3::new(x, y, z)));
+                        }
+                        painter.add(egui::Shape::line(
+                            points,
+                            egui::Stroke::new(1.0, egui::Color32::BLUE),
+                        ));
+                    }
+                }
+                ObjectData::Cube(cube) => {
+                    let vertices = Self::get_cube_vertices(cube.center, cube.size);
+                    let mut projected_vertices = [egui::pos2(0.0, 0.0); 8];
+                    for i in 0..8 {
+                        projected_vertices[i] = to_screen_pos(vertices[i]);
+                    }
+
+                    let edges = [
+                        (0, 1), (1, 2), (2, 3), (3, 0), // Back face
+                        (4, 5), (5, 6), (6, 7), (7, 4), // Front face
+                        (0, 4), (1, 5), (2, 6), (3, 7), // Connecting edges
+                    ];
+
+                    for (i, j) in &edges {
+                        painter.line_segment(
+                            [projected_vertices[*i], projected_vertices[*j]],
+                            egui::Stroke::new(1.0, egui::Color32::RED),
+                        );
+                    }
+                }
+                ObjectData::Cylinder(cylinder) => {
+                    let num_segments = 12;
+                    let (top_vertices, bottom_vertices) = Self::get_cylinder_vertices(cylinder.center, cylinder.radius, cylinder.height, num_segments);
+
+                    let mut projected_top = Vec::new();
+                    for v in top_vertices {
+                        projected_top.push(to_screen_pos(v));
+                    }
+
+                    let mut projected_bottom = Vec::new();
+                    for v in bottom_vertices {
+                        projected_bottom.push(to_screen_pos(v));
+                    }
+
+                    painter.add(egui::Shape::line(
+                        projected_top.clone(),
+                        egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                    ));
+                    painter.add(egui::Shape::line(
+                        projected_bottom.clone(),
+                        egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                    ));
+
+                    for i in 0..num_segments {
+                        painter.line_segment(
+                            [projected_top[i], projected_bottom[i]],
+                            egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                        );
+                    }
+                }
+                ObjectData::Plane(plane) => {
+                    let vertices = Self::get_plane_vertices(plane.center, plane.size);
+                    let mut projected_vertices = [egui::pos2(0.0, 0.0); 4];
+                    for i in 0..4 {
+                        projected_vertices[i] = to_screen_pos(vertices[i]);
+                    }
+
+                    let edges = [(0, 1), (1, 2), (2, 3), (3, 0)];
+
+                    for (i, j) in &edges {
+                        painter.line_segment(
+                            [projected_vertices[*i], projected_vertices[*j]],
+                            egui::Stroke::new(1.0, egui::Color32::GREEN),
+                        );
+                    }
                 }
             }
         }
@@ -336,12 +517,15 @@ impl Default for SceneEditorApp {
         let mut app = Self {
             scene_data: SceneData {
                 objects: Vec::new(),
-                lights: Vec::new(),
+                lights: vec![],
                 camera: default_camera,
             },
             json_string: String::new(),
             error_message: None,
             current_view: ViewType::TopDown,
+            camera_controls: CameraControls { rotation: 0.0, zoom: 5.0 },
+            is_rendering: false,
+            render_message: None,
         };
         app.update_json_string(); // Initialize json_string with default scene_data
         app
@@ -408,6 +592,50 @@ impl eframe::App for SceneEditorApp {
                                 }
                             }
                         }
+                    }
+
+                    if ui.button("Render").clicked() {
+                        if !self.is_rendering {
+                            self.is_rendering = true;
+                            self.render_message = Some("Rendering, please wait...".to_string());
+
+                            let scene_data = self.scene_data.clone();
+                            let (width, height) = self.scene_data.camera.resolution;
+
+                            thread::spawn(move || {
+                                // Save the current scene to a temporary file
+                                let temp_scene_path = "temp_scene.json";
+                                match serde_json::to_string_pretty(&scene_data) {
+                                    Ok(json) => match fs::write(temp_scene_path, json) {
+                                        Ok(_) => {
+                                            // Run the ray tracer
+                                            let mut cmd = Command::new("target/debug/rt_2.exe");
+                                            cmd.arg("-s").arg(temp_scene_path);
+                                            match cmd.status() {
+                                                Ok(status) => {
+                                                    if !status.success() {
+                                                        // self.error_message = Some("Failed to render scene".to_string());
+                                                    }
+                                                }
+                                                Err(e) => {
+                                                    // self.error_message = Some(format!("Failed to run ray tracer: {}", e));
+                                                }
+                                            }
+                                        }
+                                        Err(e) => {
+                                            // self.error_message = Some(format!("Failed to write temporary scene file: {}", e));
+                                        }
+                                    },
+                                    Err(e) => {
+                                        // self.error_message = Some(format!("Failed to serialize scene data: {}", e));
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    if self.is_rendering {
+                        ui.label(self.render_message.as_deref().unwrap_or(""));
                     }
 
                     if let Some(msg) = &self.error_message {
@@ -1031,11 +1259,15 @@ impl eframe::App for SceneEditorApp {
             });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            self.draw_scene_2d(ui, self.current_view);
+            match self.current_view {
+                ViewType::ThreeD => self.draw_scene_3d(ui),
+                _ => self.draw_scene_2d(ui, self.current_view),
+            }
             ui.horizontal(|ui| {
                 ui.selectable_value(&mut self.current_view, ViewType::TopDown, "Top-Down (X-Z)");
                 ui.selectable_value(&mut self.current_view, ViewType::Front, "Front (X-Y)");
                 ui.selectable_value(&mut self.current_view, ViewType::Side, "Side (Y-Z)");
+                ui.selectable_value(&mut self.current_view, ViewType::ThreeD, "3D");
             });
         });
 
@@ -1056,4 +1288,3 @@ fn main() -> Result<(), eframe::Error> {
         Box::new(|_cc| Ok(Box::new(SceneEditorApp::default()))),
     )
 }
-
