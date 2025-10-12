@@ -5,8 +5,7 @@ use crate::scene::light::Light;
 use rayon::prelude::*;
 use std::ops::{Add, Mul};
 
-use indicatif::ProgressBar;
-use indicatif::ProgressStyle;
+use indicatif::{ProgressBar, ProgressStyle};
 
 pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
@@ -24,7 +23,7 @@ impl Scene {
             lights: Vec::new(),
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
-            max_depth: 10,
+            max_depth: 20,
             samples_per_pixel: 10000,
         }
     }
@@ -53,6 +52,10 @@ impl Scene {
         self.max_depth = depth;
     }
 
+    pub fn set_sample_size(&mut self, size: u32) {
+        self.samples_per_pixel = size;
+    }
+
     pub fn add_object<T: Hittable + 'static>(&mut self, object: T) {
         self.objects.push(Box::new(object));
     }
@@ -63,15 +66,19 @@ impl Scene {
 
     pub fn render(&mut self, path: &str) -> std::io::Result<()> {
         let (width, height) = self.camera().resolution();
-
         let mut image = Image::new(width as usize, height as usize);
 
-        let bar = ProgressBar::new(height as u64);
-        bar.set_style(
-            ProgressStyle::default_bar()
-                .template("{bar:40.cyan/blue} {pos:>7}/{len:7} [{elapsed_precise}]")
-                .unwrap(),
+        // Create progress bar
+        let pb = ProgressBar::new(height as u64);
+        pb.set_style(
+            ProgressStyle::with_template(
+                "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos:>3}/{len:3} lines ({percent}%) {eta}"
+            )
+            .unwrap()
+            .progress_chars("█▉▊▋▌▍▎▏  ")
         );
+
+        println!("🚀 Starting render: {}x{} pixels", width, height);
 
         // Parallelize over rows
         let rows: Vec<(u32, Vec<Color>)> = (0..height)
@@ -92,19 +99,19 @@ impl Scene {
                     row_pixels.push(color);
                 }
 
-                bar.inc(1); // safe: indicatif ProgressBar is internally synchronized
+                pb.inc(1); // safe: indicatif ProgressBar is internally synchronized
                 (y, row_pixels)
             })
             .collect();
 
-        // Write pixels back into image in order
+        pb.finish();
+
+        println!("💾 Saving to: {}", path);
         for (y, row) in rows {
             for (x, color) in row.into_iter().enumerate() {
                 image.set_pixel(x, y as usize, color);
             }
         }
-
-        bar.finish();
 
         image.save_ppm(path)?;
         Ok(())
@@ -147,7 +154,6 @@ impl Scene {
                 return emitted;
             }
         }
-
 
         //Color::DARK_GRAY.to_vec3()
 

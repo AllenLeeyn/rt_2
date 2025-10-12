@@ -1,4 +1,3 @@
-use std::ops::Neg;
 use std::sync::Arc;
 
 use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
@@ -10,7 +9,7 @@ pub struct Cube {
     pub max: Point3,
     pub material: Arc<dyn Material>,
 }
-
+// A cube is defined by its minimum and maximum corner points
 impl Cube {
     pub fn new(center: Point3, size: f32, material: Arc<dyn Material>) -> Self {
         let half = size / 2.0;
@@ -22,25 +21,28 @@ impl Cube {
             material,
         }
     }
-    
-    fn compute_normal(&self, p: Point3) -> Vec3 {
-        let epsilon = 1e-4;
 
-        if (p.x() - self.min.x()).abs() < epsilon {
-            Vec3::X.neg()
-        } else if (p.x() - self.max.x()).abs() < epsilon {
-            Vec3::X
-        } else if (p.y() - self.min.y()).abs() < epsilon {
-            Vec3::Y.neg()
-        } else if (p.y() - self.max.y()).abs() < epsilon {
-            Vec3::Y
-        } else if (p.z() - self.min.z()).abs() < epsilon {
-            Vec3::Z.neg()
+    // Compute normal vector at a point on the cube surface
+    fn compute_normal(&self, p: Point3) -> Vec3 {
+        let center = (self.min + self.max) / 2.0;
+        let diff = p - center;
+        let extents = (self.max - self.min) / 2.0;
+
+        let dx = (diff.x() / extents.x()).abs();
+        let dy = (diff.y() / extents.y()).abs();
+        let dz = (diff.z() / extents.z()).abs();
+
+        // Determine which face was hit based on the largest component
+        if dx > dy && dx > dz {
+            Vec3::new(diff.x().signum(), 0.0, 0.0) // Normal points outward along x-axis
+        } else if dy > dz {
+            Vec3::new(0.0, diff.y().signum(), 0.0) // Normal points outward along y-axis
         } else {
-            Vec3::Z
+            Vec3::new(0.0, 0.0, diff.z().signum()) // Normal points outward along z-axis
         }
     }
-
+    
+    // Compute UV coordinates for texture mapping (2D texture on 3D surface)
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
         let u = (p.x() - self.min.x()) / (self.max.x() - self.min.x());
         let v = (p.y() - self.min.y()) / (self.max.y() - self.min.y());
@@ -50,8 +52,8 @@ impl Cube {
 
 impl Hittable for Cube {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let mut tmin = t_min;
-        let mut tmax = t_max;
+        let mut t_enter = t_min;
+        let mut t_exit = t_max;
 
         for i in 0..3 {
             // precompute inverse for performance
@@ -65,27 +67,27 @@ impl Hittable for Cube {
                 std::mem::swap(&mut t0, &mut t1);
             }
 
-            tmin = tmin.max(t0);
-            tmax = tmax.min(t1);
+            t_enter = t_enter.max(t0);
+            t_exit = t_exit.min(t1);
 
-            if tmax <= tmin {
+            if t_exit <= t_enter {
                 return None;
             }
         }
 
-        let t = tmin;
+        let t = t_enter;
         let p = ray.at(t);
         let outward_normal = self.compute_normal(p);
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
         let (u, v) = self.compute_uv(p);
 
         Some(HitRecord {
-            p,
-            normal,
-            t,
-            u,
-            v,
-            front_face,
+            p,          // hit_point
+            normal,     // surface normal
+            t,          // distance along ray
+            u,          // texture coordinate u
+            v,          // texture coordinate v
+            front_face, // whether the ray hits the front face
             material: &*self.material,
         })
     }

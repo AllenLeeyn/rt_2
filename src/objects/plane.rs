@@ -1,4 +1,4 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::material::material::Material;
 use std::sync::Arc;
 
@@ -34,18 +34,18 @@ impl Plane {
         }
     }
 
-    fn bounding_box(&self) -> (Point3, Point3) {
-        self.bounding_box
-    }
-
     fn normal(&self) -> Vec3 {
         Vec3::Y
+    }
+
+    fn bounding_box(&self) -> (Point3, Point3) {
+        self.bounding_box
     }
 
     pub fn center(&self) -> Point3 {
         self.center
     }
-    
+
     pub fn size(&self) -> Vec3 {
         self.size
     }

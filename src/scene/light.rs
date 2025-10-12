@@ -37,7 +37,7 @@ impl Light {
             position: Point3::ZERO, // unused
             color,
             intensity,
-            samples: 1,
+            samples: 5,
             radius: 0.0,
             softness: 0.0,
         }

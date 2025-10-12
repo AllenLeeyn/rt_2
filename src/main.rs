@@ -22,6 +22,14 @@ struct Args {
     /// Resolution width and height
     #[arg(short = 'r', long = "resolution", value_names = &["WIDTH", "HEIGHT"])]
     resolution: Option<Vec<u32>>,
+    
+    /// Samples per pixel
+    #[arg(short = 'q', long = "quality", default_value_t = 512)]
+    samples: u32,
+
+    /// depth per pixel
+    #[arg(short = 'd', long = "depth", default_value_t = 10)]
+    depth: u32,
 }
 
 fn main() -> std::io::Result<()> {
@@ -38,7 +46,7 @@ fn main() -> std::io::Result<()> {
         5 => scene_five(&mut scene),
         6 => scene_six(&mut scene),
         _ => {
-            eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
+            eprintln!("Unknown scene {}, defaulting to scene_five", args.scene);
             scene_three(&mut scene);
         }
     }
@@ -52,6 +60,8 @@ fn main() -> std::io::Result<()> {
         }
     }
 
+    scene.set_sample_size(args.samples);
+    scene.set_max_depth(args.depth);
     scene.render(&args.output)?;
 
     Ok(())
@@ -213,7 +223,7 @@ fn scene_five(scene: &mut Scene) {
         Vec3::Y,
         60.0,
         1.0,
-        (400, 300),
+        (600, 450),
     );
 
     let material_ground = Arc::new(Lambertian::new(Texture::SolidColor(Color::new(
@@ -277,7 +287,7 @@ fn scene_five(scene: &mut Scene) {
         light_material.clone(),
     ));
 
-    scene.add_light(Light::new_point(
+/*     scene.add_light(Light::new_point(
         Point3::new(0.0, 3.0, 1.0),
         Color::WHITE,
         0.01,
@@ -290,7 +300,7 @@ fn scene_five(scene: &mut Scene) {
         Vec3::new(-3.0, -1.0, 1.0),
         Color::WHITE,
         0.002,
-    ));
+    )); */
 }
 
 fn scene_six(scene: &mut Scene) {

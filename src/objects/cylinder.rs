@@ -1,4 +1,4 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::material::material::Material;
 use std::sync::Arc;
 
@@ -8,66 +8,55 @@ pub struct Cylinder {
     radius: f32,
     height: f32,
     material: Arc<dyn Material>,
-    bounding_box: (Point3, Point3),
 }
 
 impl Cylinder {
     pub fn new(center: Point3, radius: f32, height: f32, material: Arc<dyn Material>) -> Self {
-        let min = Point3::new(
-            center.x() - radius,
-            center.y(),
-            center.z() - radius,
-        );
-
-        let max = Point3::new(
-            center.x() + radius,
-            center.y() + height,
-            center.z() + radius,
-        );
-
         Self {
             center,
             radius,
             height,
             material,
-            bounding_box: (min, max),
         }
     }
 
-    fn bounding_box(&self) -> (Point3, Point3) {
-        self.bounding_box
-    }
-
+    // Compute normal vector at a point on the cylinder surface
     fn compute_normal(&self, p: Point3) -> Vec3 {
         let dx = p.x() - self.center.x();
         let dz = p.z() - self.center.z();
-        Vec3::new(dx, 0.0, dz).normalize() // Only radial component
+        Vec3::new(dx, 0.0, dz).normalize()
     }
 
+    // Compute UV coordinates for a point on the cylinder surface
     fn compute_uv(&self, p: Point3) -> (f32, f32) {
-        let (min, max) = self.bounding_box();
-        let u = (p.x() - min.x()) / (max.x() - min.x());
-        let v = (p.y() - min.y()) / (max.y() - min.y());
+        let u = (p.x() - self.center.x() + self.radius) / (2.0 * self.radius);
+        let v = (p.y() - self.center.y()) / self.height;
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 
+    // Helper function to check intersection with a cap (top or bottom)
     fn hit_cap(&self, ray: &Ray, t_min: f32, t_max: f32, y: f32) -> Option<HitRecord> {
-        let dir_y = ray.direction().y();
-        if dir_y.abs() < 1e-6 {
+        // Skip if ray direction is too small (parallel to plane)
+        if ray.direction().y().abs() < 0.001 {
             return None;
         }
 
-        let t = (y - ray.origin().y()) / dir_y;
+        let t = (y - ray.origin().y()) / ray.direction().y();
+
         if t < t_min || t > t_max {
             return None;
         }
-
+        // Compute the hit point on the cap
         let p = ray.at(t);
         let dx = p.x() - self.center.x();
         let dz = p.z() - self.center.z();
 
         if dx * dx + dz * dz <= self.radius * self.radius {
-            let outward_normal = if y > self.center.y() { Vec3::Y } else { -Vec3::Y };
+            let outward_normal = if y > self.center.y() {
+                Vec3::Y
+            } else {
+                -Vec3::Y
+            };
             let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
             let (u, v) = self.compute_uv(p);
 
@@ -134,26 +123,30 @@ impl Cylinder {
 
         None
     }
-
 }
 
 impl Hittable for Cylinder {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        
-        let y_bottom = self.center.y();
-        let y_top = y_bottom + self.height;
-        
-        if let Some(hit) = self.hit_cap(ray, t_min, t_max, y_top) {
-            return Some(hit);
+        let mut closest_hit: Option<HitRecord> = None;
+        let mut closest_t = t_max;
+
+        // Check intersection with cylinder side
+        if let Some(side_hit) = self.hit_side(ray, t_min, closest_t) {
+            closest_t = side_hit.t;
+            closest_hit = Some(side_hit);
         }
 
-        if let Some(hit) = self.hit_side(ray, t_min, t_max) {
-            return Some(hit);
+        // Check intersection with bottom cap
+        if let Some(bottom_hit) = self.hit_cap(ray, t_min, closest_t, self.center.y()) {
+            closest_t = bottom_hit.t;
+            closest_hit = Some(bottom_hit);
         }
 
-        if let Some(hit) = self.hit_cap(ray, t_min, t_max, y_bottom) {
-            return Some(hit);
+        // Check intersection with top cap
+        if let Some(top_hit) = self.hit_cap(ray, t_min, closest_t, self.center.y() + self.height) {
+            closest_hit = Some(top_hit);
         }
-        None
+
+        closest_hit
     }
 }
