@@ -1,4 +1,5 @@
 use eframe::{self, egui};
+use rfd::FileDialog;
 use serde_json;
 use std::fs;
 
@@ -358,43 +359,53 @@ impl eframe::App for SceneEditorApp {
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     ui.heading("Scene Editor");
 
-                    if ui.button("Load scene.json").clicked() {
-                        match fs::read_to_string("scene.json") {
-                            Ok(data) => {
-                                self.json_string = data.clone();
-                                match serde_json::from_str::<SceneData>(&data) {
-                                    Ok(scene) => {
-                                        self.scene_data = scene;
-                                        self.error_message = None;
-                                        scene_changed = true; // Indicate change after loading
-                                    }
-                                    Err(e) => {
-                                        self.error_message =
-                                            Some(format!("Failed to parse scene.json: {}", e));
+                    if ui.button("Load Scene").clicked() {
+                        if let Some(path) = FileDialog::new()
+                            .add_filter("JSON", &["json"])
+                            .pick_file()
+                        {
+                            match fs::read_to_string(path) {
+                                Ok(data) => {
+                                    self.json_string = data.clone();
+                                    match serde_json::from_str::<SceneData>(&data) {
+                                        Ok(scene) => {
+                                            self.scene_data = scene;
+                                            self.error_message = None;
+                                            scene_changed = true; // Indicate change after loading
+                                        }
+                                        Err(e) => {
+                                            self.error_message =
+                                                Some(format!("Failed to parse scene file: {}", e));
+                                        }
                                     }
                                 }
-                            }
-                            Err(e) => {
-                                self.error_message =
-                                    Some(format!("Failed to read scene.json: {}", e));
+                                Err(e) => {
+                                    self.error_message =
+                                        Some(format!("Failed to read scene file: {}", e));
+                                }
                             }
                         }
                     }
 
-                    if ui.button("Save scene.json").clicked() {
-                        match serde_json::to_string_pretty(&self.scene_data) {
-                            Ok(json) => match fs::write("scene.json", json) {
-                                Ok(_) => {
-                                    self.error_message = None;
-                                }
+                    if ui.button("Save Scene").clicked() {
+                        if let Some(path) = FileDialog::new()
+                            .add_filter("JSON", &["json"])
+                            .save_file()
+                        {
+                            match serde_json::to_string_pretty(&self.scene_data) {
+                                Ok(json) => match fs::write(path, json) {
+                                    Ok(_) => {
+                                        self.error_message = None;
+                                    }
+                                    Err(e) => {
+                                        self.error_message =
+                                            Some(format!("Failed to write scene file: {}", e));
+                                    }
+                                },
                                 Err(e) => {
                                     self.error_message =
-                                        Some(format!("Failed to write scene.json: {}", e));
+                                        Some(format!("Failed to serialize scene data: {}", e));
                                 }
-                            },
-                            Err(e) => {
-                                self.error_message =
-                                    Some(format!("Failed to serialize scene data: {}", e));
                             }
                         }
                     }
@@ -1045,3 +1056,4 @@ fn main() -> Result<(), eframe::Error> {
         Box::new(|_cc| Ok(Box::new(SceneEditorApp::default()))),
     )
 }
+
