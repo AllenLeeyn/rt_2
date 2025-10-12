@@ -1,4 +1,6 @@
 use super::*;
+use rt_2::core::Hittable;
+use rt_2::scene::light::Light;
 use rt_2::material::dielectric::Dielectric;
 
 pub fn scene_one(scene: &mut Scene) {
@@ -297,5 +299,49 @@ pub fn scene_seven(scene: &mut Scene) {
         Point3::new(1.0, 0.0, -1.0),
         0.5,
         material_right.clone(),
+    ));
+}
+
+pub fn scene_eight(scene: &mut Scene) {
+    scene.camera_mut().set(
+        Point3::new(-2.0, 2.0, -4.0),
+        Vec3::new(0.0, 2.0, 0.0),
+        Vec3::Y,
+        60.0,
+        1.0,
+        (400, 300));
+
+    scene.add_object(Plane::new(
+        Point3::ZERO,
+        Vec3::new(20.0, 0.0, 20.0),
+        Arc::new(Lambertian::new(Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0))),
+    ));
+
+    let psys = ParticleSys::new(
+        Point3::new(-2.0, 0.0, -2.0), // min corner of bounding box
+        Point3::new(2.0, 3.0, 2.0),   // max corner
+        30, // number of particles
+        move |pos| {
+            let size = 0.1 + rand::random::<f32>() * 0.2;
+            Box::new(Cube::new(
+                pos,
+                size,
+                Arc::new(Lambertian::new(Texture::SolidColor(Color::new(rand::random::<f32>(), rand::random::<f32>(), rand::random::<f32>()))))
+            )) as Box<dyn Hittable>
+        },
+        0.15
+    );
+
+    for sphere in psys.generate() {
+        scene.add_boxed_object(sphere);
+    }
+
+    scene.add_light(Light::new_point(
+        Point3::new(0.0, 3.0, 0.0),
+        Color::WHITE,
+        1.0,
+        4,
+        1.0,
+        50.0
     ));
 }
