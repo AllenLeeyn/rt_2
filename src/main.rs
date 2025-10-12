@@ -3,7 +3,6 @@ use rt_2::material::{diffuse_light::*, lambertian::*, metal::*};
 use rt_2::objects::{Cube, Cylinder, Plane, Sphere};
 use rt_2::pixels::{Image, Texture};
 use rt_2::scene::Scene;
-use rt_2::scene::light::Light;
 use std::sync::Arc;
 use scenes::*;
 use clap::Parser;

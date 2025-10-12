@@ -21,7 +21,7 @@ impl Scene {
         Scene {
             objects: Vec::new(),
             lights: Vec::new(),
-            background: Texture::Gradient(Color::WHITE, Color::LIGHT_BLUE, 90.0),
+            background: Texture::Gradient(Color::LIGHT_BLUE, Color::WHITE, 90.0),
             camera: Camera::new(),
             max_depth: 20,
             samples_per_pixel: 10000,

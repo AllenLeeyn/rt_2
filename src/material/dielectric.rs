@@ -22,6 +22,7 @@ impl Dielectric {
         Self { ir, color }
     }
 
+    // probability of reflection when possible
     fn reflectance(cosine: f32, ref_idx: f32) -> f32 {
         // Use Schlick's approximation for reflectance.
         let mut r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
@@ -32,7 +33,6 @@ impl Dielectric {
 
 impl Material for Dielectric {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
-        //let attenuation = Color::new(255.0, 255.0, 255.0);
         let attenuation = self.color * 255.0;
         let refraction_ratio = if rec.front_face {
             1.0 / self.ir
@@ -46,7 +46,7 @@ impl Material for Dielectric {
 
         let cannot_refract = refraction_ratio * sin_theta > 1.0;
         let direction =
-            if cannot_refract || Dielectric::reflectance(cos_theta, refraction_ratio) > rand::random::<f32>() {
+            if cannot_refract || Dielectric::reflectance(cos_theta, refraction_ratio) > rand::random::<f32>() { // random so it generates both reflection and refraction
                 reflect(unit_direction, rec.normal)
             } else {
                 refract(unit_direction, rec.normal, refraction_ratio)
