@@ -1,12 +1,12 @@
+use clap::Parser;
 use rand::Rng;
 use rt_2::core::*;
 use rt_2::material::*;
 use rt_2::objects::*;
+use rt_2::particle_system::*;
+use rt_2::pixels::*;
 use rt_2::random_float;
 use rt_2::scene::*;
-use rt_2::pixels::*;
-use rt_2::particle_system::*;
-use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -687,8 +687,8 @@ fn scene_six(scene: &mut Scene) {
     // Setup ParticleSys to create random spheres within a box
     let grounds = ParticleSys::new(
         Point3::new(-5.0, -0.5, -5.0), // min corner
-        Point3::new(5.0, 0.2, 5.0),  // max corner
-        100,                          // number of particles
+        Point3::new(5.0, 0.2, 5.0),    // max corner
+        100,                           // number of particles
         |i: usize, pos: Point3| {
             let grid_cols = 10;
             let col = i % grid_cols;
@@ -716,11 +716,7 @@ fn scene_six(scene: &mut Scene) {
                 shininess: 0.0,
             };
 
-            Box::new(Cube::new(
-                Point3::new(x , pos.y(), z),
-                size,
-                material
-            )) as Box<dyn Hittable>
+            Box::new(Cube::new(Point3::new(x, pos.y(), z), size, material)) as Box<dyn Hittable>
         },
         0.15,
     );
@@ -732,8 +728,8 @@ fn scene_six(scene: &mut Scene) {
 
     let stars = ParticleSys::new(
         Point3::new(-30.0, 10.0, -30.0), // min corner
-        Point3::new(0.0, 25.0, 0.0),  // max corner
-        40,                          // number of particles
+        Point3::new(0.0, 25.0, 0.0),     // max corner
+        40,                              // number of particles
         |_i: usize, pos: Point3| {
             let material = Material {
                 texture: Texture::SolidColor(Color::WHITE),
@@ -746,11 +742,7 @@ fn scene_six(scene: &mut Scene) {
                 shininess: 0.0,
             };
 
-            Box::new(Sphere::new(
-                pos,
-                0.1,
-                material
-            )) as Box<dyn Hittable>
+            Box::new(Sphere::new(pos, 0.1, material)) as Box<dyn Hittable>
         },
         3.0,
     );

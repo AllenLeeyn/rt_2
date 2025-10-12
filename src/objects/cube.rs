@@ -16,35 +16,35 @@ impl Cube {
         Self { min, max, material }
     }
 
-    fn compute_normal(&self, p: Point3) -> Vec3 {
+    fn compute_normal(&self, point: Point3) -> Vec3 {
         // Determine which face was hit by comparing the hit point to the box faces.
         // Use an epsilon to tolerate floating point error.
         let eps = 1e-4;
 
-        if (p.x() - self.min.x()).abs() < eps {
+        if (point.x() - self.min.x()).abs() < eps {
             return Vec3::new(-1.0, 0.0, 0.0);
         }
-        if (p.x() - self.max.x()).abs() < eps {
+        if (point.x() - self.max.x()).abs() < eps {
             return Vec3::new(1.0, 0.0, 0.0);
         }
 
-        if (p.y() - self.min.y()).abs() < eps {
+        if (point.y() - self.min.y()).abs() < eps {
             return Vec3::new(0.0, -1.0, 0.0);
         }
-        if (p.y() - self.max.y()).abs() < eps {
+        if (point.y() - self.max.y()).abs() < eps {
             return Vec3::new(0.0, 1.0, 0.0);
         }
 
-        if (p.z() - self.min.z()).abs() < eps {
+        if (point.z() - self.min.z()).abs() < eps {
             return Vec3::new(0.0, 0.0, -1.0);
         }
-        if (p.z() - self.max.z()).abs() < eps {
+        if (point.z() - self.max.z()).abs() < eps {
             return Vec3::new(0.0, 0.0, 1.0);
         }
 
         // Fallback: choose largest component of difference from center (rare)
         let center = (self.min + self.max) / 2.0;
-        let diff = p - center;
+        let diff = point - center;
         let abs = Vec3::new(diff.x().abs(), diff.y().abs(), diff.z().abs());
         if abs.x() > abs.y() && abs.x() > abs.z() {
             Vec3::new(diff.x().signum(), 0.0, 0.0)
@@ -55,9 +55,9 @@ impl Cube {
         }
     }
 
-    fn compute_uv(&self, p: Point3) -> (f32, f32) {
-        let u = (p.x() - self.min.x()) / (self.max.x() - self.min.x());
-        let v = (p.y() - self.min.y()) / (self.max.y() - self.min.y());
+    fn compute_uv(&self, point: Point3) -> (f32, f32) {
+        let u = (point.x() - self.min.x()) / (self.max.x() - self.min.x());
+        let v = (point.y() - self.min.y()) / (self.max.y() - self.min.y());
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 
@@ -95,14 +95,14 @@ impl Hittable for Cube {
         }
 
         let t = t_hit;
-        let p = ray.at(t);
-        let outward_normal = self.compute_normal(p);
+        let point = ray.at(t);
+        let outward_normal = self.compute_normal(point);
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
-        let (u, v) = self.compute_uv(p);
+        let (u, v) = self.compute_uv(point);
         let color = self.material.value_at(u, v);
 
         Some(HitRecord {
-            p,          // hit_point
+            p: point,   // hit_point
             normal,     // surface normal
             t,          // distance along ray
             color,      // surface color

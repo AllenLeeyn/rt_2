@@ -97,9 +97,9 @@ impl Vec3 {
             let y = rng.random_range(-1.0..1.0);
             let z = rng.random_range(-1.0..1.0);
 
-            let p = Vec3::new(x, y, z);
-            if p.length_squared() < 1.0 {
-                return p;
+            let point = Vec3::new(x, y, z);
+            if point.length_squared() < 1.0 {
+                return point;
             }
         }
     }
@@ -116,7 +116,7 @@ impl Vec3 {
     pub fn reflect(&self, normal: Vec3) -> Vec3 {
         *self - 2.0 * self.dot(normal) * normal
     }
-    
+
     pub fn refract(&self, normal: Vec3, etai_over_etat: f32) -> Vec3 {
         let cos_theta = (-*self).dot(normal).min(1.0);
         let r_out_perpendicular = etai_over_etat * (*self + cos_theta * normal);

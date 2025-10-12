@@ -1,4 +1,4 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::material::Material;
 
 #[derive(Clone)]
@@ -12,11 +12,7 @@ pub struct Cylinder {
 
 impl Cylinder {
     pub fn new(center: Point3, radius: f32, height: f32, material: Material) -> Self {
-        let min = Point3::new(
-            center.x() - radius,
-            center.y(),
-            center.z() - radius,
-        );
+        let min = Point3::new(center.x() - radius, center.y(), center.z() - radius);
 
         let max = Point3::new(
             center.x() + radius,

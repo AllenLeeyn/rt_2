@@ -1,4 +1,4 @@
-use crate::core::{Point3, Vec3, Hittable, HitRecord, Ray};
+use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::material::Material;
 
 #[derive(Clone)]
@@ -38,7 +38,6 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         // Vector from ray origin to sphere center
         let oc = ray.origin() - self.center;
@@ -80,7 +79,7 @@ impl Hittable for Sphere {
             color,
             u,
             v,
-            front_face, 
+            front_face,
             material: self.material.clone(),
         })
     }

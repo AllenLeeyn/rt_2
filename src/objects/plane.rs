@@ -37,10 +37,10 @@ impl Plane {
         Vec3::Y
     }
 
-    fn compute_uv(&self, p: Point3) -> (f32, f32) {
+    fn compute_uv(&self, point: Point3) -> (f32, f32) {
         let half_size = self.size / 2.0;
-        let u = (p.x() - (self.center.x() - half_size.x())) / self.size.x();
-        let v = (p.z() - (self.center.z() - half_size.z())) / self.size.z();
+        let u = (point.x() - (self.center.x() - half_size.x())) / self.size.x();
+        let v = (point.z() - (self.center.z() - half_size.z())) / self.size.z();
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 
@@ -73,16 +73,17 @@ impl Hittable for Plane {
         }
 
         // Calculate intersection point
-        let p = ray.at(t);
+        let point = ray.at(t);
 
         // Check if intersection point is within plane bounds
         let (min, max) = self.bounding_box;
-        if p.x() < min.x() || p.x() > max.x() || p.z() < min.z() || p.z() > max.z() {
+        if point.x() < min.x() || point.x() > max.x() || point.z() < min.z() || point.z() > max.z()
+        {
             return None;
         }
 
         // Sample the texture
-        let (u, v) = self.compute_uv(p);
+        let (u, v) = self.compute_uv(point);
         let color = self.material.value_at(u, v);
 
         // Calculate surface properties
@@ -90,7 +91,7 @@ impl Hittable for Plane {
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
 
         Some(HitRecord {
-            p,
+            p: point,
             normal,
             t,
             color,

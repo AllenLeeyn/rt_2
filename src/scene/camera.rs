@@ -76,10 +76,8 @@ impl Camera {
         self.horizontal = u * viewport_width * self.focal_length;
         self.vertical = v * viewport_height * self.focal_length;
 
-        self.lower_left_corner = self.origin
-            - self.horizontal / 2.0
-            - self.vertical / 2.0
-            - w * self.focal_length;
+        self.lower_left_corner =
+            self.origin - self.horizontal / 2.0 - self.vertical / 2.0 - w * self.focal_length;
     }
 
     pub fn generate_ray(&self, horizontal_offset: f32, vertical_offset: f32) -> Ray {

@@ -1,10 +1,10 @@
 use crate::core::*;
+use crate::pixels::*;
 use crate::random_float;
 use crate::scene::*;
-use crate::pixels::*;
 
-use rayon::prelude::*;
 use indicatif::{ProgressBar, ProgressStyle};
+use rayon::prelude::*;
 
 pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
@@ -68,8 +68,8 @@ impl Scene {
         let mut image = Image::new(width as usize, height as usize);
 
         // Create progress bar
-        let pb = ProgressBar::new(height as u64);
-        pb.set_style(
+        let prog_bar = ProgressBar::new(height as u64);
+        prog_bar.set_style(
             ProgressStyle::with_template(
                 "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos:>3}/{len:3} lines ({percent}%) {eta}"
             )
@@ -101,7 +101,7 @@ impl Scene {
                 let color = pixel_color / self.sample_size as i32;
                 row_pixels.push(color);
             }
-            pb.inc(1);
+            prog_bar.inc(1);
             (y, row_pixels)
         };
 
@@ -111,7 +111,7 @@ impl Scene {
             (0..height).map(render_row).collect()
         };
 
-        pb.finish();
+        prog_bar.finish();
 
         println!("Saving to: {path}");
         for (y, row) in rows {
@@ -134,7 +134,7 @@ impl Scene {
         if depth == 0 {
             return Color::BLACK;
         }
-        
+
         let mut closest_so_far = 50.0;
         let mut final_hit = None;
 
@@ -150,7 +150,7 @@ impl Scene {
             let glow = hit.material.emission.unwrap_or(Color::BLACK);
             let r = hit.material.reflectivity.clamp(0.0, 1.0);
             let t = hit.material.transparency.clamp(0.0, 1.0);
-            let d = (1.0 - r - t).max(0.0);  // how much of the material is diffuse
+            let d = (1.0 - r - t).max(0.0); // how much of the material is diffuse
 
             let mut final_color = glow;
 
@@ -161,14 +161,18 @@ impl Scene {
 
             if depth > 0 {
                 if let Some(scatter) = hit.material.scatter(ray, &hit) {
-                    let bounced = self.ray_color(&scatter.scattered_ray, horizontal_offset, vertical_offset, depth - 1);
+                    let bounced = self.ray_color(
+                        &scatter.scattered_ray,
+                        horizontal_offset,
+                        vertical_offset,
+                        depth - 1,
+                    );
                     final_color = final_color + scatter.attenuation * bounced;
                 }
             }
 
             return final_color;
         }
-        self.background
-            .value_at(horizontal_offset, vertical_offset)
+        self.background.value_at(horizontal_offset, vertical_offset)
     }
 }
