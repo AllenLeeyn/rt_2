@@ -5,6 +5,12 @@ use rt_2::material::dielectric::Dielectric;
 use rt_2::material::material::Material;
 
 pub fn scene_one(scene: &mut Scene) {
+    scene.set_background(Texture::Gradient(
+        Color::WHITE,
+        Color::new(0.2, 0.5,0.8),
+        90.0,
+    ));
+
     scene.camera_mut().set(
         Point3::new(0.0, 0.0, 6.0),
         Vec3::ZERO,
