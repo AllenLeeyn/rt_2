@@ -42,7 +42,7 @@ impl Texture {
                 let x = (u * (image.width as f32 - 1.0)).round() as usize;
                 let y = ((1.0 - v) * (image.height as f32 - 1.0)).round() as usize;
 
-                image.get_pixel(x, y)
+                image.get_pixel(x, y) * 255.0
             },
         }
     }

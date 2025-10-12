@@ -20,6 +20,7 @@ impl Color {
     pub const TAUPE:    Color = Color { r: 0.275,  g: 0.235,  b: 0.196 };
     pub const CHARCOAL: Color = Color { r: 0.212,  g: 0.271,  b: 0.31  };
     pub const SLATE:    Color = Color { r: 0.439,  g: 0.5,    b: 0.565 };
+    pub const FLAT_GREEN:    Color = Color { r: 0.5,  g: 0.6,    b: 0.5 };
 
     // ------------------------
     // Basic Colors
