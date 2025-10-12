@@ -1,4 +1,5 @@
 use super::*;
+use rt_2::material::dielectric::Dielectric;
 
 pub fn scene_one(scene: &mut Scene) {
     scene.camera_mut().set(
@@ -258,5 +259,45 @@ pub fn scene_six(scene: &mut Scene) {
         Point3::new(1.0, 0.0, 0.0),
         0.5,
         green_metal.clone(),
+    ));
+}
+
+pub fn scene_seven(scene: &mut Scene) {
+    scene.camera_mut().set(
+        Point3::new(1.0, 1.5, 3.0),
+        Point3::new(0.0, 0.5, 0.0),
+        Vec3::Y,
+        40.0,
+        1.0,
+        (400, 300),
+    );
+
+    let material_ground = Arc::new(Lambertian::new(Texture::SolidColor(Color::new(
+        100.0, 170.0, 100.0,
+    ))));
+    let material_center = Arc::new(Dielectric::new(1.5, Color::WHITE));
+    let material_left = Arc::new(Metal::new(Texture::SolidColor(Color::new(150.0, 150.0, 255.0)), 0.0));
+    let material_right = Arc::new(Metal::new(Texture::SolidColor(Color::new(200.0, 200.0, 100.0)), 1.0));
+
+    scene.add_object(Plane::new(
+        Point3::new(0.0, -0.5, 0.0),
+        Vec3::new(20.0, 0.0, 20.0),
+        material_ground.clone(),
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.0, 0.0, -1.0),
+        0.5,
+        material_center.clone(),
+    ));
+    scene.add_object(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        0.5,
+        material_left.clone(),
+    ));
+    scene.add_object(Sphere::new(
+        Point3::new(1.0, 0.0, -1.0),
+        0.5,
+        material_right.clone(),
     ));
 }
