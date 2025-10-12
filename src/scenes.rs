@@ -29,8 +29,8 @@ pub fn scene_one(scene: &mut Scene) {
 
 pub fn scene_two(scene: &mut Scene) {
     scene.camera_mut().set(
-        Point3::splat(2.0),
-        Vec3::ZERO,
+        Point3::new(0.0, 2.0, 5.0),
+        Point3::new(0.0, 2.0, 0.0),
         Vec3::Y,
         60.0,
         1.0,

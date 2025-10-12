@@ -21,7 +21,7 @@ impl Scene {
         Scene {
             objects: Vec::new(),
             lights: Vec::new(),
-            background: Texture::SolidColor(Color::BLACK),
+            background: Texture::Gradient(Color::WHITE, Color::LIGHT_BLUE, 90.0),
             camera: Camera::new(),
             max_depth: 20,
             samples_per_pixel: 10000,
@@ -155,12 +155,13 @@ impl Scene {
             }
         }
 
-        //Color::DARK_GRAY.to_vec3()
+        let ud = ray.direction().normalize();
+        let u = 0.5 * (ud.x() + 1.0);
+        let v = 0.5 * (ud.y() + 1.0);
 
-        let unit_direction = ray.direction().normalize();
-        let t = 0.5 * (unit_direction.y() + 1.0);
-        Color::lerp(Color::WHITE, Color::new(0.5, 0.7, 1.0), t).to_vec3()
-
-        //self.background.value_at(u, v, ray.origin())
+        match &self.background {
+            Texture::Gradient(_, _, _) => self.background.value_at(0.5, v, ray.origin()).to_vec3(),
+            _ => self.background.value_at(u, v, ray.origin()).to_vec3(),
+        }
     }
 }
