@@ -5,6 +5,7 @@ use rt_2::pixels::{Image, Texture};
 use rt_2::scene::Scene;
 use std::sync::Arc;
 use scenes::*;
+use rt_2::particle_system::*;
 use clap::Parser;
 
 mod scenes;
