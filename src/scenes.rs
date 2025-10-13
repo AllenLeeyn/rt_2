@@ -7,7 +7,7 @@ use rt_2::material::material::Material;
 pub fn scene_one(scene: &mut Scene) {
     scene.set_background(Texture::Gradient(
         Color::WHITE,
-        Color::new(0.2, 0.5,0.8),
+        Color::new(0.2, 0.5, 0.8),
         90.0,
     ));
 
@@ -287,7 +287,10 @@ pub fn scene_seven(scene: &mut Scene) {
     let plain_white = Arc::new(Lambertian::new(Texture::SolidColor(Color::WHITE * 255.0)));
     let light = Arc::new(DiffuseLight::new(Texture::SolidColor(Color::WHITE * 10.0)));
     let glass = Arc::new(Dielectric::new(1.5, Color::PASTEL_LIME));
-    let metal = Arc::new(Metal::new(Texture::SolidColor(Color::PASTEL_BLUE * 255.0), 0.05));
+    let metal = Arc::new(Metal::new(
+        Texture::SolidColor(Color::PASTEL_BLUE * 255.0),
+        0.05,
+    ));
 
     // light
     scene.add_object(Cube::new(Point3::new(0.0, 3.1, 0.0), 1.0, light.clone()));
@@ -416,4 +419,97 @@ pub fn scene_eight(scene: &mut Scene) {
     for shape in psys.generate() {
         scene.add_boxed_object(shape);
     }
+}
+
+pub fn scene_nine(scene: &mut Scene) {
+    scene.camera_mut().set(
+        Point3::new(0.0, 2.0, 4.0),
+        Vec3::new(0.0, 1.5, 0.0),
+        Vec3::Y,
+        60.0,
+        1.0,
+        (400, 300),
+    );
+
+    scene.set_background(Texture::SolidColor(Color::PASTEL_BLUE));
+
+    scene.add_object(Cube::new(
+        Point3::new(-7.0, 5.0, 0.0),
+        10.0,
+        Arc::new(Lambertian::new(Texture::SolidColor(Color::RED * 255.0))),
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(7.0, 5.0, 0.0),
+        10.0,
+        Arc::new(Lambertian::new(Texture::SolidColor(Color::GREEN * 255.0))),
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(0.0, 5.0, -7.0),
+        10.0,
+        Arc::new(Lambertian::new(Texture::SolidColor(Color::WHITE * 255.0))),
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(0.0, 5.0, 10.0),
+        10.0,
+        Arc::new(Lambertian::new(Texture::SolidColor(Color::WHITE * 255.0))),
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(0.0, 8.5, 0.0),
+        10.0,
+        Arc::new(Lambertian::new(Texture::SolidColor(Color::WHITE * 255.0))),
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(0.0, 3.9, 0.0),
+        1.0,
+        Arc::new(DiffuseLight::new(Texture::SolidColor(Color::WHITE * 2.0))),
+    ));
+
+    scene.add_object(Cylinder::new(
+        Point3::new(1.5, 0.0, 0.5),
+        0.3,
+        4.0,
+        Arc::new(Metal::new(
+            Texture::Checkerboard(Color::CYAN * 255.0, Color::PASTEL_BLUE * 255.0, 1.0),
+            0.0,
+        )),
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(-1.0, 0.4, -1.1),
+        0.8,
+        Arc::new(Lambertian::new(Texture::SolidColor(Color::ORANGE * 255.0))),
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(-1.0, 0.55, -0.85),
+        0.6,
+        Arc::new(DiffuseLight::new(Texture::SolidColor(Color::ORANGE * 2.0))),
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(-0.4, 0.5, 1.0),
+        0.5,
+        Arc::new(Dielectric::new(1.5, Color::GREEN)),
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(-0.4, 0.5, 1.0),
+        -0.45,
+        Arc::new(Dielectric::new(1.5, Color::GREEN)),
+    ));
+
+    scene.add_object(Plane::new(
+        Point3::ZERO,
+        Vec3::new(20.0, 0.0, 20.0),
+        Arc::new(Lambertian::new(Texture::Checkerboard(
+            Color::GRAY * 255.0,
+            Color::BEIGE * 255.0,
+            8.0,
+        ))),
+    ));
 }

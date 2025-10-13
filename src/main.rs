@@ -26,7 +26,7 @@ struct Args {
     resolution: Option<Vec<u32>>,
     
     /// Samples per pixel
-    #[arg(short = 'q', long = "quality", default_value_t = 512)]
+    #[arg(short = 'q', long = "quality", default_value_t = 128)]
     samples: u32,
 
     /// depth per pixel
@@ -49,6 +49,7 @@ fn main() -> std::io::Result<()> {
         6 => scene_six(&mut scene),
         7 => scene_seven(&mut scene),
         8 => scene_eight(&mut scene),
+        9 => scene_nine(&mut scene),
         _ => {
             eprintln!("Unknown scene {}, defaulting to scene_five", args.scene);
             scene_three(&mut scene);
