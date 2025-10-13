@@ -31,13 +31,52 @@ struct Args {
     #[arg(short = 'd', long = "depth", default_value_t = 10)]
     depth: u32,
 
-    /// Disable parallelization (use single-threaded rendering, for testing without over-stressing gpu)
+    /// Disable parallelization (use single-threaded rendering, for testing without over-stressing cpu)
     #[arg(short = 'n', long = "non-parallelized")]
     non_parallelized: bool,
+
+    /// info
+    #[arg(short = 'i', long = "info")]
+    info: bool,
+}
+
+fn show_info() {
+    println!("    /// Scene number to render (1-4)
+    #[arg(short = 's', long = \"scene\", default_value_t = 3)]
+    scene: u32,
+
+    /// Output filename
+    #[arg(short = 'o', long = \"output\", default_value = \"output.ppm\")]
+    output: String,
+
+    /// Resolution width and height
+    #[arg(short = 'r', long = \"resolution\", value_names = &[\"WIDTH\", \"HEIGHT\"])]
+    resolution: Option<Vec<u32>>,
+
+    /// Samples per pixel
+    #[arg(short = 'q', long = \"quality\", default_value_t = 32)]
+    samples: u32,
+
+    /// depth per pixel
+    #[arg(short = 'd', long = \"depth\", default_value_t = 10)]
+    depth: u32,
+
+    /// Disable parallelization (use single-threaded rendering, for testing without over-stressing gpu)
+    #[arg(short = 'n', long = \"non-parallelized\")]
+    non_parallelized: bool,
+
+    /// Help
+    #[arg(short = 'h', long = \"help\")]
+    help: bool,")
 }
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
+
+    if args.info {
+        show_info();
+        return Ok(());
+    }
 
     let mut scene = Scene::new();
 
@@ -111,8 +150,11 @@ fn scene_one(scene: &mut Scene) {
 }
 
 fn scene_two(scene: &mut Scene) {
-
-    scene.set_background(Texture::Gradient(Color::BLACK, Color::DARK_PURPLE * 0.3, 90.0));
+    scene.set_background(Texture::Gradient(
+        Color::BLACK,
+        Color::DARK_PURPLE * 0.3,
+        90.0,
+    ));
 
     scene.camera_mut().set(
         Point3::splat(3.0),
