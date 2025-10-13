@@ -417,7 +417,7 @@ impl SceneEditorApp {
         (top_vertices, bottom_vertices)
     }
 
-    fn get_plane_vertices(center: Point3, size: Vec3) -> [Point3; 4] {
+/*     fn get_plane_vertices(center: Point3, size: Vec3) -> [Point3; 4] {
         let half_size_x = size.x / 2.0;
         let half_size_z = size.z / 2.0;
         [
@@ -426,7 +426,7 @@ impl SceneEditorApp {
             Point3::new(center.x + half_size_x, center.y, center.z + half_size_z),
             Point3::new(center.x - half_size_x, center.y, center.z + half_size_z),
         ]
-    }
+    } */
 
     fn draw_scene_3d(&mut self, ui: &mut egui::Ui) {
         let painter = ui.painter();
