@@ -141,10 +141,6 @@ fn add_sc3_hittables(scene: &mut Scene) {
     scene.add_object(Sphere::new(
         Point3::new(-0.5, 0.5, 0.0),
         0.5,
-        /* Arc::new(Metal::new(
-            Texture::SolidColor((Color::GREEN + Color::GRAY) * 0.5 * 255.0),
-            0.1,
-        )), */
         Material {
             texture: Texture::SolidColor((Color::GREEN + Color::GRAY) * 0.5),
             diffuse: 0.3, // fuzzyness??
