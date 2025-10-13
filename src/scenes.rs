@@ -48,7 +48,6 @@ pub fn scene_one(scene: &mut Scene) {
 }
 
 pub fn scene_two(scene: &mut Scene) {
-    //scene.set_background(Texture::Gradient(Color::BLACK, Color::DARK_PURPLE * 0.3, PI));
     scene.set_background(Texture::Gradient(
         Color::DARK_GRAY * 0.5,
         Color::DARK_BLUE * 0.4,
@@ -61,7 +60,7 @@ pub fn scene_two(scene: &mut Scene) {
         Vec3::Y,
         60.0,
         1.0,
-        (400, 300),
+        (800, 600),
     );
 
     scene.add_object(Plane::new(
