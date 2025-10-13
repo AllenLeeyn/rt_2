@@ -3,6 +3,7 @@ use glam::{vec3, Mat3};
 use rfd::FileDialog;
 use serde_json;
 use std::fs;
+use std::path::PathBuf;
 
 // Import the SceneData and related structs from the main project
 use rt_2::core::color::Color;
@@ -96,6 +97,7 @@ struct SceneEditorApp {
     error_message: Option<String>,
     current_view: ViewType,
     camera_controls: CameraControls,
+    current_file_path: Option<PathBuf>,
 }
 
 impl SceneEditorApp {
@@ -748,6 +750,7 @@ impl Default for SceneEditorApp {
                 rotation: 0.0,
                 zoom: 5.0,
             },
+            current_file_path: None,
         };
         app.update_json_string(); // Initialize json_string with default scene_data
         app
@@ -764,11 +767,19 @@ impl eframe::App for SceneEditorApp {
             .show(ctx, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     ui.heading("Scene Editor");
+
+                    if let Some(path) = &self.current_file_path {
+                        ui.label(format!("File: {}", path.display()));
+                    } else {
+                        ui.label("File: New Scene");
+                    }
+
                     ui.horizontal(|ui| {
                         if ui.button("Load Scene").clicked() {
                             if let Some(path) =
                                 FileDialog::new().add_filter("JSON", &["json"]).pick_file()
                             {
+                                self.current_file_path = Some(path.clone());
                                 match fs::read_to_string(path) {
                                     Ok(data) => {
                                         self.json_string = data.clone();
@@ -794,23 +805,75 @@ impl eframe::App for SceneEditorApp {
                             }
                         }
 
-                        if ui.button("Save Scene").clicked() {
-                            if let Some(path) =
-                                FileDialog::new().add_filter("JSON", &["json"]).save_file()
-                            {
+                        if ui.button("Save").clicked() {
+                            let path_to_save = self.current_file_path.clone();
+                            if let Some(path) = path_to_save {
                                 match serde_json::to_string_pretty(&self.scene_data) {
                                     Ok(json) => match fs::write(path, json) {
-                                        Ok(_) => {
-                                            self.error_message = None;
-                                        }
+                                        Ok(_) => self.error_message = None,
                                         Err(e) => {
                                             self.error_message =
-                                                Some(format!("Failed to write scene file: {}", e));
+                                                Some(format!("Failed to write scene file: {}", e))
                                         }
                                     },
                                     Err(e) => {
-                                        self.error_message =
-                                            Some(format!("Failed to serialize scene data: {}", e));
+                                        self.error_message = Some(format!(
+                                            "Failed to serialize scene data: {}",
+                                            e
+                                        ))
+                                    }
+                                }
+                            } else {
+                                // If no path, fallback to Save As
+                                if let Some(path) =
+                                    FileDialog::new().add_filter("JSON", &["json"]).save_file()
+                                {
+                                    self.current_file_path = Some(path.clone());
+                                    match serde_json::to_string_pretty(&self.scene_data) {
+                                        Ok(json) => match fs::write(path, json) {
+                                            Ok(_) => self.error_message = None,
+                                            Err(e) => {
+                                                self.error_message = Some(format!(
+                                                    "Failed to write scene file: {}",
+                                                    e
+                                                ))
+                                            }
+                                        },
+                                        Err(e) => {
+                                            self.error_message = Some(format!(
+                                                "Failed to serialize scene data: {}",
+                                                e
+                                            ))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if self.current_file_path.is_some() {
+                            if ui.button("Save As").clicked() {
+                                if let Some(path) =
+                                    FileDialog::new().add_filter("JSON", &["json"]).save_file()
+                                {
+                                    self.current_file_path = Some(path.clone());
+                                    match serde_json::to_string_pretty(&self.scene_data) {
+                                        Ok(json) => match fs::write(path, json) {
+                                            Ok(_) => {
+                                                self.error_message = None;
+                                            }
+                                            Err(e) => {
+                                                self.error_message = Some(format!(
+                                                    "Failed to write scene file: {}",
+                                                    e
+                                                ));
+                                            }
+                                        },
+                                        Err(e) => {
+                                            self.error_message = Some(format!(
+                                                "Failed to serialize scene data: {}",
+                                                e
+                                            ));
+                                        }
                                     }
                                 }
                             }
