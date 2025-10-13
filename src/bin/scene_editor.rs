@@ -236,13 +236,48 @@ impl SceneEditorApp {
                     );
                 }
                 ObjectData::Cylinder(cylinder) => {
-                    let center_2d = to_screen_pos(cylinder.center);
-                    let radius_pixels = cylinder.radius * scene_scale;
-                    painter.circle_stroke(
-                        center_2d,
-                        radius_pixels,
-                        egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
-                    );
+                    match view_type {
+                        ViewType::TopDown => {
+                            let center_2d = to_screen_pos(cylinder.center);
+                            let radius_pixels = cylinder.radius * scene_scale;
+                            painter.circle_stroke(
+                                center_2d,
+                                radius_pixels,
+                                egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                            );
+                        }
+                        ViewType::Front => {
+                            let half_height = cylinder.height / 2.0;
+                            let radius = cylinder.radius;
+                            let center = cylinder.center;
+
+                            let top_left = to_screen_pos(Point3::new(center.x - radius, center.y + half_height, center.z));
+                            let bottom_right = to_screen_pos(Point3::new(center.x + radius, center.y - half_height, center.z));
+
+                            let rect = egui::Rect::from_min_max(top_left, bottom_right);
+                            painter.rect_stroke(
+                                rect,
+                                0.0,
+                                egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                            );
+                        }
+                        ViewType::Side => {
+                            let half_height = cylinder.height / 2.0;
+                            let radius = cylinder.radius;
+                            let center = cylinder.center;
+
+                            let top_left = to_screen_pos(Point3::new(center.x, center.y + half_height, center.z - radius));
+                            let bottom_right = to_screen_pos(Point3::new(center.x, center.y - half_height, center.z + radius));
+
+                            let rect = egui::Rect::from_min_max(top_left, bottom_right);
+                            painter.rect_stroke(
+                                rect,
+                                0.0,
+                                egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                            );
+                        }
+                        _ => {}
+                    }
                 }
             }
         }
