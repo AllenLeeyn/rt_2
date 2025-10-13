@@ -2,7 +2,7 @@
 
 rt is a simple ray tracing project designed to build foundational understanding of rendering 3D scenes through ray tracing techniques. Below is the default scene rendered.
 
-![Rendered output](demo1.png)
+![Rendered output](/demo_images/demo1.png)
 
 In this project, we implement:
 - simple objects:
