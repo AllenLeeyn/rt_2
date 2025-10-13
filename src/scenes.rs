@@ -466,7 +466,7 @@ pub fn scene_nine(scene: &mut Scene) {
     scene.add_object(Cube::new(
         Point3::new(0.0, 3.9, 0.0),
         1.0,
-        Arc::new(DiffuseLight::new(Texture::SolidColor(Color::WHITE * 2.0))),
+        Arc::new(DiffuseLight::new(Texture::SolidColor(Color::WHITE * 1.0))),
     ));
 
     scene.add_object(Cylinder::new(
@@ -474,8 +474,8 @@ pub fn scene_nine(scene: &mut Scene) {
         0.3,
         4.0,
         Arc::new(Metal::new(
-            Texture::Checkerboard(Color::CYAN * 255.0, Color::PASTEL_BLUE * 255.0, 1.0),
-            0.0,
+            Texture::Checkerboard(Color::CYAN * 255.0, Color::PASTEL_BLUE * 255.0, 0.5),
+            0.3,
         )),
     ));
 
@@ -488,7 +488,7 @@ pub fn scene_nine(scene: &mut Scene) {
     scene.add_object(Cube::new(
         Point3::new(-1.0, 0.55, -0.85),
         0.6,
-        Arc::new(DiffuseLight::new(Texture::SolidColor(Color::ORANGE * 2.0))),
+        Arc::new(DiffuseLight::new(Texture::SolidColor(Color::ORANGE * 1.5))),
     ));
 
     scene.add_object(Sphere::new(
