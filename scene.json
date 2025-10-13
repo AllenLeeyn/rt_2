@@ -43,19 +43,7 @@
         "height": 2.0,
         "material": {
           "texture": {
-            "Checkerboard": [
-              {
-                "r": 1.0,
-                "g": 0.85,
-                "b": 1.0
-              },
-              {
-                "r": 0.0,
-                "g": 1.0,
-                "b": 1.0
-              },
-              1.9
-            ]
+            "Image": "/Users/oleg.balandin/Desktop/work/rt_2/assets/test.png"
           },
           "diffuse": 1.0,
           "reflectivity": 0.0,

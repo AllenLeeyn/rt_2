@@ -98,6 +98,7 @@ struct SceneEditorApp {
     current_view: ViewType,
     camera_controls: CameraControls,
     current_file_path: Option<PathBuf>,
+    image_previews: std::collections::HashMap<String, egui::TextureHandle>,
 }
 
 impl SceneEditorApp {
@@ -662,7 +663,13 @@ fn material_editor(
     });
 }
 
-fn texture_editor(ui: &mut egui::Ui, texture: &mut TextureData, scene_changed: &mut bool) {
+fn texture_editor(
+    ui: &mut egui::Ui,
+    texture: &mut TextureData,
+    scene_changed: &mut bool,
+    ctx: &egui::Context,
+    image_previews: &mut std::collections::HashMap<String, egui::TextureHandle>,
+) {
     let mut current_texture_type = match texture {
         TextureData::SolidColor(_) => "SolidColor",
         TextureData::Gradient(_, _, _) => "Gradient",
@@ -723,7 +730,46 @@ fn texture_editor(ui: &mut egui::Ui, texture: &mut TextureData, scene_changed: &
         }
         TextureData::Image(path) => {
             ui.label("Path:");
-            *scene_changed |= ui.text_edit_singleline(path).changed();
+            ui.horizontal(|ui| {
+                ui.add_sized([200.0, 20.0], egui::TextEdit::singleline(path)).changed();
+                if ui.button("Browse...").clicked() {
+                    if let Some(new_path) = FileDialog::new()
+                        .add_filter("Image Files", &["png", "jpg", "jpeg", "gif", "bmp"])
+                        .pick_file()
+                    {
+                        *path = new_path.to_string_lossy().to_string();
+                        *scene_changed = true;
+                    }
+                }
+            });
+
+            if !path.is_empty() {
+                if !image_previews.contains_key(path) {
+                    if let Ok(image) = rt_2::pixels::image::Image::load(path) {
+                        let color_image = egui::ColorImage::from_rgb(
+                            [image.width, image.height],
+                            &image
+                                .pixels
+                                .iter()
+                                .flat_map(|c| {
+                                    vec![
+                                        (c.r * 255.0) as u8,
+                                        (c.g * 255.0) as u8,
+                                        (c.b * 255.0) as u8,
+                                    ]
+                                })
+                                .collect::<Vec<u8>>(),
+                        );
+                        let handle =
+                            ctx.load_texture(path.clone(), color_image, Default::default());
+                        image_previews.insert(path.clone(), handle);
+                    }
+                }
+
+                if let Some(texture_handle) = image_previews.get(path) {
+                    ui.image((texture_handle.id(), texture_handle.size_vec2() / 2.0));
+                }
+            }
         }
     });
 }
@@ -751,6 +797,7 @@ impl Default for SceneEditorApp {
                 zoom: 5.0,
             },
             current_file_path: None,
+            image_previews: std::collections::HashMap::new(),
         };
         app.update_json_string(); // Initialize json_string with default scene_data
         app
@@ -817,10 +864,8 @@ impl eframe::App for SceneEditorApp {
                                         }
                                     },
                                     Err(e) => {
-                                        self.error_message = Some(format!(
-                                            "Failed to serialize scene data: {}",
-                                            e
-                                        ))
+                                        self.error_message =
+                                            Some(format!("Failed to serialize scene data: {}", e))
                                     }
                                 }
                             } else {
@@ -1026,6 +1071,8 @@ impl eframe::App for SceneEditorApp {
                                                     ui,
                                                     &mut sphere.material.texture,
                                                     &mut scene_changed,
+                                                    ctx,
+                                                    &mut self.image_previews,
                                                 );
                                             });
                                             material_editor(
@@ -1053,6 +1100,8 @@ impl eframe::App for SceneEditorApp {
                                                     ui,
                                                     &mut plane.material.texture,
                                                     &mut scene_changed,
+                                                    ctx,
+                                                    &mut self.image_previews,
                                                 );
                                             });
                                             material_editor(
@@ -1083,6 +1132,8 @@ impl eframe::App for SceneEditorApp {
                                                     ui,
                                                     &mut cube.material.texture,
                                                     &mut scene_changed,
+                                                    ctx,
+                                                    &mut self.image_previews,
                                                 );
                                             });
                                             material_editor(
@@ -1120,6 +1171,8 @@ impl eframe::App for SceneEditorApp {
                                                     ui,
                                                     &mut cylinder.material.texture,
                                                     &mut scene_changed,
+                                                    ctx,
+                                                    &mut self.image_previews,
                                                 );
                                             });
                                             material_editor(
