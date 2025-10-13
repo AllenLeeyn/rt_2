@@ -61,7 +61,11 @@
           "reflectivity": 0.0,
           "transparency": 0.0,
           "index_of_refraction": 0.0,
-          "emission": null
+          "emission": {
+            "r": 300.0,
+            "g": 0.0,
+            "b": 0.0
+          }
         }
       }
     },

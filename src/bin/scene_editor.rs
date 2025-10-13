@@ -13,6 +13,42 @@ use rt_2::scene::storage::{
     CameraData, CubeData, CylinderData, ObjectData, PlaneData, SceneData, SphereData, TextureData,
 };
 
+fn point3_editor(ui: &mut egui::Ui, label: &str, point: &mut Point3, scene_changed: &mut bool) {
+    ui.horizontal(|ui| {
+        ui.label(label);
+        ui.label("X:");
+        *scene_changed |= ui.add(egui::DragValue::new(&mut point.x).speed(0.1)).changed();
+        ui.label("Y:");
+        *scene_changed |= ui.add(egui::DragValue::new(&mut point.y).speed(0.1)).changed();
+        ui.label("Z:");
+        *scene_changed |= ui.add(egui::DragValue::new(&mut point.z).speed(0.1)).changed();
+    });
+}
+
+fn vec3_editor(ui: &mut egui::Ui, label: &str, vec: &mut Vec3, scene_changed: &mut bool) {
+    ui.horizontal(|ui| {
+        ui.label(label);
+        ui.label("X:");
+        *scene_changed |= ui.add(egui::DragValue::new(&mut vec.x).speed(0.1)).changed();
+        ui.label("Y:");
+        *scene_changed |= ui.add(egui::DragValue::new(&mut vec.y).speed(0.1)).changed();
+        ui.label("Z:");
+        *scene_changed |= ui.add(egui::DragValue::new(&mut vec.z).speed(0.1)).changed();
+    });
+}
+
+fn color_editor(ui: &mut egui::Ui, label: &str, color: &mut Color, scene_changed: &mut bool) {
+    ui.horizontal(|ui| {
+        ui.label(label);
+        ui.label("R:");
+        *scene_changed |= ui.add(egui::DragValue::new(&mut color.r).speed(0.01).range(0.0..=1.0)).changed();
+        ui.label("G:");
+        *scene_changed |= ui.add(egui::DragValue::new(&mut color.g).speed(0.01).range(0.0..=1.0)).changed();
+        ui.label("B:");
+        *scene_changed |= ui.add(egui::DragValue::new(&mut color.b).speed(0.01).range(0.0..=1.0)).changed();
+    });
+}
+
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum ViewType {
     TopDown,
@@ -352,29 +388,23 @@ fn material_editor(ui: &mut egui::Ui, material: &mut rt_2::scene::storage::Mater
         }
 
         if let Some(emission_color) = &mut material.emission {
+            let mut intensity = emission_color.r.max(emission_color.g).max(emission_color.b);
+            if intensity == 0.0 { intensity = 1.0; }
+            let mut normalized_color = Color::new(emission_color.r / intensity, emission_color.g / intensity, emission_color.b / intensity);
+
+            let initial_intensity = intensity;
+            let initial_normalized_color = normalized_color;
+
             ui.horizontal(|ui| {
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut emission_color.r)
-                            .speed(0.01)
-                            .range(0.0..=100.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut emission_color.g)
-                            .speed(0.01)
-                            .range(0.0..=100.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut emission_color.b)
-                            .speed(0.01)
-                            .range(0.0..=100.0),
-                    )
-                    .changed();
+                ui.label("Intensity:");
+                *scene_changed |= ui.add(egui::DragValue::new(&mut intensity).speed(0.1)).changed();
             });
+            color_editor(ui, "Color:", &mut normalized_color, scene_changed);
+
+            if intensity != initial_intensity || normalized_color != initial_normalized_color {
+                *emission_color = normalized_color * intensity;
+                *scene_changed = true;
+            }
         }
     });
 }
@@ -420,134 +450,19 @@ fn texture_editor(ui: &mut egui::Ui, texture: &mut TextureData, scene_changed: &
 
     ui.indent("texture_indent", |ui| match texture {
         TextureData::SolidColor(color) => {
-            ui.label("Color:");
-            ui.horizontal(|ui| {
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color.r)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color.g)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color.b)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-            });
+            color_editor(ui, "Color:", color, scene_changed);
         }
         TextureData::Gradient(color1, color2, angle) => {
-            ui.label("Color 1:");
-            ui.horizontal(|ui| {
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color1.r)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color1.g)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color1.b)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-            });
-            ui.label("Color 2:");
-            ui.horizontal(|ui| {
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color2.r)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color2.g)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color2.b)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-            });
+            color_editor(ui, "Color 1:", color1, scene_changed);
+            color_editor(ui, "Color 2:", color2, scene_changed);
             ui.label("Angle:");
             *scene_changed |= ui
                 .add(egui::DragValue::new(&mut *angle).speed(0.1))
                 .changed();
         }
         TextureData::Checkerboard(color1, color2, frequency) => {
-            ui.label("Color 1:");
-            ui.horizontal(|ui| {
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color1.r)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color1.g)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color1.b)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-            });
-            ui.label("Color 2:");
-            ui.horizontal(|ui| {
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color2.r)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color2.g)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-                *scene_changed |= ui
-                    .add(
-                        egui::DragValue::new(&mut color2.b)
-                            .speed(0.01)
-                            .range(0.0..=1.0),
-                    )
-                    .changed();
-            });
+            color_editor(ui, "Color 1:", color1, scene_changed);
+            color_editor(ui, "Color 2:", color2, scene_changed);
             ui.label("Frequency:");
             *scene_changed |= ui
                 .add(egui::DragValue::new(&mut *frequency).speed(0.1))
@@ -701,71 +616,9 @@ impl eframe::App for SceneEditorApp {
 
                     // Camera Editor
                     ui.collapsing("Camera", |ui| {
-                        ui.label("Position:");
-                        ui.horizontal(|ui| {
-                            scene_changed |= ui
-                                .add(
-                                    egui::DragValue::new(&mut self.scene_data.camera.position.x)
-                                        .speed(0.1),
-                                )
-                                .changed();
-                            scene_changed |= ui
-                                .add(
-                                    egui::DragValue::new(&mut self.scene_data.camera.position.y)
-                                        .speed(0.1),
-                                )
-                                .changed();
-                            scene_changed |= ui
-                                .add(
-                                    egui::DragValue::new(&mut self.scene_data.camera.position.z)
-                                        .speed(0.1),
-                                )
-                                .changed();
-                        });
-
-                        ui.label("Look At:");
-                        ui.horizontal(|ui| {
-                            scene_changed |= ui
-                                .add(
-                                    egui::DragValue::new(&mut self.scene_data.camera.look_at.x)
-                                        .speed(0.1),
-                                )
-                                .changed();
-                            scene_changed |= ui
-                                .add(
-                                    egui::DragValue::new(&mut self.scene_data.camera.look_at.y)
-                                        .speed(0.1),
-                                )
-                                .changed();
-                            scene_changed |= ui
-                                .add(
-                                    egui::DragValue::new(&mut self.scene_data.camera.look_at.z)
-                                        .speed(0.1),
-                                )
-                                .changed();
-                        });
-
-                        ui.label("Up Vector:");
-                        ui.horizontal(|ui| {
-                            scene_changed |= ui
-                                .add(
-                                    egui::DragValue::new(&mut self.scene_data.camera.up.x)
-                                        .speed(0.1),
-                                )
-                                .changed();
-                            scene_changed |= ui
-                                .add(
-                                    egui::DragValue::new(&mut self.scene_data.camera.up.y)
-                                        .speed(0.1),
-                                )
-                                .changed();
-                            scene_changed |= ui
-                                .add(
-                                    egui::DragValue::new(&mut self.scene_data.camera.up.z)
-                                        .speed(0.1),
-                                )
-                                .changed();
-                        });
+                        point3_editor(ui, "Position:", &mut self.scene_data.camera.position, &mut scene_changed);
+                        point3_editor(ui, "Look At:", &mut self.scene_data.camera.look_at, &mut scene_changed);
+                        vec3_editor(ui, "Up Vector:", &mut self.scene_data.camera.up, &mut scene_changed);
 
                         ui.label("FOV:");
                         scene_changed |= ui
@@ -861,27 +714,7 @@ impl eframe::App for SceneEditorApp {
 
                                     match object {
                                         ObjectData::Sphere(sphere) => {
-                                            ui.label("Center:");
-                                            ui.horizontal(|ui| {
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut sphere.center.x)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut sphere.center.y)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut sphere.center.z)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                            });
+                                            point3_editor(ui, "Center:", &mut sphere.center, &mut scene_changed);
                                             ui.label("Radius:");
                                             scene_changed |= ui
                                                 .add(
@@ -900,48 +733,8 @@ impl eframe::App for SceneEditorApp {
                                             material_editor(ui, &mut sphere.material, &mut scene_changed);
                                         }
                                         ObjectData::Plane(plane) => {
-                                            ui.label("Center:");
-                                            ui.horizontal(|ui| {
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut plane.center.x)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut plane.center.y)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut plane.center.z)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                            });
-                                            ui.label("Size:");
-                                            ui.horizontal(|ui| {
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut plane.size.x)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut plane.size.y)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut plane.size.z)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                            });
+                                            point3_editor(ui, "Center:", &mut plane.center, &mut scene_changed);
+                                            vec3_editor(ui, "Size:", &mut plane.size, &mut scene_changed);
                                             ui.group(|ui| {
                                                 ui.label("Texture:");
                                                 texture_editor(
@@ -953,27 +746,7 @@ impl eframe::App for SceneEditorApp {
                                             material_editor(ui, &mut plane.material, &mut scene_changed);
                                         }
                                         ObjectData::Cube(cube) => {
-                                            ui.label("Center:");
-                                            ui.horizontal(|ui| {
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut cube.center.x)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut cube.center.y)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(&mut cube.center.z)
-                                                            .speed(0.1),
-                                                    )
-                                                    .changed();
-                                            });
+                                            point3_editor(ui, "Center:", &mut cube.center, &mut scene_changed);
                                             ui.label("Size:");
                                             scene_changed |= ui
                                                 .add(
@@ -991,33 +764,7 @@ impl eframe::App for SceneEditorApp {
                                             material_editor(ui, &mut cube.material, &mut scene_changed);
                                         }
                                         ObjectData::Cylinder(cylinder) => {
-                                            ui.label("Center:");
-                                            ui.horizontal(|ui| {
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut cylinder.center.x,
-                                                        )
-                                                        .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut cylinder.center.y,
-                                                        )
-                                                        .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut cylinder.center.z,
-                                                        )
-                                                        .speed(0.1),
-                                                    )
-                                                    .changed();
-                                            });
+                                            point3_editor(ui, "Center:", &mut cylinder.center, &mut scene_changed);
                                             ui.label("Radius:");
                                             scene_changed |= ui
                                                 .add(
