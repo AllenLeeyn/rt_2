@@ -1,48 +1,68 @@
 use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
-use crate::pixels::texture::Texture;
+use crate::material::Material;
 
 #[derive(Clone)]
 pub struct Cube {
     pub min: Point3,
     pub max: Point3,
-    pub texture: Texture,
+    material: Material,
 }
-
+// A cube is defined by its minimum and maximum corner points
 impl Cube {
-    pub fn new(center: Point3, size: f32, texture: Texture) -> Self {
+    pub fn new(center: Point3, size: f32, material: Material) -> Self {
         let half = size / 2.0;
         let min = center - Vec3::new(half, half, half);
         let max = center + Vec3::new(half, half, half);
-        Self { min, max, texture }
+        Self { min, max, material }
     }
 
-    fn compute_normal(&self, p: Point3) -> Vec3 {
+    fn compute_normal(&self, point: Point3) -> Vec3 {
+        // Determine which face was hit by comparing the hit point to the box faces.
+        // Use an epsilon to tolerate floating point error.
+        let eps = 1e-4;
+
+        if (point.x() - self.min.x()).abs() < eps {
+            return Vec3::new(-1.0, 0.0, 0.0);
+        }
+        if (point.x() - self.max.x()).abs() < eps {
+            return Vec3::new(1.0, 0.0, 0.0);
+        }
+
+        if (point.y() - self.min.y()).abs() < eps {
+            return Vec3::new(0.0, -1.0, 0.0);
+        }
+        if (point.y() - self.max.y()).abs() < eps {
+            return Vec3::new(0.0, 1.0, 0.0);
+        }
+
+        if (point.z() - self.min.z()).abs() < eps {
+            return Vec3::new(0.0, 0.0, -1.0);
+        }
+        if (point.z() - self.max.z()).abs() < eps {
+            return Vec3::new(0.0, 0.0, 1.0);
+        }
+
+        // Fallback: choose largest component of difference from center (rare)
         let center = (self.min + self.max) / 2.0;
-        let diff = p - center;
-        let extents = (self.max - self.min) / 2.0;
-
-        let dx = (diff.x / extents.x).abs();
-        let dy = (diff.y / extents.y).abs();
-        let dz = (diff.z / extents.z).abs();
-
-        if dx > dy && dx > dz {
-            Vec3::new(diff.x.signum(), 0.0, 0.0)
-        } else if dy > dz {
-            Vec3::new(0.0, diff.y.signum(), 0.0)
+        let diff = point - center;
+        let abs = Vec3::new(diff.x().abs(), diff.y().abs(), diff.z().abs());
+        if abs.x() > abs.y() && abs.x() > abs.z() {
+            Vec3::new(diff.x().signum(), 0.0, 0.0)
+        } else if abs.y() > abs.z() {
+            Vec3::new(0.0, diff.y().signum(), 0.0)
         } else {
             Vec3::new(0.0, 0.0, diff.z.signum())
         }
     }
-    
-    // Compute UV coordinates for texture mapping (2D texture on 3D surface)
-    fn compute_uv(&self, p: Point3) -> (f32, f32) {
-        let u = (p.x - self.min.x) / (self.max.x - self.min.x);
-        let v = (p.y - self.min.y) / (self.max.y - self.min.y);
+
+    fn compute_uv(&self, point: Point3) -> (f32, f32) {
+        let u = (point.x() - self.min.x()) / (self.max.x() - self.min.x());
+        let v = (point.y() - self.min.y()) / (self.max.y() - self.min.y());
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 
-    pub fn set_texture(&mut self, texture: Texture) {
-        self.texture = texture;
+    pub fn set_material(&mut self, material: Material) {
+        self.material = material;
     }
 }
 
@@ -68,21 +88,28 @@ impl Hittable for Cube {
             }
         }
 
-        let t = t_enter;
-        let p = ray.at(t);
-        let outward_normal = self.compute_normal(p);
+        // If ray starts inside the box, t_enter may equal t_min; choose t_exit then.
+        let t_hit = if t_enter <= t_min { t_exit } else { t_enter };
+        if t_hit < t_min || t_hit > t_max {
+            return None;
+        }
+
+        let t = t_hit;
+        let point = ray.at(t);
+        let outward_normal = self.compute_normal(point);
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
-        let (u, v) = self.compute_uv(p);
-        let color = self.texture.value_at(u, v, p);
+        let (u, v) = self.compute_uv(point);
+        let color = self.material.value_at(u, v);
 
         Some(HitRecord {
-            p,          // hit_point
+            p: point,   // hit_point
             normal,     // surface normal
             t,          // distance along ray
             color,      // surface color
             u,          // texture coordinate u
             v,          // texture coordinate v
             front_face, // whether the ray hits the front face
+            material: self.material.clone(),
         })
     }
 }

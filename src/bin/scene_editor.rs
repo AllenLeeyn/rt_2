@@ -1073,7 +1073,7 @@ impl eframe::App for SceneEditorApp {
                                                 ui.label("Texture:");
                                                 texture_editor(
                                                     ui,
-                                                    &mut sphere.texture,
+                                                    &mut sphere.material.texture,
                                                     &mut scene_changed,
                                                 );
                                             });
@@ -1125,7 +1125,7 @@ impl eframe::App for SceneEditorApp {
                                                 ui.label("Texture:");
                                                 texture_editor(
                                                     ui,
-                                                    &mut plane.texture,
+                                                    &mut plane.material.texture,
                                                     &mut scene_changed,
                                                 );
                                             });
@@ -1162,7 +1162,7 @@ impl eframe::App for SceneEditorApp {
                                                 ui.label("Texture:");
                                                 texture_editor(
                                                     ui,
-                                                    &mut cube.texture,
+                                                    &mut cube.material.texture,
                                                     &mut scene_changed,
                                                 );
                                             });
@@ -1213,7 +1213,7 @@ impl eframe::App for SceneEditorApp {
                                                 ui.label("Texture:");
                                                 texture_editor(
                                                     ui,
-                                                    &mut cylinder.texture,
+                                                    &mut cylinder.material.texture,
                                                     &mut scene_changed,
                                                 );
                                             });

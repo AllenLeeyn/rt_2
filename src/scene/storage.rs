@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use crate::core::color::Color;
 use crate::core::vec3::{Point3, Vec3};
 use crate::pixels::texture::Texture;
-use crate::scene::light::Light;
 use crate::objects::{Sphere, Plane, Cube, Cylinder};
 use crate::pixels::image::Image;
 
@@ -35,21 +34,21 @@ pub enum ObjectData {
 pub struct SphereData {
     pub center: Point3,
     pub radius: f32,
-    pub texture: TextureData,
+    pub material: MaterialData,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PlaneData {
     pub center: Point3,
     pub size: Vec3,
-    pub texture: TextureData,
+    pub material: MaterialData,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CubeData {
     pub center: Point3,
     pub size: f32,
-    pub texture: TextureData,
+    pub material: MaterialData,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -57,7 +56,17 @@ pub struct CylinderData {
     pub center: Point3,
     pub radius: f32,
     pub height: f32,
+    pub material: MaterialData,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct MaterialData {
     pub texture: TextureData,
+    pub diffuse: f32,
+    pub reflectivity: f32,
+    pub transparency: f32,
+    pub index_of_refraction: f32,
+    pub emission: Option<Color>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -108,31 +117,46 @@ impl From<TextureData> for Texture {
     }
 }
 
+use crate::material::Material;
+
+impl From<MaterialData> for Material {
+    fn from(data: MaterialData) -> Self {
+        Material {
+            texture: data.texture.into(),
+            diffuse: data.diffuse,
+            reflectivity: data.reflectivity,
+            transparency: data.transparency,
+            index_of_refraction: data.index_of_refraction,
+            emission: data.emission,
+        }
+    }
+}
+
 impl From<SphereData> for Sphere {
     fn from(data: SphereData) -> Self {
-        Sphere::new(data.center, data.radius, data.texture.into())
+        Sphere::new(data.center, data.radius, data.material.into())
     }
 }
 
 impl From<PlaneData> for Plane {
     fn from(data: PlaneData) -> Self {
-        Plane::new(data.center, data.size, data.texture.into())
+        Plane::new(data.center, data.size, data.material.into())
     }
 }
 
 impl From<CubeData> for Cube {
     fn from(data: CubeData) -> Self {
-        Cube::new(data.center, data.size, data.texture.into())
+        Cube::new(data.center, data.size, data.material.into())
     }
 }
 
 impl From<CylinderData> for Cylinder {
     fn from(data: CylinderData) -> Self {
-        Cylinder::new(data.center, data.radius, data.height, data.texture.into())
+        Cylinder::new(data.center, data.radius, data.height, data.material.into())
     }
 }
 
-impl From<PointLightData> for Light {
+/* impl From<PointLightData> for Light {
     fn from(data: PointLightData) -> Self {
         Light::new_point(data.position, data.color, data.intensity, data.samples, data.radius, data.softness)
     }
@@ -142,4 +166,4 @@ impl From<DirectionalLightData> for Light {
     fn from(data: DirectionalLightData) -> Self {
         Light::new_directional(data.direction, data.color, data.intensity)
     }
-}
+} */

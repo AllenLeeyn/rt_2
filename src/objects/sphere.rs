@@ -1,21 +1,21 @@
 use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
-use crate::pixels::texture::Texture;
+use crate::material::Material;
 
 #[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f32,
-    texture: Texture,
+    material: Material,
     bounding_box: (Point3, Point3),
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f32, texture: Texture) -> Self {
+    pub fn new(center: Point3, radius: f32, material: Material) -> Self {
         let rvec = Vec3::new(radius, radius, radius);
         Self {
             center,
             radius,
-            texture,
+            material,
             bounding_box: (center - rvec, center + rvec),
         }
     }
@@ -24,15 +24,15 @@ impl Sphere {
         self.bounding_box
     }
 
-    fn compute_normal(&self, p: Point3) -> Vec3 {
+    fn compute_normal(&self, point: Point3) -> Vec3 {
         // Normal at any point on sphere surface is (point - center) / radius
-        (p - self.center) / self.radius
+        (point - self.center) / self.radius
     }
 
-    fn compute_uv(&self, p: Point3) -> (f32, f32) {
+    fn compute_uv(&self, point: Point3) -> (f32, f32) {
         let (min, max) = self.bounding_box();
-        let u = (p.x - min.x) / (max.x - min.x);
-        let v = (p.y - min.y) / (max.y - min.y);
+        let u = (point.x() - min.x()) / (max.x() - min.x());
+        let v = (point.y() - min.y()) / (max.y() - min.y());
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 }
@@ -66,20 +66,21 @@ impl Hittable for Sphere {
 
         // Calculate intersection point and surface properties
         let t = root;
-        let p = ray.at(t);
-        let outward_normal = self.compute_normal(p);
+        let point = ray.at(t);
+        let outward_normal = self.compute_normal(point);
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
-        let (u, v) = self.compute_uv(p);
-        let color = self.texture.value_at(u, v, p);
+        let (u, v) = self.compute_uv(point);
+        let color = self.material.value_at(u, v);
 
         Some(HitRecord {
-            p,
+            p: point,
             normal,
             t,
             color,
             u,
             v,
             front_face,
+            material: self.material.clone(),
         })
     }
 }

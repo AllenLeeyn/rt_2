@@ -8,20 +8,27 @@
           "z": 0.5
         },
         "size": 2.0,
-        "texture": {
-          "Gradient": [
-            {
-              "r": 0.545,
-              "g": 0.0,
-              "b": 0.0
-            },
-            {
-              "r": 1.0,
-              "g": 0.0,
-              "b": 0.0
-            },
-            1.571
-          ]
+        "material": {
+          "texture": {
+            "Gradient": [
+              {
+                "r": 0.545,
+                "g": 0.0,
+                "b": 0.0
+              },
+              {
+                "r": 1.0,
+                "g": 0.0,
+                "b": 0.0
+              },
+              1.571
+            ]
+          },
+          "diffuse": 1.0,
+          "reflectivity": 0.0,
+          "transparency": 0.0,
+          "index_of_refraction": 0.0,
+          "emission": null
         }
       }
     },
@@ -34,20 +41,27 @@
         },
         "radius": 0.6,
         "height": 2.0,
-        "texture": {
-          "Checkerboard": [
-            {
-              "r": 1.0,
-              "g": 0.85,
-              "b": 1.0
-            },
-            {
-              "r": 0.0,
-              "g": 1.0,
-              "b": 1.0
-            },
-            1.9
-          ]
+        "material": {
+          "texture": {
+            "Checkerboard": [
+              {
+                "r": 1.0,
+                "g": 0.85,
+                "b": 1.0
+              },
+              {
+                "r": 0.0,
+                "g": 1.0,
+                "b": 1.0
+              },
+              1.9
+            ]
+          },
+          "diffuse": 1.0,
+          "reflectivity": 0.0,
+          "transparency": 0.0,
+          "index_of_refraction": 0.0,
+          "emission": null
         }
       }
     },
@@ -59,12 +73,19 @@
           "z": 1.0
         },
         "radius": 0.5,
-        "texture": {
-          "SolidColor": {
-            "r": 0.0,
-            "g": 1.0,
-            "b": 0.0
-          }
+        "material": {
+          "texture": {
+            "SolidColor": {
+              "r": 0.0,
+              "g": 1.0,
+              "b": 0.0
+            }
+          },
+          "diffuse": 1.0,
+          "reflectivity": 0.0,
+          "transparency": 0.0,
+          "index_of_refraction": 0.0,
+          "emission": null
         }
       }
     },
@@ -80,20 +101,27 @@
           "y": 0.0,
           "z": 20.0
         },
-        "texture": {
-          "Checkerboard": [
-            {
-              "r": 0.5,
-              "g": 0.5,
-              "b": 0.5
-            },
-            {
-              "r": 0.784,
-              "g": 0.784,
-              "b": 0.784
-            },
-            20.0
-          ]
+        "material": {
+          "texture": {
+            "Checkerboard": [
+              {
+                "r": 0.5,
+                "g": 0.5,
+                "b": 0.5
+              },
+              {
+                "r": 0.784,
+                "g": 0.784,
+                "b": 0.784
+              },
+              20.0
+            ]
+          },
+          "diffuse": 1.0,
+          "reflectivity": 0.0,
+          "transparency": 0.0,
+          "index_of_refraction": 0.0,
+          "emission": null
         }
       }
     }
