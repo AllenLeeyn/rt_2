@@ -1,8 +1,4 @@
 use clap::Parser;
-use rt_2::core::*;
-use rt_2::material::*;
-use rt_2::pixels::Texture;
-use rt_2::random_float;
 use rt_2::scene::Scene;
 use scenes::*;
 
@@ -71,40 +67,4 @@ fn main() -> std::io::Result<()> {
     scene.render(&args.output, !args.non_parallelized)?;
 
     Ok(())
-}
-
-#[allow(dead_code)]
-fn random_material() -> Material {
-    let mut rng = rand::rng();
-
-    let color = Color::new(random_float(), random_float(), random_float());
-    let texture = Texture::SolidColor(color);
-
-    match rng.random_range(0..3) {
-        0 => Material {
-            texture,
-            diffuse: 0.5,
-            reflectivity: 0.0,
-            transparency: 0.0,
-            index_of_refraction: 0.0,
-            emission: None,
-        },
-        1 => Material {
-            texture,
-            diffuse: rng.random_range(0.01..0.2),
-            reflectivity: 0.9,
-            transparency: 0.0,
-            index_of_refraction: 0.0,
-            emission: None,
-        },
-        2 => Material {
-            texture,
-            diffuse: 0.0,
-            reflectivity: 0.0,
-            transparency: rng.random_range(0.5..0.95),
-            index_of_refraction: rng.random_range(1.3..1.7),
-            emission: None,
-        },
-        _ => unreachable!(),
-    }
 }
