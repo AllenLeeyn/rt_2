@@ -143,7 +143,7 @@ fn add_sc3_hittables(scene: &mut Scene) {
         0.5,
         Material {
             texture: Texture::SolidColor((Color::GREEN + Color::GRAY) * 0.5),
-            diffuse: 0.3, // fuzzyness??
+            diffuse: 0.15, // fuzzyness
             reflectivity: 0.9,
             transparency: 0.0,
             index_of_refraction: 0.0,
@@ -595,6 +595,66 @@ pub fn scene_seven(scene: &mut Scene) {
         diffuse: 0.25,
         reflectivity: 0.95,
         transparency: 0.0,
+        index_of_refraction: 0.0,
+        emission: None,
+    };
+
+    scene.add_object(Plane::new(
+        Point3::new(0.0, -0.5, 0.0),
+        Vec3::new(20.0, 0.0, 20.0),
+        blue_gray.clone(),
+    ));
+    scene.add_object(Sphere::new(
+        Point3::new(-0.5, 0.0, 0.0),
+        0.5,
+        dark_mirror.clone(),
+    ));
+    scene.add_object(Sphere::new(
+        Point3::new(1.0, 0.0, 0.0),
+        0.5,
+        green_metal.clone(),
+    ));
+}
+
+pub fn scene_eight(scene: &mut Scene) {
+    scene.set_background(Texture::Gradient(Color::WHITE, Color::LIGHT_BLUE, PI));
+
+    scene.camera_mut().set(
+        Point3::new(2.5, 0.5, 2.8),
+        Point3::new(0.25, 0.0, 0.0),
+        Vec3::Y,
+        40.0,
+        1.0,
+        (800, 600),
+    );
+
+    let blueish = Color::new(0.7, 0.73, 0.95);
+    let yellowish = Color::new(1.0, 0.91, 0.79);
+    let greenish = Color::new(0.80, 0.9, 0.25);
+
+    let blue_gray = Material {
+        texture: Texture::SolidColor(blueish),
+        diffuse: 1.0,
+        reflectivity: 0.0,
+        transparency: 0.0,
+        index_of_refraction: 0.0,
+        emission: None,
+    };
+
+    let dark_mirror = Material {
+        texture: Texture::SolidColor(yellowish),
+        diffuse: 0.0,
+        reflectivity: 0.9,
+        transparency: 1.0,
+        index_of_refraction: 1.50,
+        emission: None,
+    };
+
+    let green_metal = Material {
+        texture: Texture::SolidColor(greenish),
+        diffuse: 0.25,
+        reflectivity: 0.95,
+        transparency: 0.5,
         index_of_refraction: 0.0,
         emission: None,
     };
