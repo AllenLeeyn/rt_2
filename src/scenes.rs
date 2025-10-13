@@ -76,7 +76,7 @@ pub fn scene_two(scene: &mut Scene) {
         },
     ));
 
-    let image = Image::load("assets/stars.png").unwrap();
+    let image = Image::load("assets/stars_s.png").unwrap();
     scene.add_object(Cube::new(
         Point3::new(0.1, 0.5, -0.16),
         1.0,
