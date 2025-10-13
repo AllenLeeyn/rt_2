@@ -94,6 +94,77 @@ struct SceneEditorApp {
     image_previews: std::collections::HashMap<String, egui::TextureHandle>,
 }
 
+const LEFT: u8 = 1;
+const RIGHT: u8 = 2;
+const TOP: u8 = 4;
+const BOTTOM: u8 = 8;
+
+fn compute_outcode(p: egui::Pos2, rect: egui::Rect) -> u8 {
+    let mut code = 0;
+    if p.x < rect.min.x {
+        code |= LEFT;
+    }
+    if p.x > rect.max.x {
+        code |= RIGHT;
+    }
+    if p.y < rect.min.y {
+        code |= TOP;
+    }
+    if p.y > rect.max.y {
+        code |= BOTTOM;
+    }
+    code
+}
+
+fn cohen_sutherland_clip(
+    mut x0: f32,
+    mut y0: f32,
+    mut x1: f32,
+    mut y1: f32,
+    rect: egui::Rect,
+) -> Option<(egui::Pos2, egui::Pos2)> {
+    let mut outcode0 = compute_outcode(egui::pos2(x0, y0), rect);
+    let mut outcode1 = compute_outcode(egui::pos2(x1, y1), rect);
+
+    loop {
+        if outcode0 | outcode1 == 0 {
+            return Some((egui::pos2(x0, y0), egui::pos2(x1, y1)));
+        }
+        if outcode0 & outcode1 != 0 {
+            return None;
+        }
+
+        let outcode_out = if outcode0 != 0 { outcode0 } else { outcode1 };
+
+        let mut x = 0.0;
+        let mut y = 0.0;
+
+        if outcode_out & TOP != 0 {
+            x = x0 + (x1 - x0) * (rect.min.y - y0) / (y1 - y0);
+            y = rect.min.y;
+        } else if outcode_out & BOTTOM != 0 {
+            x = x0 + (x1 - x0) * (rect.max.y - y0) / (y1 - y0);
+            y = rect.max.y;
+        } else if outcode_out & RIGHT != 0 {
+            y = y0 + (y1 - y0) * (rect.max.x - x0) / (x1 - x0);
+            x = rect.max.x;
+        } else if outcode_out & LEFT != 0 {
+            y = y0 + (y1 - y0) * (rect.min.x - x0) / (x1 - x0);
+            x = rect.min.x;
+        }
+
+        if outcode_out == outcode0 {
+            x0 = x;
+            y0 = y;
+            outcode0 = compute_outcode(egui::pos2(x0, y0), rect);
+        } else {
+            x1 = x;
+            y1 = y;
+            outcode1 = compute_outcode(egui::pos2(x1, y1), rect);
+        }
+    }
+}
+
 impl SceneEditorApp {
     fn update_json_string(&mut self) {
         match serde_json::to_string_pretty(&self.scene_data) {
@@ -417,17 +488,6 @@ impl SceneEditorApp {
         (top_vertices, bottom_vertices)
     }
 
-/*     fn get_plane_vertices(center: Point3, size: Vec3) -> [Point3; 4] {
-        let half_size_x = size.x / 2.0;
-        let half_size_z = size.z / 2.0;
-        [
-            Point3::new(center.x - half_size_x, center.y, center.z - half_size_z),
-            Point3::new(center.x + half_size_x, center.y, center.z - half_size_z),
-            Point3::new(center.x + half_size_x, center.y, center.z + half_size_z),
-            Point3::new(center.x - half_size_x, center.y, center.z + half_size_z),
-        ]
-    } */
-
     fn draw_scene_3d(&mut self, ui: &mut egui::Ui) {
         let painter = ui.painter();
         let rect = ui.max_rect();
@@ -472,7 +532,22 @@ impl SceneEditorApp {
                     let x = plane.center.x - half_size_x + p * plane.size.x;
                     let start = Point3::new(x, plane.center.y, plane.center.z - half_size_z);
                     let end = Point3::new(x, plane.center.y, plane.center.z + half_size_z);
-                    painter.line_segment([to_screen_pos(start), to_screen_pos(end)], stroke);
+                    let pos_start = to_screen_pos(start);
+                    let pos_end = to_screen_pos(end);
+                    if pos_start == egui::pos2(-1000.0, -1000.0)
+                        || pos_end == egui::pos2(-1000.0, -1000.0)
+                    {
+                        continue;
+                    }
+                    if let Some((clip_start, clip_end)) = cohen_sutherland_clip(
+                        pos_start.x,
+                        pos_start.y,
+                        pos_end.x,
+                        pos_end.y,
+                        rect,
+                    ) {
+                        painter.line_segment([clip_start, clip_end], stroke);
+                    }
                 }
 
                 // Lines along X
@@ -481,7 +556,22 @@ impl SceneEditorApp {
                     let z = plane.center.z - half_size_z + p * plane.size.z;
                     let start = Point3::new(plane.center.x - half_size_x, plane.center.y, z);
                     let end = Point3::new(plane.center.x + half_size_x, plane.center.y, z);
-                    painter.line_segment([to_screen_pos(start), to_screen_pos(end)], stroke);
+                    let pos_start = to_screen_pos(start);
+                    let pos_end = to_screen_pos(end);
+                    if pos_start == egui::pos2(-1000.0, -1000.0)
+                        || pos_end == egui::pos2(-1000.0, -1000.0)
+                    {
+                        continue;
+                    }
+                    if let Some((clip_start, clip_end)) = cohen_sutherland_clip(
+                        pos_start.x,
+                        pos_start.y,
+                        pos_end.x,
+                        pos_end.y,
+                        rect,
+                    ) {
+                        painter.line_segment([clip_start, clip_end], stroke);
+                    }
                 }
             }
         }
