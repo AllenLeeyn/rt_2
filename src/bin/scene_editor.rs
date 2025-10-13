@@ -214,10 +214,15 @@ impl SceneEditorApp {
                 }
                 ObjectData::Plane(plane) => {
                     let center_2d = to_screen_pos(plane.center);
-                    let half_size_x = plane.size.x * scene_scale / 2.0;
-                    let half_size_z = plane.size.z * scene_scale / 2.0;
-                    let rect_min = egui::pos2(center_2d.x - half_size_x, center_2d.y - half_size_z);
-                    let rect_max = egui::pos2(center_2d.x + half_size_x, center_2d.y + half_size_z);
+                    let (half_width, half_height) = match view_type {
+                        ViewType::TopDown => (plane.size.x * scene_scale / 2.0, plane.size.z * scene_scale / 2.0),
+                        ViewType::Front => (plane.size.x * scene_scale / 2.0, plane.size.y * scene_scale / 2.0),
+                        ViewType::Side => (plane.size.z * scene_scale / 2.0, plane.size.y * scene_scale / 2.0),
+                        _ => (0.0, 0.0),
+                    };
+
+                    let rect_min = egui::pos2(center_2d.x - half_width, center_2d.y - half_height);
+                    let rect_max = egui::pos2(center_2d.x + half_width, center_2d.y + half_height);
                     painter.rect_stroke(
                         egui::Rect::from_min_max(rect_min, rect_max),
                         0.0,
