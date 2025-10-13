@@ -159,14 +159,11 @@ impl Scene {
             return final_color;
         }
 
-        //self.background.value_at(horizontal_offset, vertical_offset)
-
         let ud = ray.direction().normalize();
         let u = 0.5 * (ud.x() + 1.0);
         let v = 0.5 * (ud.y() + 1.0);
 
         match &self.background {
-            //Texture::Gradient(_, _, _) => self.background.value_at(0.5, v),
             Texture::Gradient(_, _, _) => self.background.bg_value_at(u, v),
             _ => self.background.value_at(u, v),
         }

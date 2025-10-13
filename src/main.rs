@@ -50,6 +50,7 @@ fn main() -> std::io::Result<()> {
         4 => scene_four(&mut scene),
         5 => scene_five(&mut scene),
         6 => scene_six(&mut scene),
+        7 => scene_seven(&mut scene),
         _ => {
             eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
             scene_three(&mut scene);

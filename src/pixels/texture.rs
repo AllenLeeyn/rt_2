@@ -52,7 +52,6 @@ impl Texture {
             Texture::Gradient(start, end, _) => {
                 Color::lerp(*start, *end, v)
             }
-
             _ => self.value_at(u, v)
         }
     }
