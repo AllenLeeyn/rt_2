@@ -14,6 +14,7 @@ impl Texture {
         Texture::SolidColor(Color::BLACK)
     }
 
+    #[inline]
     pub fn value_at(&self, u: f32, v: f32) -> Color {
         match self {
             Texture::SolidColor(color) => *color,
@@ -38,8 +39,8 @@ impl Texture {
                 let u = u.clamp(0.0, 1.0);
                 let v = v.clamp(0.0, 1.0);
 
-                let x = (u * (image.width as f32 - 1.0)).round() as usize;
-                let y = ((1.0 - v) * (image.height as f32 - 1.0)).round() as usize;
+                let x = (u * (image.width as f32 - 1.0)) as usize;
+                let y = ((1.0 - v) * (image.height as f32 - 1.0)) as usize;
 
                 image.get_pixel(x, y)
             }
@@ -50,7 +51,6 @@ impl Texture {
         match self {
             Texture::Gradient(start, end, _) => {
                 Color::lerp(*start, *end, v)
-                //Color::lerp(Color::BLACK, Color::WHITE, v)
             }
 
             _ => self.value_at(u, v)

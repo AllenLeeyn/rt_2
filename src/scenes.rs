@@ -47,12 +47,12 @@ pub fn scene_one(scene: &mut Scene) {
 }
 
 pub fn scene_two(scene: &mut Scene) {
-
-    scene.set_background(Texture::Gradient(Color::BLACK, Color::DARK_PURPLE * 0.3, 90.0));
+    //scene.set_background(Texture::Gradient(Color::BLACK, Color::DARK_PURPLE * 0.3, 90.0));
+    scene.set_background(Texture::Gradient(Color::DARK_GRAY * 0.5, Color::DARK_BLUE * 0.4, 90.0));
 
     scene.camera_mut().set(
-        Point3::splat(3.0),
-        Vec3::ZERO,
+        Point3::new(1.0, 1.2, 2.0),
+        Point3::new(0.0, 0.75, 0.0),
         Vec3::Y,
         60.0,
         1.0,
@@ -72,13 +72,12 @@ pub fn scene_two(scene: &mut Scene) {
         },
     ));
 
-    //let image = Image::load("assets/test.png").unwrap();
+    let image = Image::load("assets/stars.png").unwrap();
     scene.add_object(Cube::new(
-        Point3::new(0.0, 0.5, 0.0),
+        Point3::new(0.1, 0.5, -0.16),
         1.0,
         Material {
-            //texture: Texture::Image(image),
-            texture: Texture::SolidColor(Color::BEIGE),
+            texture: Texture::Image(image),
             diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
@@ -88,171 +87,66 @@ pub fn scene_two(scene: &mut Scene) {
     ));
 
     scene.add_object(Sphere::new(
-        Point3::new(-0.7, 4.0, 2.0),
-        1.0,
+        Point3::new(-2.0, 6.0, 3.0),
+        0.3,
         Material {
             texture: Texture::SolidColor(Color::WHITE),
             diffuse: 0.0,
             reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
-            emission: Some(Color::WHITE * 4.0),
+            emission: Some(Color::BEIGE * 50.0),
         },
     ));
 }
 
-pub fn scene_three(scene: &mut Scene) {
-    scene.camera_mut().set(
-        Point3::new(0.0, 2.0, 4.0),
-        Vec3::new(0.0, 1.5, 0.0),
-        Vec3::Y,
-        60.0,
-        1.0,
-        (400, 300),
-    );
-
-    scene.set_background(Texture::SolidColor(Color::PASTEL_BLUE));
+fn add_sc3_hittables(scene: &mut Scene) {
+    scene.set_background(Texture::Gradient(
+        Color::DARK_PURPLE * 0.25,
+        Color::DARK_GRAY * 0.4,
+        90.0,
+    ));
 
     scene.add_object(Cube::new(
-        Point3::new(-7.0, 5.0, 0.0),
-        10.0,
+        Point3::new(-1.6, 0.5, 0.35),
+        1.0, // size (width, height, depth)
         Material {
-            texture: Texture::SolidColor(Color::RED),
+            texture: Texture::Gradient(Color::DARK_RED, Color::RED, 1.571),
             diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-        },
-    ));
-
-    scene.add_object(Cube::new(
-        Point3::new(7.0, 5.0, 0.0),
-        10.0,
-        Material {
-            texture: Texture::SolidColor(Color::GREEN),
-            diffuse: 1.0,
-            reflectivity: 0.0,
-            transparency: 0.0,
-            index_of_refraction: 0.0,
-            emission: None,
-        },
-    ));
-
-    scene.add_object(Cube::new(
-        Point3::new(0.0, 5.0, -7.0),
-        10.0,
-        Material {
-            texture: Texture::SolidColor(Color::WHITE),
-            diffuse: 1.0,
-            reflectivity: 0.0,
-            transparency: 0.0,
-            index_of_refraction: 0.0,
-            emission: None,
-        },
-    ));
-
-    scene.add_object(Cube::new(
-        Point3::new(0.0, 5.0, 10.0),
-        10.0,
-        Material {
-            texture: Texture::SolidColor(Color::WHITE),
-            diffuse: 1.0,
-            reflectivity: 0.0,
-            transparency: 0.0,
-            index_of_refraction: 0.0,
-            emission: None,
-        },
-    ));
-
-    scene.add_object(Cube::new(
-        Point3::new(0.0, 8.5, 0.0),
-        10.0,
-        Material {
-            texture: Texture::SolidColor(Color::WHITE),
-            diffuse: 1.0,
-            reflectivity: 0.0,
-            transparency: 0.0,
-            index_of_refraction: 0.0,
-            emission: None,
-        },
-    ));
-
-    scene.add_object(Cube::new(
-        Point3::new(0.0, 3.9, 0.0),
-        1.0,
-        Material {
-            texture: Texture::SolidColor(Color::WHITE),
-            diffuse: 0.0,
-            reflectivity: 0.0,
-            transparency: 0.0,
-            index_of_refraction: 0.0,
-            emission: Some(Color::WHITE * 5.0),
         },
     ));
 
     scene.add_object(Cylinder::new(
-        Point3::new(1.5, 0.0, 0.5),
-        0.3,
-        4.0,
+        Point3::new(0.3, 0.0, -0.5),
+        0.25,
+        2.0,
         Material {
-            texture: Texture::Checkerboard(Color::CYAN, Color::PASTEL_BLUE, 1.0),
-            diffuse: 0.3,
+            texture: Texture::Checkerboard(Color::PASTEL_BLUE, Color::PASTEL_YELLOW, 2.0),
+            diffuse: 1.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(-0.5, 0.5, 0.0),
+        0.5,
+        /* Arc::new(Metal::new(
+            Texture::SolidColor((Color::GREEN + Color::GRAY) * 0.5 * 255.0),
+            0.1,
+        )), */
+        Material {
+            texture: Texture::SolidColor((Color::GREEN + Color::GRAY) * 0.5),
+            diffuse: 0.3,   // fuzzyness??
             reflectivity: 0.9,
             transparency: 0.0,
             index_of_refraction: 0.0,
-            emission: None,
-        },
-    ));
-
-    scene.add_object(Cube::new(
-        Point3::new(-1.0, 0.4, -1.1),
-        0.8,
-        Material {
-            texture: Texture::SolidColor(Color::ORANGE),
-            diffuse: 0.8,
-            reflectivity: 0.0,
-            transparency: 0.0,
-            index_of_refraction: 0.0,
-            emission: None,
-        },
-    ));
-
-    scene.add_object(Cube::new(
-        Point3::new(-1.0, 0.55, -0.85),
-        0.6,
-        Material {
-            texture: Texture::SolidColor(Color::ORANGE),
-            diffuse: 0.0,
-            reflectivity: 0.0,
-            transparency: 0.0,
-            index_of_refraction: 0.0,
-            emission: Some(Color::ORANGE * 5.0),
-        },
-    ));
-
-    scene.add_object(Sphere::new(
-        Point3::new(-0.4, 0.5, 1.0),
-        0.5,
-        Material {
-            texture: Texture::SolidColor(Color::GREEN),
-            diffuse: 0.1,
-            reflectivity: 0.1,
-            transparency: 0.92,
-            index_of_refraction: 1.49,
-            emission: None,
-        },
-    ));
-
-    scene.add_object(Sphere::new(
-        Point3::new(-0.4, 0.5, 1.0),
-        -0.45,
-        Material {
-            texture: Texture::SolidColor(Color::GREEN),
-            diffuse: 0.0,
-            reflectivity: 0.0,
-            transparency: 0.95,
-            index_of_refraction: 1.49,
             emission: None,
         },
     ));
@@ -261,17 +155,57 @@ pub fn scene_three(scene: &mut Scene) {
         Point3::ZERO,
         Vec3::new(20.0, 0.0, 20.0),
         Material {
-            texture: Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
-            diffuse: 0.3,
-            reflectivity: 0.3,
+            texture: Texture::Checkerboard(Color::GRAY, Color::DARK_GRAY, 20.0),
+            diffuse: 1.0,
+            reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
         },
     ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(-2.0, 5.0, 3.0),
+        0.3,
+        Material {
+            texture: Texture::SolidColor(Color::ORANGE),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: Some(Color::NEON_ORANGE * 1000.0),
+        },
+    ));
+}
+
+pub fn scene_three(scene: &mut Scene) {
+    add_sc3_hittables(scene);
+
+    scene.camera_mut().set(
+        Point3::new(1.0, 1.5, 2.0),
+        Vec3::new(-0.4, 1.0, 0.0),
+        Vec3::Y,
+        65.0,
+        1.0,
+        (800, 600),
+    );
 }
 
 pub fn scene_four(scene: &mut Scene) {
+    add_sc3_hittables(scene);
+
+    scene.camera_mut().set(
+        Point3::new(-2.3, 4.5, -5.0),
+        Vec3::new(-0.5, 0.8, -0.2),
+        Vec3::Y,
+        30.0,
+        1.0,
+        (800, 600),
+    );
+}
+
+
+/* pub fn scene_four(scene: &mut Scene) {
     scene.camera_mut().set(
         Point3::new(-2.0, 2.0, -4.0),
         Vec3::new(0.0, 2.0, 0.0),
@@ -359,7 +293,7 @@ pub fn scene_four(scene: &mut Scene) {
             emission: Some(Color::PASTEL_GREEN * 20.0),
         },
     ));
-}
+} */
 
 pub fn scene_five(scene: &mut Scene) {
     scene.camera_mut().set(
@@ -654,4 +588,174 @@ pub fn scene_six(scene: &mut Scene) {
     for star in stars.generate() {
         scene.add_boxed_object(star);
     }
+}
+
+pub fn scene_x(scene: &mut Scene) {
+    scene.camera_mut().set(
+        Point3::new(0.0, 2.0, 4.0),
+        Vec3::new(0.0, 1.5, 0.0),
+        Vec3::Y,
+        60.0,
+        1.0,
+        (800, 600),
+    );
+
+    scene.set_background(Texture::SolidColor(Color::PASTEL_BLUE));
+
+    scene.add_object(Cube::new(
+        Point3::new(-7.0, 5.0, 0.0),
+        10.0,
+        Material {
+            texture: Texture::SolidColor(Color::RED),
+            diffuse: 1.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(7.0, 5.0, 0.0),
+        10.0,
+        Material {
+            texture: Texture::SolidColor(Color::GREEN),
+            diffuse: 1.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(0.0, 5.0, -7.0),
+        10.0,
+        Material {
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 1.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(0.0, 5.0, 10.0),
+        10.0,
+        Material {
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 1.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(0.0, 8.5, 0.0),
+        10.0,
+        Material {
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 1.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(0.0, 3.9, 0.0),
+        1.0,
+        Material {
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: Some(Color::WHITE * 5.0),
+        },
+    ));
+
+    scene.add_object(Cylinder::new(
+        Point3::new(1.5, 0.0, 0.5),
+        0.3,
+        4.0,
+        Material {
+            texture: Texture::Checkerboard(Color::CYAN, Color::PASTEL_BLUE, 1.0),
+            diffuse: 0.3,
+            reflectivity: 0.9,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(-1.0, 0.4, -1.1),
+        0.8,
+        Material {
+            texture: Texture::SolidColor(Color::ORANGE),
+            diffuse: 0.8,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Cube::new(
+        Point3::new(-1.0, 0.55, -0.85),
+        0.6,
+        Material {
+            texture: Texture::SolidColor(Color::ORANGE),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: Some(Color::ORANGE * 5.0),
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(-0.4, 0.5, 1.0),
+        0.5,
+        Material {
+            texture: Texture::SolidColor(Color::GREEN),
+            diffuse: 0.1,
+            reflectivity: 0.1,
+            transparency: 0.92,
+            index_of_refraction: 1.49,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(-0.4, 0.5, 1.0),
+        -0.45,
+        Material {
+            texture: Texture::SolidColor(Color::GREEN),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.95,
+            index_of_refraction: 1.49,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Plane::new(
+        Point3::ZERO,
+        Vec3::new(20.0, 0.0, 20.0),
+        Material {
+            texture: Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
+            diffuse: 0.3,
+            reflectivity: 0.3,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: None,
+        },
+    ));
 }

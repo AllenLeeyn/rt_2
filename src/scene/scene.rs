@@ -170,8 +170,5 @@ impl Scene {
             Texture::Gradient(_, _, _) => self.background.bg_value_at(u, v),
             _ => self.background.value_at(u, v),
         }
-
-
-        //Color::lerp(Color::WHITE, Color::new(0.5, 0.7, 1.0), v)
     }
 }
