@@ -111,6 +111,86 @@ impl SceneEditorApp {
             egui::pos2(screen_x, screen_y)
         };
 
+        let axis_color = egui::Color32::from_gray(128);
+        let text_color = egui::Color32::from_gray(160);
+        let tick_length = 5.0;
+
+        let (x_axis_label, y_axis_label) = match view_type {
+            ViewType::TopDown => ("X", "Z"),
+            ViewType::Front => ("X", "Y"),
+            ViewType::Side => ("Z", "Y"),
+            _ => ("", ""),
+        };
+
+        // Draw X axis
+        painter.line_segment([
+            egui::pos2(rect.left(), rect.center().y),
+            egui::pos2(rect.right(), rect.center().y),
+        ], egui::Stroke::new(1.0, axis_color));
+
+        // Draw Y axis
+        painter.line_segment([
+            egui::pos2(rect.center().x, rect.top()),
+            egui::pos2(rect.center().x, rect.bottom()),
+        ], egui::Stroke::new(1.0, axis_color));
+
+        let x_min = (-(rect.width() / 2.0) / scene_scale).floor() as i32;
+        let x_max = ((rect.width() / 2.0) / scene_scale).ceil() as i32;
+        let y_min = (-(rect.height() / 2.0) / scene_scale).floor() as i32;
+        let y_max = ((rect.height() / 2.0) / scene_scale).ceil() as i32;
+
+        for i in x_min..=x_max {
+            let x = i as f32 * scene_scale;
+            painter.line_segment([
+                egui::pos2(rect.center().x + x, rect.center().y - tick_length),
+                egui::pos2(rect.center().x + x, rect.center().y + tick_length),
+            ], egui::Stroke::new(1.0, axis_color));
+
+            if i % 5 == 0 {
+                painter.text(
+                    egui::pos2(rect.center().x + x, rect.center().y + tick_length * 2.0),
+                    egui::Align2::CENTER_TOP,
+                    i.to_string(),
+                    egui::FontId::default(),
+                    text_color,
+                );
+            }
+        }
+
+        for i in y_min..=y_max {
+            let y = i as f32 * scene_scale;
+            painter.line_segment([
+                egui::pos2(rect.center().x - tick_length, rect.center().y + y),
+                egui::pos2(rect.center().x + tick_length, rect.center().y + y),
+            ], egui::Stroke::new(1.0, axis_color));
+
+            if i % 5 == 0 && i != 0 {
+                painter.text(
+                    egui::pos2(rect.center().x - tick_length * 2.0, rect.center().y + y),
+                    egui::Align2::RIGHT_CENTER,
+                    (-i).to_string(),
+                    egui::FontId::default(),
+                    text_color,
+                );
+            }
+        }
+
+        painter.text(
+            egui::pos2(rect.right() - 10.0, rect.center().y - 10.0),
+            egui::Align2::RIGHT_BOTTOM,
+            x_axis_label,
+            egui::FontId::default(),
+            text_color,
+        );
+
+        painter.text(
+            egui::pos2(rect.center().x + 10.0, rect.top() + 10.0),
+            egui::Align2::LEFT_TOP,
+            y_axis_label,
+            egui::FontId::default(),
+            text_color,
+        );
+
         // Draw Camera
         let cam_pos_2d = to_screen_pos(self.scene_data.camera.position);
         painter.circle_filled(cam_pos_2d, 5.0, egui::Color32::WHITE);
