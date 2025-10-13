@@ -572,7 +572,6 @@ pub fn scene_seven(scene: &mut Scene) {
         (800, 600),
     );
 
-
     let blueish = Color::new(0.7, 0.73, 0.95);
     let yellowish = Color::new(1.0, 0.91, 0.79);
     let greenish = Color::new(0.80, 0.9, 0.25);
@@ -589,7 +588,7 @@ pub fn scene_seven(scene: &mut Scene) {
     let dark_mirror = Material {
         texture: Texture::SolidColor(yellowish),
         diffuse: 0.0,
-        reflectivity: 0.9,  // not dark if full 1.0?
+        reflectivity: 0.9, // not dark if full 1.0?
         transparency: 0.0,
         index_of_refraction: 0.0,
         emission: None,
