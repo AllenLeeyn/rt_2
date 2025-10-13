@@ -66,14 +66,9 @@ impl Hittable for Sphere {
 
         // Calculate intersection point and surface properties
         let t = root;
-        let uncorrected_point = ray.at(t);
-        let outward_normal = self.compute_normal(uncorrected_point);
+        let point = ray.at(t);
+        let outward_normal = self.compute_normal(point);
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
-
-        // Apply epsilon offset along the normal to prevent self-intersection
-        let epsilon = 1e-4;
-        let point = uncorrected_point + normal * epsilon;
-
         let (u, v) = self.compute_uv(point);
         let color = self.material.value_at(u, v);
 

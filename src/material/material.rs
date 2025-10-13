@@ -60,8 +60,13 @@ impl Material {
 
     fn scatter_diffuse(&self, hit: &HitRecord) -> ScatterResult {
         let scatter_dir = Vec3::random_in_hemisphere(hit.normal);
-        let ray = Ray::new(hit.p, scatter_dir);
+
+        // Apply epsilon offset along the normal to prevent self-intersection
+        let epsilon = 1e-4;
+        let point = hit.p + hit.normal * epsilon;
+        let ray = Ray::new(point, scatter_dir);
         let surface_color = self.texture.value_at(hit.u, hit.v);
+
         ScatterResult {
             scattered_ray: ray,
             attenuation: surface_color * (1.0 / std::f32::consts::PI),
@@ -74,7 +79,11 @@ impl Material {
         let fuzzed = (reflected + fuzz * Vec3::random_in_unit_sphere()).normalize();
 
         if fuzzed.dot(hit.normal) > 0.0 {
-            let ray = Ray::new(hit.p, fuzzed);
+            // Apply epsilon offset along the normal to prevent self-intersection
+            let epsilon = 1e-4;
+            let point = hit.p + hit.normal * epsilon;
+            let ray = Ray::new(point, fuzzed);
+
             let surface_color = self.texture.value_at(hit.u, hit.v);
             Some(ScatterResult {
                 scattered_ray: ray,
@@ -103,7 +112,11 @@ impl Material {
             Vec3::refract(&unit_dir, hit.normal, refraction_ratio)
         };
 
-        let ray = Ray::new(hit.p, direction);
+        // Apply epsilon offset along the normal to prevent self-intersection
+        let epsilon = 1e-4;
+        let point = hit.p - hit.normal * epsilon;
+        let ray = Ray::new(point, direction);
+
         let surface_color = self.texture.value_at(hit.u, hit.v);
         let tint_strength = 1.0 - self.transparency.clamp(0.0, 1.0);
         let attenuation = Color::WHITE * self.transparency + surface_color * tint_strength;
