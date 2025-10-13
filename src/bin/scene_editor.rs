@@ -125,7 +125,7 @@ impl SceneEditorApp {
             let (screen_x, screen_y) = match view_type {
                 ViewType::TopDown => (
                     rect.center().x + p.x * scene_scale,
-                    rect.center().y + p.z * scene_scale, // Z maps to screen Y
+                    rect.center().y - p.z * scene_scale, // Z maps to screen Y
                 ),
                 ViewType::Front => (
                     rect.center().x + p.x * scene_scale,
@@ -464,6 +464,107 @@ impl SceneEditorApp {
             egui::pos2(screen_x, screen_y)
         };
 
+        // Draw Grid on XZ plane (like in 2D view)
+        let axis_color = egui::Color32::from_gray(128);
+        let text_color = egui::Color32::from_gray(160);
+        let grid_color = egui::Color32::from_gray(64);
+        let grid_stroke = egui::Stroke::new(1.0, grid_color);
+        let axis_stroke = egui::Stroke::new(1.5, axis_color); // Thicker for axes
+        let grid_size = 20; // World units
+        let step = 1.0;
+        let num_lines = (grid_size as f32 / step) as i32;
+
+        let tick_world_size = 0.2; // Size of the tick marks in world units
+
+        for i in -num_lines..=num_lines {
+            let val = i as f32 * step;
+            let stroke = if i == 0 { axis_stroke } else { grid_stroke };
+
+            // Grid lines on XZ plane
+            let start_z = to_screen_pos(Point3::new(val, 0.0, -grid_size as f32));
+            let end_z = to_screen_pos(Point3::new(val, 0.0, grid_size as f32));
+            painter.line_segment([start_z, end_z], stroke);
+
+            let start_x = to_screen_pos(Point3::new(-grid_size as f32, 0.0, val));
+            let end_x = to_screen_pos(Point3::new(grid_size as f32, 0.0, val));
+            painter.line_segment([start_x, end_x], stroke);
+
+            // Ticks and labels
+            if i != 0 {
+                // X-axis ticks
+                let x_tick_start = to_screen_pos(Point3::new(val, 0.0, -tick_world_size));
+                let x_tick_end = to_screen_pos(Point3::new(val, 0.0, tick_world_size));
+                painter.line_segment([x_tick_start, x_tick_end], axis_stroke);
+
+                // Z-axis ticks
+                let z_tick_start = to_screen_pos(Point3::new(-tick_world_size, 0.0, val));
+                let z_tick_end = to_screen_pos(Point3::new(tick_world_size, 0.0, val));
+                painter.line_segment([z_tick_start, z_tick_end], axis_stroke);
+
+                // Y-axis ticks
+                let y_tick_start = to_screen_pos(Point3::new(-tick_world_size, val, 0.0));
+                let y_tick_end = to_screen_pos(Point3::new(tick_world_size, val, 0.0));
+                painter.line_segment([y_tick_start, y_tick_end], axis_stroke);
+
+                // Labels every 5 units
+                if i % 5 == 0 {
+                    // X and Z labels on positive side only to reduce clutter
+                    if i > 0 {
+                        painter.text(
+                            to_screen_pos(Point3::new(val, 0.0, 0.0)),
+                            egui::Align2::CENTER_TOP,
+                            i.to_string(),
+                            egui::FontId::default(),
+                            text_color,
+                        );
+                        painter.text(
+                            to_screen_pos(Point3::new(0.0, 0.0, val)),
+                            egui::Align2::CENTER_TOP,
+                            i.to_string(),
+                            egui::FontId::default(),
+                            text_color,
+                        );
+                    }
+                    // Y labels on both sides
+                    painter.text(
+                        to_screen_pos(Point3::new(tick_world_size * 1.5, val, 0.0)),
+                        egui::Align2::LEFT_CENTER,
+                        i.to_string(),
+                        egui::FontId::default(),
+                        text_color,
+                    );
+                }
+            }
+        }
+
+        // Draw the main Y axis line, which is not part of the grid
+        let y_axis_start = to_screen_pos(Point3::new(0.0, -grid_size as f32, 0.0));
+        let y_axis_end = to_screen_pos(Point3::new(0.0, grid_size as f32, 0.0));
+        painter.line_segment([y_axis_start, y_axis_end], axis_stroke);
+
+        // Axis Names
+        painter.text(
+            to_screen_pos(Point3::new(grid_size as f32 + 1.0, 0.0, 0.0)),
+            egui::Align2::CENTER_CENTER,
+            "X",
+            egui::FontId::default(),
+            text_color,
+        );
+        painter.text(
+            to_screen_pos(Point3::new(0.0, grid_size as f32 + 1.0, 0.0)),
+            egui::Align2::CENTER_CENTER,
+            "Y",
+            egui::FontId::default(),
+            text_color,
+        );
+        painter.text(
+            to_screen_pos(Point3::new(0.0, 0.0, grid_size as f32 + 1.0)),
+            egui::Align2::CENTER_CENTER,
+            "Z",
+            egui::FontId::default(),
+            text_color,
+        );
+
         // Draw Objects
         for object in &self.scene_data.objects {
             match object {
@@ -793,7 +894,7 @@ impl Default for SceneEditorApp {
             error_message: None,
             current_view: ViewType::TopDown,
             camera_controls: CameraControls {
-                rotation: 0.0,
+                rotation: std::f32::consts::PI,
                 zoom: 5.0,
             },
             current_file_path: None,
