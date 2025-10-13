@@ -8,7 +8,6 @@ use rayon::prelude::*;
 
 pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
-    lights: Vec<Light>,
     background: Texture,
     camera: Camera,
     max_depth: u32,
@@ -19,7 +18,6 @@ impl Scene {
     pub fn new() -> Self {
         Scene {
             objects: Vec::new(),
-            lights: Vec::new(),
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
             max_depth: 1,
@@ -57,10 +55,6 @@ impl Scene {
 
     pub fn add_boxed_object(&mut self, object: Box<dyn Hittable>) {
         self.objects.push(object);
-    }
-
-    pub fn add_light(&mut self, light: Light) {
-        self.lights.push(light);
     }
 
     pub fn render(&mut self, path: &str, parallelized: bool) -> std::io::Result<()> {
@@ -146,18 +140,9 @@ impl Scene {
         }
 
         if let Some(hit) = final_hit {
-            let base = hit.material.texture.value_at(hit.u, hit.v);
             let glow = hit.material.emission.unwrap_or(Color::BLACK);
-            let r = hit.material.reflectivity.clamp(0.0, 1.0);
-            let t = hit.material.transparency.clamp(0.0, 1.0);
-            let d = (1.0 - r - t).max(0.0); // how much of the material is diffuse
 
             let mut final_color = glow;
-
-            for light in &self.lights {
-                let li = light.contribution_from_hit(&self.objects, &hit, ray);
-                final_color = final_color + base * d * li;
-            }
 
             if depth > 0 {
                 if let Some(scatter) = hit.material.scatter(ray, &hit) {

@@ -72,6 +72,8 @@ fn main() -> std::io::Result<()> {
 }
 
 fn scene_one(scene: &mut Scene) {
+    scene.set_background(Texture::Gradient(Color::WHITE, Color::LIGHT_BLUE, 90.0));
+
     scene.camera_mut().set(
         Point3::splat(4.0),
         Vec3::ZERO,
@@ -86,7 +88,7 @@ fn scene_one(scene: &mut Scene) {
         2.0,
         Material {
             texture: Texture::SolidColor(Color::PASTEL_LIME),
-            diffuse: 0.0,
+            diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
@@ -96,14 +98,32 @@ fn scene_one(scene: &mut Scene) {
         },
     ));
 
-    scene.add_light(Light::new_directional(
+    /*     scene.add_light(Light::new_directional(
         Point3::new(0.0, -4.0, -4.0),
         Color::WHITE,
         1.0,
+    )); */
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.0, 5.0, 4.0),
+        1.0,
+        Material {
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: Some(Color::WHITE * 10.0),
+            specular: 0.0,
+            shininess: 0.0,
+        },
     ));
 }
 
 fn scene_two(scene: &mut Scene) {
+
+    scene.set_background(Texture::Gradient(Color::BLACK, Color::DARK_PURPLE * 0.3, 90.0));
+
     scene.camera_mut().set(
         Point3::splat(3.0),
         Vec3::ZERO,
@@ -118,7 +138,7 @@ fn scene_two(scene: &mut Scene) {
         Vec3::new(5.0, 0.0, 5.0),
         Material {
             texture: Texture::Checkerboard(Color::LIGHT_GRAY, Color::GRAY, 5.0),
-            diffuse: 0.0,
+            diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
@@ -134,7 +154,7 @@ fn scene_two(scene: &mut Scene) {
         1.0,
         Material {
             texture: Texture::Image(image),
-            diffuse: 0.0,
+            diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
@@ -144,10 +164,25 @@ fn scene_two(scene: &mut Scene) {
         },
     ));
 
-    scene.add_light(Light::new_directional(
+    /*     scene.add_light(Light::new_directional(
         Point3::new(-1.0, -4.0, -4.0),
         Color::WHITE,
         1.0,
+    )); */
+
+    scene.add_object(Sphere::new(
+        Point3::new(-0.7, 4.0, 2.0),
+        1.0,
+        Material {
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: Some(Color::WHITE * 4.0),
+            specular: 0.0,
+            shininess: 0.0,
+        },
     ));
 }
 
@@ -252,17 +287,6 @@ fn scene_three(scene: &mut Scene) {
             shininess: 0.0,
         },
     ));
-
-    /*
-       scene.add_light(Light::new_point(
-           Point3::new(0.0, 3.2, 0.0),
-           Color::WHITE,
-           0.5,
-           2,
-           0.5,
-           1.0,
-       ));
-    */
 
     scene.add_object(Cylinder::new(
         Point3::new(1.5, 0.0, 0.5),
@@ -371,7 +395,7 @@ fn scene_four(scene: &mut Scene) {
         1.0,
         Material {
             texture: Texture::Gradient(Color::DARK_RED, Color::RED, 1.571),
-            diffuse: 0.1,
+            diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
@@ -387,7 +411,7 @@ fn scene_four(scene: &mut Scene) {
         2.0,
         Material {
             texture: Texture::Checkerboard(Color::BLUE, Color::YELLOW, 1.0),
-            diffuse: 0.0,
+            diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
@@ -402,7 +426,7 @@ fn scene_four(scene: &mut Scene) {
         0.5,
         Material {
             texture: Texture::SolidColor(Color::GREEN),
-            diffuse: 0.0,
+            diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
@@ -417,7 +441,7 @@ fn scene_four(scene: &mut Scene) {
         Vec3::new(20.0, 0.0, 20.0),
         Material {
             texture: Texture::Checkerboard(Color::GRAY, Color::PASTEL_GRAY, 20.0),
-            diffuse: 0.0,
+            diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
@@ -426,16 +450,35 @@ fn scene_four(scene: &mut Scene) {
             shininess: 0.0,
         },
     ));
-    scene.add_light(Light::new_directional(
-        Point3::new(-1.5, -6.0, 3.0),
-        Color::WHITE,
-        0.05,
+
+    scene.add_object(Sphere::new(
+        Point3::new(-1.5, 6.0, -3.0),
+        1.0,
+        Material {
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: Some(Color::BEIGE * 20.0),
+            specular: 0.0,
+            shininess: 0.0,
+        },
     ));
 
-    scene.add_light(Light::new_directional(
-        Point3::new(-3.0, -8.0, 3.0),
-        Color::WHITE,
-        0.4,
+    scene.add_object(Sphere::new(
+        Point3::new(3.0, 8.0, 3.0),
+        1.0,
+        Material {
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 10.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: Some(Color::PASTEL_GREEN * 20.0),
+            specular: 0.0,
+            shininess: 0.0,
+        },
     ));
 }
 
@@ -541,13 +584,28 @@ fn scene_five(scene: &mut Scene) {
         },
     ));
 
-    scene.add_light(Light::new_point(
+    /* scene.add_light(Light::new_point(
         Point3::new(0.0, 3.0, 1.0),
         Color::WHITE,
         1.0,
         4,
         0.8,
         1.0,
+    )); */
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.0, 3.0, 1.0),
+        1.0,
+        Material {
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: Some(Color::WHITE * 2.0),
+            specular: 0.0,
+            shininess: 0.0,
+        },
     ));
 }
 
