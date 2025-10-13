@@ -458,9 +458,38 @@ impl SceneEditorApp {
             egui::pos2(screen_x, screen_y)
         };
 
-        // Draw Objects
+        // --- Pass 1: Draw Planes ---
+        for object in &self.scene_data.objects {
+            if let ObjectData::Plane(plane) = object {
+                let stroke = egui::Stroke::new(1.0, egui::Color32::GREEN);
+                let half_size_x = plane.size.x / 2.0;
+                let half_size_z = plane.size.z / 2.0;
+                let num_lines = 10;
+
+                // Lines along Z
+                for i in 0..=num_lines {
+                    let p = i as f32 / num_lines as f32; // 0.0 to 1.0
+                    let x = plane.center.x - half_size_x + p * plane.size.x;
+                    let start = Point3::new(x, plane.center.y, plane.center.z - half_size_z);
+                    let end = Point3::new(x, plane.center.y, plane.center.z + half_size_z);
+                    painter.line_segment([to_screen_pos(start), to_screen_pos(end)], stroke);
+                }
+
+                // Lines along X
+                for i in 0..=num_lines {
+                    let p = i as f32 / num_lines as f32; // 0.0 to 1.0
+                    let z = plane.center.z - half_size_z + p * plane.size.z;
+                    let start = Point3::new(plane.center.x - half_size_x, plane.center.y, z);
+                    let end = Point3::new(plane.center.x + half_size_x, plane.center.y, z);
+                    painter.line_segment([to_screen_pos(start), to_screen_pos(end)], stroke);
+                }
+            }
+        }
+
+        // --- Pass 2: Draw other objects ---
         for object in &self.scene_data.objects {
             match object {
+                ObjectData::Plane(_) => continue, // Skip planes, already drawn
                 ObjectData::Sphere(sphere) => {
                     let num_segments = 12;
                     let stroke = egui::Stroke::new(1.0, egui::Color32::BLUE);
@@ -551,30 +580,6 @@ impl SceneEditorApp {
                             [projected_top[i], projected_bottom[i]],
                             egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
                         );
-                    }
-                }
-                ObjectData::Plane(plane) => {
-                    let stroke = egui::Stroke::new(1.0, egui::Color32::GREEN);
-                    let half_size_x = plane.size.x / 2.0;
-                    let half_size_z = plane.size.z / 2.0;
-                    let num_lines = 10;
-
-                    // Lines along Z
-                    for i in 0..=num_lines {
-                        let p = i as f32 / num_lines as f32; // 0.0 to 1.0
-                        let x = plane.center.x - half_size_x + p * plane.size.x;
-                        let start = Point3::new(x, plane.center.y, plane.center.z - half_size_z);
-                        let end = Point3::new(x, plane.center.y, plane.center.z + half_size_z);
-                        painter.line_segment([to_screen_pos(start), to_screen_pos(end)], stroke);
-                    }
-
-                    // Lines along X
-                    for i in 0..=num_lines {
-                        let p = i as f32 / num_lines as f32; // 0.0 to 1.0
-                        let z = plane.center.z - half_size_z + p * plane.size.z;
-                        let start = Point3::new(plane.center.x - half_size_x, plane.center.y, z);
-                        let end = Point3::new(plane.center.x + half_size_x, plane.center.y, z);
-                        painter.line_segment([to_screen_pos(start), to_screen_pos(end)], stroke);
                     }
                 }
             }
