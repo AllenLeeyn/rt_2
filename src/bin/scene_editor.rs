@@ -1,5 +1,4 @@
 use eframe::{self, egui};
-use glam::{vec3, Mat3};
 use rfd::FileDialog;
 use serde_json;
 use std::fs;
@@ -86,17 +85,11 @@ enum ViewType {
     ThreeD,
 }
 
-struct CameraControls {
-    rotation: f32,
-    zoom: f32,
-}
-
 struct SceneEditorApp {
     scene_data: SceneData,
     json_string: String,
     error_message: Option<String>,
     current_view: ViewType,
-    camera_controls: CameraControls,
     current_file_path: Option<PathBuf>,
     image_previews: std::collections::HashMap<String, egui::TextureHandle>,
 }
@@ -125,7 +118,7 @@ impl SceneEditorApp {
             let (screen_x, screen_y) = match view_type {
                 ViewType::TopDown => (
                     rect.center().x + p.x * scene_scale,
-                    rect.center().y - p.z * scene_scale, // Z maps to screen Y
+                    rect.center().y + p.z * scene_scale, // Z maps to screen Y
                 ),
                 ViewType::Front => (
                     rect.center().x + p.x * scene_scale,
@@ -206,10 +199,15 @@ impl SceneEditorApp {
             );
 
             if i % 5 == 0 && i != 0 {
+                let label = if view_type == ViewType::TopDown {
+                    i.to_string()
+                } else {
+                    (-i).to_string()
+                };
                 painter.text(
                     egui::pos2(rect.center().x - tick_length * 2.0, rect.center().y + y),
                     egui::Align2::RIGHT_CENTER,
-                    (-i).to_string(),
+                    label,
                     egui::FontId::default(),
                     text_color,
                 );
@@ -430,246 +428,475 @@ impl SceneEditorApp {
         ]
     }
 
-    fn draw_scene_3d(&mut self, ui: &mut egui::Ui) {
-        let painter = ui.painter();
-        let rect = ui.max_rect();
-        painter.rect_filled(rect, 0.0, egui::Color32::DARK_GRAY);
+        fn draw_scene_3d(&mut self, ui: &mut egui::Ui) {
 
-        let camera = &mut self.scene_data.camera;
-        let fov_rad = camera.fov.to_radians();
-        let aspect_ratio = camera.aspect_ratio;
+            let painter = ui.painter();
 
-        // Camera controls
-        ui.input(|i| {
-            if i.pointer.is_decidedly_dragging() {
-                self.camera_controls.rotation += i.pointer.delta().x * 0.01;
-            }
-            self.camera_controls.zoom -= i.raw_scroll_delta.y * 0.1;
-        });
+            let rect = ui.max_rect();
 
-        let rotation_matrix = Mat3::from_rotation_y(self.camera_controls.rotation);
-        let camera_pos = rotation_matrix.mul_vec3(vec3(0.0, 0.0, self.camera_controls.zoom));
-        camera.position = Point3::new(camera_pos.x, camera_pos.y, camera_pos.z);
+            painter.rect_filled(rect, 0.0, egui::Color32::DARK_GRAY);
 
-        let to_screen_pos = |p: Point3| {
-            let p_camera = p - camera.position; // Point relative to camera
+    
 
-            // Simplified perspective projection
-            let proj_x = p_camera.x / (p_camera.z * (fov_rad / 2.0).tan());
-            let proj_y = p_camera.y / (p_camera.z * (fov_rad / 2.0).tan() / aspect_ratio);
+            let camera = &self.scene_data.camera;
 
-            let screen_x = rect.center().x + proj_x * rect.width() / 2.0;
-            let screen_y = rect.center().y - proj_y * rect.height() / 2.0;
+            let fov_rad = camera.fov.to_radians();
 
-            egui::pos2(screen_x, screen_y)
-        };
+            let aspect_ratio = camera.aspect_ratio;
 
-        // Draw Grid on XZ plane (like in 2D view)
-        let axis_color = egui::Color32::from_gray(128);
-        let text_color = egui::Color32::from_gray(160);
-        let grid_color = egui::Color32::from_gray(64);
-        let grid_stroke = egui::Stroke::new(1.0, grid_color);
-        let axis_stroke = egui::Stroke::new(1.5, axis_color); // Thicker for axes
-        let grid_size = 20; // World units
-        let step = 1.0;
-        let num_lines = (grid_size as f32 / step) as i32;
+    
 
-        let tick_world_size = 0.2; // Size of the tick marks in world units
+            let view_matrix =
 
-        for i in -num_lines..=num_lines {
-            let val = i as f32 * step;
-            let stroke = if i == 0 { axis_stroke } else { grid_stroke };
+                glam::Mat4::look_at_rh(camera.position.into(), camera.look_at.into(), camera.up.into());
 
-            // Grid lines on XZ plane
-            let start_z = to_screen_pos(Point3::new(val, 0.0, -grid_size as f32));
-            let end_z = to_screen_pos(Point3::new(val, 0.0, grid_size as f32));
-            painter.line_segment([start_z, end_z], stroke);
+            let projection_matrix = glam::Mat4::perspective_rh(fov_rad, aspect_ratio, 0.1, 100.0);
 
-            let start_x = to_screen_pos(Point3::new(-grid_size as f32, 0.0, val));
-            let end_x = to_screen_pos(Point3::new(grid_size as f32, 0.0, val));
-            painter.line_segment([start_x, end_x], stroke);
+            let transform = projection_matrix * view_matrix;
 
-            // Ticks and labels
-            if i != 0 {
-                // X-axis ticks
-                let x_tick_start = to_screen_pos(Point3::new(val, 0.0, -tick_world_size));
-                let x_tick_end = to_screen_pos(Point3::new(val, 0.0, tick_world_size));
-                painter.line_segment([x_tick_start, x_tick_end], axis_stroke);
+    
 
-                // Z-axis ticks
-                let z_tick_start = to_screen_pos(Point3::new(-tick_world_size, 0.0, val));
-                let z_tick_end = to_screen_pos(Point3::new(tick_world_size, 0.0, val));
-                painter.line_segment([z_tick_start, z_tick_end], axis_stroke);
+            let to_screen_pos = |p: Point3| {
 
-                // Y-axis ticks
-                let y_tick_start = to_screen_pos(Point3::new(-tick_world_size, val, 0.0));
-                let y_tick_end = to_screen_pos(Point3::new(tick_world_size, val, 0.0));
-                painter.line_segment([y_tick_start, y_tick_end], axis_stroke);
+                let p_world = glam::vec4(p.x, p.y, p.z, 1.0);
 
-                // Labels every 5 units
-                if i % 5 == 0 {
-                    // X and Z labels on positive side only to reduce clutter
-                    if i > 0 {
-                        painter.text(
-                            to_screen_pos(Point3::new(val, 0.0, 0.0)),
-                            egui::Align2::CENTER_TOP,
-                            i.to_string(),
-                            egui::FontId::default(),
-                            text_color,
-                        );
-                        painter.text(
-                            to_screen_pos(Point3::new(0.0, 0.0, val)),
-                            egui::Align2::CENTER_TOP,
-                            i.to_string(),
-                            egui::FontId::default(),
-                            text_color,
-                        );
-                    }
-                    // Y labels on both sides
-                    painter.text(
-                        to_screen_pos(Point3::new(tick_world_size * 1.5, val, 0.0)),
-                        egui::Align2::LEFT_CENTER,
-                        i.to_string(),
-                        egui::FontId::default(),
-                        text_color,
-                    );
+                let p_clip = transform * p_world;
+
+    
+
+                if p_clip.w <= 0.0 {
+
+                    return egui::pos2(-1000.0, -1000.0);
+
                 }
-            }
-        }
 
-        // Draw the main Y axis line, which is not part of the grid
-        let y_axis_start = to_screen_pos(Point3::new(0.0, -grid_size as f32, 0.0));
-        let y_axis_end = to_screen_pos(Point3::new(0.0, grid_size as f32, 0.0));
-        painter.line_segment([y_axis_start, y_axis_end], axis_stroke);
+    
 
-        // Axis Names
-        painter.text(
-            to_screen_pos(Point3::new(grid_size as f32 + 1.0, 0.0, 0.0)),
-            egui::Align2::CENTER_CENTER,
-            "X",
-            egui::FontId::default(),
-            text_color,
-        );
-        painter.text(
-            to_screen_pos(Point3::new(0.0, grid_size as f32 + 1.0, 0.0)),
-            egui::Align2::CENTER_CENTER,
-            "Y",
-            egui::FontId::default(),
-            text_color,
-        );
-        painter.text(
-            to_screen_pos(Point3::new(0.0, 0.0, grid_size as f32 + 1.0)),
-            egui::Align2::CENTER_CENTER,
-            "Z",
-            egui::FontId::default(),
-            text_color,
-        );
+                let p_ndc = p_clip / p_clip.w;
 
-        // Draw Objects
-        for object in &self.scene_data.objects {
-            match object {
-                ObjectData::Sphere(sphere) => {
-                    // Draw meridians and parallels
-                    let num_segments = 12;
-                    for i in 0..num_segments {
-                        let angle = i as f32 * std::f32::consts::PI * 2.0 / num_segments as f32;
-                        let mut points = Vec::new();
-                        for j in 0..=num_segments {
-                            let sub_angle = j as f32 * std::f32::consts::PI / num_segments as f32;
-                            let x = sphere.center.x + sphere.radius * sub_angle.sin() * angle.cos();
-                            let y = sphere.center.y + sphere.radius * sub_angle.cos();
-                            let z = sphere.center.z + sphere.radius * sub_angle.sin() * angle.sin();
-                            points.push(to_screen_pos(Point3::new(x, y, z)));
+    
+
+                let screen_x = rect.center().x + p_ndc.x * rect.width() / 2.0;
+
+                let screen_y = rect.center().y - p_ndc.y * rect.height() / 2.0;
+
+    
+
+                egui::pos2(screen_x, screen_y)
+
+            };
+
+    
+
+            // Draw Grid on XZ plane (like in 2D view)
+
+            let axis_color = egui::Color32::from_gray(128);
+
+            let text_color = egui::Color32::from_gray(160);
+
+            let grid_color = egui::Color32::from_gray(64);
+
+            let grid_stroke = egui::Stroke::new(1.0, grid_color);
+
+            let axis_stroke = egui::Stroke::new(1.5, axis_color); // Thicker for axes
+
+            let grid_size = 20; // World units
+
+            let step = 1.0;
+
+            let num_lines = (grid_size as f32 / step) as i32;
+
+            let tick_world_size = 0.2; // Size of the tick marks in world units
+
+    
+
+            for i in -num_lines..=num_lines {
+
+                let val = i as f32 * step;
+
+                let stroke = if i == 0 { axis_stroke } else { grid_stroke };
+
+    
+
+                // Grid lines on XZ plane
+
+                let start_z = to_screen_pos(Point3::new(val, 0.0, -grid_size as f32));
+
+                let end_z = to_screen_pos(Point3::new(val, 0.0, grid_size as f32));
+
+                painter.line_segment([start_z, end_z], stroke);
+
+    
+
+                let start_x = to_screen_pos(Point3::new(-grid_size as f32, 0.0, val));
+
+                let end_x = to_screen_pos(Point3::new(grid_size as f32, 0.0, val));
+
+                painter.line_segment([start_x, end_x], stroke);
+
+    
+
+                // Ticks and labels
+
+                if i != 0 {
+
+                    // X-axis ticks
+
+                    let x_tick_start = to_screen_pos(Point3::new(val, 0.0, -tick_world_size));
+
+                    let x_tick_end = to_screen_pos(Point3::new(val, 0.0, tick_world_size));
+
+                    painter.line_segment([x_tick_start, x_tick_end], axis_stroke);
+
+    
+
+                    // Z-axis ticks
+
+                    let z_tick_start = to_screen_pos(Point3::new(-tick_world_size, 0.0, val));
+
+                    let z_tick_end = to_screen_pos(Point3::new(tick_world_size, 0.0, val));
+
+                    painter.line_segment([z_tick_start, z_tick_end], axis_stroke);
+
+    
+
+                    // Y-axis ticks
+
+                    let y_tick_start = to_screen_pos(Point3::new(-tick_world_size, val, 0.0));
+
+                    let y_tick_end = to_screen_pos(Point3::new(tick_world_size, val, 0.0));
+
+                    painter.line_segment([y_tick_start, y_tick_end], axis_stroke);
+
+    
+
+                    // Labels every 5 units
+
+                    if i % 5 == 0 {
+
+                        // X and Z labels on positive side only to reduce clutter
+
+                        if i > 0 {
+
+                            painter.text(
+
+                                to_screen_pos(Point3::new(val, 0.0, 0.0)),
+
+                                egui::Align2::CENTER_TOP,
+
+                                i.to_string(),
+
+                                egui::FontId::default(),
+
+                                text_color,
+
+                            );
+
+                            painter.text(
+
+                                to_screen_pos(Point3::new(0.0, 0.0, val)),
+
+                                egui::Align2::CENTER_TOP,
+
+                                i.to_string(),
+
+                                egui::FontId::default(),
+
+                                text_color,
+
+                            );
+
                         }
-                        painter.add(egui::Shape::line(
-                            points,
-                            egui::Stroke::new(1.0, egui::Color32::BLUE),
-                        ));
-                    }
-                }
-                ObjectData::Cube(cube) => {
-                    let vertices = Self::get_cube_vertices(cube.center, cube.size);
-                    let mut projected_vertices = [egui::pos2(0.0, 0.0); 8];
-                    for i in 0..8 {
-                        projected_vertices[i] = to_screen_pos(vertices[i]);
-                    }
 
-                    let edges = [
-                        (0, 1),
-                        (1, 2),
-                        (2, 3),
-                        (3, 0), // Back face
-                        (4, 5),
-                        (5, 6),
-                        (6, 7),
-                        (7, 4), // Front face
-                        (0, 4),
-                        (1, 5),
-                        (2, 6),
-                        (3, 7), // Connecting edges
-                    ];
+                        // Y labels on both sides
 
-                    for (i, j) in &edges {
-                        painter.line_segment(
-                            [projected_vertices[*i], projected_vertices[*j]],
-                            egui::Stroke::new(1.0, egui::Color32::RED),
+                        painter.text(
+
+                            to_screen_pos(Point3::new(tick_world_size * 1.5, val, 0.0)),
+
+                            egui::Align2::LEFT_CENTER,
+
+                            i.to_string(),
+
+                            egui::FontId::default(),
+
+                            text_color,
+
                         );
+
                     }
+
                 }
-                ObjectData::Cylinder(cylinder) => {
-                    let num_segments = 12;
-                    let (top_vertices, bottom_vertices) = Self::get_cylinder_vertices(
-                        cylinder.center,
-                        cylinder.radius,
-                        cylinder.height,
-                        num_segments,
-                    );
 
-                    let mut projected_top = Vec::new();
-                    for v in top_vertices {
-                        projected_top.push(to_screen_pos(v));
-                    }
-
-                    let mut projected_bottom = Vec::new();
-                    for v in bottom_vertices {
-                        projected_bottom.push(to_screen_pos(v));
-                    }
-
-                    painter.add(egui::Shape::line(
-                        projected_top.clone(),
-                        egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
-                    ));
-                    painter.add(egui::Shape::line(
-                        projected_bottom.clone(),
-                        egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
-                    ));
-
-                    for i in 0..num_segments {
-                        painter.line_segment(
-                            [projected_top[i], projected_bottom[i]],
-                            egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
-                        );
-                    }
-                }
-                ObjectData::Plane(plane) => {
-                    let vertices = Self::get_plane_vertices(plane.center, plane.size);
-                    let mut projected_vertices = [egui::pos2(0.0, 0.0); 4];
-                    for i in 0..4 {
-                        projected_vertices[i] = to_screen_pos(vertices[i]);
-                    }
-
-                    let edges = [(0, 1), (1, 2), (2, 3), (3, 0)];
-
-                    for (i, j) in &edges {
-                        painter.line_segment(
-                            [projected_vertices[*i], projected_vertices[*j]],
-                            egui::Stroke::new(1.0, egui::Color32::GREEN),
-                        );
-                    }
-                }
             }
+
+    
+
+            // Draw the main Y axis line, which is not part of the grid
+
+            let y_axis_start = to_screen_pos(Point3::new(0.0, -grid_size as f32, 0.0));
+
+            let y_axis_end = to_screen_pos(Point3::new(0.0, grid_size as f32, 0.0));
+
+            painter.line_segment([y_axis_start, y_axis_end], axis_stroke);
+
+    
+
+            // Axis Names
+
+            painter.text(
+
+                to_screen_pos(Point3::new(grid_size as f32 + 1.0, 0.0, 0.0)),
+
+                egui::Align2::CENTER_CENTER,
+
+                "X",
+
+                egui::FontId::default(),
+
+                text_color,
+
+            );
+
+            painter.text(
+
+                to_screen_pos(Point3::new(0.0, grid_size as f32 + 1.0, 0.0)),
+
+                egui::Align2::CENTER_CENTER,
+
+                "Y",
+
+                egui::FontId::default(),
+
+                text_color,
+
+            );
+
+            painter.text(
+
+                to_screen_pos(Point3::new(0.0, 0.0, grid_size as f32 + 1.0)),
+
+                egui::Align2::CENTER_CENTER,
+
+                "Z",
+
+                egui::FontId::default(),
+
+                text_color,
+
+            );
+
+    
+
+            // Draw Objects
+
+            for object in &self.scene_data.objects {
+
+                match object {
+
+                    ObjectData::Sphere(sphere) => {
+
+                        // Draw meridians and parallels
+
+                        let num_segments = 12;
+
+                        for i in 0..num_segments {
+
+                            let angle = i as f32 * std::f32::consts::PI * 2.0 / num_segments as f32;
+
+                            let mut points = Vec::new();
+
+                            for j in 0..=num_segments {
+
+                                let sub_angle = j as f32 * std::f32::consts::PI / num_segments as f32;
+
+                                let x = sphere.center.x + sphere.radius * sub_angle.sin() * angle.cos();
+
+                                let y = sphere.center.y + sphere.radius * sub_angle.cos();
+
+                                let z = sphere.center.z + sphere.radius * sub_angle.sin() * angle.sin();
+
+                                points.push(to_screen_pos(Point3::new(x, y, z)));
+
+                            }
+
+                            painter.add(egui::Shape::line(
+
+                                points,
+
+                                egui::Stroke::new(1.0, egui::Color32::BLUE),
+
+                            ));
+
+                        }
+
+                    }
+
+                    ObjectData::Cube(cube) => {
+
+                        let vertices = Self::get_cube_vertices(cube.center, cube.size);
+
+                        let mut projected_vertices = [egui::pos2(0.0, 0.0); 8];
+
+                        for i in 0..8 {
+
+                            projected_vertices[i] = to_screen_pos(vertices[i]);
+
+                        }
+
+    
+
+                        let edges = [
+
+                            (0, 1),
+
+                            (1, 2),
+
+                            (2, 3),
+
+                            (3, 0), // Back face
+
+                            (4, 5),
+
+                            (5, 6),
+
+                            (6, 7),
+
+                            (7, 4), // Front face
+
+                            (0, 4),
+
+                            (1, 5),
+
+                            (2, 6),
+
+                            (3, 7), // Connecting edges
+
+                        ];
+
+    
+
+                        for (i, j) in &edges {
+
+                            painter.line_segment(
+
+                                [projected_vertices[*i], projected_vertices[*j]],
+
+                                egui::Stroke::new(1.0, egui::Color32::RED),
+
+                            );
+
+                        }
+
+                    }
+
+                    ObjectData::Cylinder(cylinder) => {
+
+                        let num_segments = 12;
+
+                        let (top_vertices, bottom_vertices) = Self::get_cylinder_vertices(
+
+                            cylinder.center,
+
+                            cylinder.radius,
+
+                            cylinder.height,
+
+                            num_segments,
+
+                        );
+
+    
+
+                        let mut projected_top = Vec::new();
+
+                        for v in top_vertices {
+
+                            projected_top.push(to_screen_pos(v));
+
+                        }
+
+    
+
+                        let mut projected_bottom = Vec::new();
+
+                        for v in bottom_vertices {
+
+                            projected_bottom.push(to_screen_pos(v));
+
+                        }
+
+    
+
+                        painter.add(egui::Shape::line(
+
+                            projected_top.clone(),
+
+                            egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+
+                        ));
+
+                        painter.add(egui::Shape::line(
+
+                            projected_bottom.clone(),
+
+                            egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+
+                        ));
+
+    
+
+                        for i in 0..num_segments {
+
+                            painter.line_segment(
+
+                                [projected_top[i], projected_bottom[i]],
+
+                                egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+
+                            );
+
+                        }
+
+                    }
+
+                    ObjectData::Plane(plane) => {
+
+                        let vertices = Self::get_plane_vertices(plane.center, plane.size);
+
+                        let mut projected_vertices = [egui::pos2(0.0, 0.0); 4];
+
+                        for i in 0..4 {
+
+                            projected_vertices[i] = to_screen_pos(vertices[i]);
+
+                        }
+
+    
+
+                        let edges = [(0, 1), (1, 2), (2, 3), (3, 0)];
+
+    
+
+                        for (i, j) in &edges {
+
+                            painter.line_segment(
+
+                                [projected_vertices[*i], projected_vertices[*j]],
+
+                                egui::Stroke::new(1.0, egui::Color32::GREEN),
+
+                            );
+
+                        }
+
+                    }
+
+                }
+
+            }
+
         }
-    }
 }
 
 fn material_editor(
@@ -893,10 +1120,6 @@ impl Default for SceneEditorApp {
             json_string: String::new(),
             error_message: None,
             current_view: ViewType::TopDown,
-            camera_controls: CameraControls {
-                rotation: std::f32::consts::PI,
-                zoom: 5.0,
-            },
             current_file_path: None,
             image_previews: std::collections::HashMap::new(),
         };

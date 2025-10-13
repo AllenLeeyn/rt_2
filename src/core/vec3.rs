@@ -128,6 +128,12 @@ impl Vec3 {
 
 pub type Point3 = Vec3;
 
+impl From<Vec3> for glam::Vec3 {
+    fn from(v: Vec3) -> Self {
+        glam::Vec3::new(v.x, v.y, v.z)
+    }
+}
+
 impl Display for Vec3 {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{} {} {}", self.x, self.y, self.z)
