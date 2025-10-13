@@ -3,8 +3,6 @@ use glam::{vec3, Mat3};
 use rfd::FileDialog;
 use serde_json;
 use std::fs;
-use std::process::Command;
-use std::thread;
 
 // Import the SceneData and related structs from the main project
 use rt_2::core::color::Color;
@@ -17,11 +15,17 @@ fn point3_editor(ui: &mut egui::Ui, label: &str, point: &mut Point3, scene_chang
     ui.horizontal(|ui| {
         ui.label(label);
         ui.label("X:");
-        *scene_changed |= ui.add(egui::DragValue::new(&mut point.x).speed(0.1)).changed();
+        *scene_changed |= ui
+            .add(egui::DragValue::new(&mut point.x).speed(0.1))
+            .changed();
         ui.label("Y:");
-        *scene_changed |= ui.add(egui::DragValue::new(&mut point.y).speed(0.1)).changed();
+        *scene_changed |= ui
+            .add(egui::DragValue::new(&mut point.y).speed(0.1))
+            .changed();
         ui.label("Z:");
-        *scene_changed |= ui.add(egui::DragValue::new(&mut point.z).speed(0.1)).changed();
+        *scene_changed |= ui
+            .add(egui::DragValue::new(&mut point.z).speed(0.1))
+            .changed();
     });
 }
 
@@ -29,11 +33,17 @@ fn vec3_editor(ui: &mut egui::Ui, label: &str, vec: &mut Vec3, scene_changed: &m
     ui.horizontal(|ui| {
         ui.label(label);
         ui.label("X:");
-        *scene_changed |= ui.add(egui::DragValue::new(&mut vec.x).speed(0.1)).changed();
+        *scene_changed |= ui
+            .add(egui::DragValue::new(&mut vec.x).speed(0.1))
+            .changed();
         ui.label("Y:");
-        *scene_changed |= ui.add(egui::DragValue::new(&mut vec.y).speed(0.1)).changed();
+        *scene_changed |= ui
+            .add(egui::DragValue::new(&mut vec.y).speed(0.1))
+            .changed();
         ui.label("Z:");
-        *scene_changed |= ui.add(egui::DragValue::new(&mut vec.z).speed(0.1)).changed();
+        *scene_changed |= ui
+            .add(egui::DragValue::new(&mut vec.z).speed(0.1))
+            .changed();
     });
 }
 
@@ -41,11 +51,29 @@ fn color_editor(ui: &mut egui::Ui, label: &str, color: &mut Color, scene_changed
     ui.horizontal(|ui| {
         ui.label(label);
         ui.label("R:");
-        *scene_changed |= ui.add(egui::DragValue::new(&mut color.r).speed(0.01).range(0.0..=1.0)).changed();
+        *scene_changed |= ui
+            .add(
+                egui::DragValue::new(&mut color.r)
+                    .speed(0.01)
+                    .range(0.0..=1.0),
+            )
+            .changed();
         ui.label("G:");
-        *scene_changed |= ui.add(egui::DragValue::new(&mut color.g).speed(0.01).range(0.0..=1.0)).changed();
+        *scene_changed |= ui
+            .add(
+                egui::DragValue::new(&mut color.g)
+                    .speed(0.01)
+                    .range(0.0..=1.0),
+            )
+            .changed();
         ui.label("B:");
-        *scene_changed |= ui.add(egui::DragValue::new(&mut color.b).speed(0.01).range(0.0..=1.0)).changed();
+        *scene_changed |= ui
+            .add(
+                egui::DragValue::new(&mut color.b)
+                    .speed(0.01)
+                    .range(0.0..=1.0),
+            )
+            .changed();
     });
 }
 
@@ -68,8 +96,6 @@ struct SceneEditorApp {
     error_message: Option<String>,
     current_view: ViewType,
     camera_controls: CameraControls,
-    is_rendering: bool,
-    render_message: Option<String>,
 }
 
 impl SceneEditorApp {
@@ -123,16 +149,22 @@ impl SceneEditorApp {
         };
 
         // Draw X axis
-        painter.line_segment([
-            egui::pos2(rect.left(), rect.center().y),
-            egui::pos2(rect.right(), rect.center().y),
-        ], egui::Stroke::new(1.0, axis_color));
+        painter.line_segment(
+            [
+                egui::pos2(rect.left(), rect.center().y),
+                egui::pos2(rect.right(), rect.center().y),
+            ],
+            egui::Stroke::new(1.0, axis_color),
+        );
 
         // Draw Y axis
-        painter.line_segment([
-            egui::pos2(rect.center().x, rect.top()),
-            egui::pos2(rect.center().x, rect.bottom()),
-        ], egui::Stroke::new(1.0, axis_color));
+        painter.line_segment(
+            [
+                egui::pos2(rect.center().x, rect.top()),
+                egui::pos2(rect.center().x, rect.bottom()),
+            ],
+            egui::Stroke::new(1.0, axis_color),
+        );
 
         let x_min = (-(rect.width() / 2.0) / scene_scale).floor() as i32;
         let x_max = ((rect.width() / 2.0) / scene_scale).ceil() as i32;
@@ -141,10 +173,13 @@ impl SceneEditorApp {
 
         for i in x_min..=x_max {
             let x = i as f32 * scene_scale;
-            painter.line_segment([
-                egui::pos2(rect.center().x + x, rect.center().y - tick_length),
-                egui::pos2(rect.center().x + x, rect.center().y + tick_length),
-            ], egui::Stroke::new(1.0, axis_color));
+            painter.line_segment(
+                [
+                    egui::pos2(rect.center().x + x, rect.center().y - tick_length),
+                    egui::pos2(rect.center().x + x, rect.center().y + tick_length),
+                ],
+                egui::Stroke::new(1.0, axis_color),
+            );
 
             if i % 5 == 0 {
                 painter.text(
@@ -159,10 +194,13 @@ impl SceneEditorApp {
 
         for i in y_min..=y_max {
             let y = i as f32 * scene_scale;
-            painter.line_segment([
-                egui::pos2(rect.center().x - tick_length, rect.center().y + y),
-                egui::pos2(rect.center().x + tick_length, rect.center().y + y),
-            ], egui::Stroke::new(1.0, axis_color));
+            painter.line_segment(
+                [
+                    egui::pos2(rect.center().x - tick_length, rect.center().y + y),
+                    egui::pos2(rect.center().x + tick_length, rect.center().y + y),
+                ],
+                egui::Stroke::new(1.0, axis_color),
+            );
 
             if i % 5 == 0 && i != 0 {
                 painter.text(
@@ -215,9 +253,18 @@ impl SceneEditorApp {
                 ObjectData::Plane(plane) => {
                     let center_2d = to_screen_pos(plane.center);
                     let (half_width, half_height) = match view_type {
-                        ViewType::TopDown => (plane.size.x * scene_scale / 2.0, plane.size.z * scene_scale / 2.0),
-                        ViewType::Front => (plane.size.x * scene_scale / 2.0, plane.size.y * scene_scale / 2.0),
-                        ViewType::Side => (plane.size.z * scene_scale / 2.0, plane.size.y * scene_scale / 2.0),
+                        ViewType::TopDown => (
+                            plane.size.x * scene_scale / 2.0,
+                            plane.size.z * scene_scale / 2.0,
+                        ),
+                        ViewType::Front => (
+                            plane.size.x * scene_scale / 2.0,
+                            plane.size.y * scene_scale / 2.0,
+                        ),
+                        ViewType::Side => (
+                            plane.size.z * scene_scale / 2.0,
+                            plane.size.y * scene_scale / 2.0,
+                        ),
                         _ => (0.0, 0.0),
                     };
 
@@ -240,50 +287,64 @@ impl SceneEditorApp {
                         egui::Stroke::new(1.0, egui::Color32::RED),
                     );
                 }
-                ObjectData::Cylinder(cylinder) => {
-                    match view_type {
-                        ViewType::TopDown => {
-                            let center_2d = to_screen_pos(cylinder.center);
-                            let radius_pixels = cylinder.radius * scene_scale;
-                            painter.circle_stroke(
-                                center_2d,
-                                radius_pixels,
-                                egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
-                            );
-                        }
-                        ViewType::Front => {
-                            let half_height = cylinder.height / 2.0;
-                            let radius = cylinder.radius;
-                            let center = cylinder.center;
-
-                            let top_left = to_screen_pos(Point3::new(center.x - radius, center.y + half_height, center.z));
-                            let bottom_right = to_screen_pos(Point3::new(center.x + radius, center.y - half_height, center.z));
-
-                            let rect = egui::Rect::from_min_max(top_left, bottom_right);
-                            painter.rect_stroke(
-                                rect,
-                                0.0,
-                                egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
-                            );
-                        }
-                        ViewType::Side => {
-                            let half_height = cylinder.height / 2.0;
-                            let radius = cylinder.radius;
-                            let center = cylinder.center;
-
-                            let top_left = to_screen_pos(Point3::new(center.x, center.y + half_height, center.z - radius));
-                            let bottom_right = to_screen_pos(Point3::new(center.x, center.y - half_height, center.z + radius));
-
-                            let rect = egui::Rect::from_min_max(top_left, bottom_right);
-                            painter.rect_stroke(
-                                rect,
-                                0.0,
-                                egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
-                            );
-                        }
-                        _ => {}
+                ObjectData::Cylinder(cylinder) => match view_type {
+                    ViewType::TopDown => {
+                        let center_2d = to_screen_pos(cylinder.center);
+                        let radius_pixels = cylinder.radius * scene_scale;
+                        painter.circle_stroke(
+                            center_2d,
+                            radius_pixels,
+                            egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                        );
                     }
-                }
+                    ViewType::Front => {
+                        let half_height = cylinder.height / 2.0;
+                        let radius = cylinder.radius;
+                        let center = cylinder.center;
+
+                        let top_left = to_screen_pos(Point3::new(
+                            center.x - radius,
+                            center.y + half_height,
+                            center.z,
+                        ));
+                        let bottom_right = to_screen_pos(Point3::new(
+                            center.x + radius,
+                            center.y - half_height,
+                            center.z,
+                        ));
+
+                        let rect = egui::Rect::from_min_max(top_left, bottom_right);
+                        painter.rect_stroke(
+                            rect,
+                            0.0,
+                            egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                        );
+                    }
+                    ViewType::Side => {
+                        let half_height = cylinder.height / 2.0;
+                        let radius = cylinder.radius;
+                        let center = cylinder.center;
+
+                        let top_left = to_screen_pos(Point3::new(
+                            center.x,
+                            center.y + half_height,
+                            center.z - radius,
+                        ));
+                        let bottom_right = to_screen_pos(Point3::new(
+                            center.x,
+                            center.y - half_height,
+                            center.z + radius,
+                        ));
+
+                        let rect = egui::Rect::from_min_max(top_left, bottom_right);
+                        painter.rect_stroke(
+                            rect,
+                            0.0,
+                            egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                        );
+                    }
+                    _ => {}
+                },
             }
         }
     }
@@ -291,18 +352,55 @@ impl SceneEditorApp {
     fn get_cube_vertices(center: Point3, size: f32) -> [Point3; 8] {
         let half_size = size / 2.0;
         [
-            Point3::new(center.x - half_size, center.y - half_size, center.z - half_size),
-            Point3::new(center.x + half_size, center.y - half_size, center.z - half_size),
-            Point3::new(center.x + half_size, center.y + half_size, center.z - half_size),
-            Point3::new(center.x - half_size, center.y + half_size, center.z - half_size),
-            Point3::new(center.x - half_size, center.y - half_size, center.z + half_size),
-            Point3::new(center.x + half_size, center.y - half_size, center.z + half_size),
-            Point3::new(center.x + half_size, center.y + half_size, center.z + half_size),
-            Point3::new(center.x - half_size, center.y + half_size, center.z + half_size),
+            Point3::new(
+                center.x - half_size,
+                center.y - half_size,
+                center.z - half_size,
+            ),
+            Point3::new(
+                center.x + half_size,
+                center.y - half_size,
+                center.z - half_size,
+            ),
+            Point3::new(
+                center.x + half_size,
+                center.y + half_size,
+                center.z - half_size,
+            ),
+            Point3::new(
+                center.x - half_size,
+                center.y + half_size,
+                center.z - half_size,
+            ),
+            Point3::new(
+                center.x - half_size,
+                center.y - half_size,
+                center.z + half_size,
+            ),
+            Point3::new(
+                center.x + half_size,
+                center.y - half_size,
+                center.z + half_size,
+            ),
+            Point3::new(
+                center.x + half_size,
+                center.y + half_size,
+                center.z + half_size,
+            ),
+            Point3::new(
+                center.x - half_size,
+                center.y + half_size,
+                center.z + half_size,
+            ),
         ]
     }
 
-    fn get_cylinder_vertices(center: Point3, radius: f32, height: f32, segments: usize) -> (Vec<Point3>, Vec<Point3>) {
+    fn get_cylinder_vertices(
+        center: Point3,
+        radius: f32,
+        height: f32,
+        segments: usize,
+    ) -> (Vec<Point3>, Vec<Point3>) {
         let mut top_vertices = Vec::new();
         let mut bottom_vertices = Vec::new();
         let half_height = height / 2.0;
@@ -393,9 +491,18 @@ impl SceneEditorApp {
                     }
 
                     let edges = [
-                        (0, 1), (1, 2), (2, 3), (3, 0), // Back face
-                        (4, 5), (5, 6), (6, 7), (7, 4), // Front face
-                        (0, 4), (1, 5), (2, 6), (3, 7), // Connecting edges
+                        (0, 1),
+                        (1, 2),
+                        (2, 3),
+                        (3, 0), // Back face
+                        (4, 5),
+                        (5, 6),
+                        (6, 7),
+                        (7, 4), // Front face
+                        (0, 4),
+                        (1, 5),
+                        (2, 6),
+                        (3, 7), // Connecting edges
                     ];
 
                     for (i, j) in &edges {
@@ -407,7 +514,12 @@ impl SceneEditorApp {
                 }
                 ObjectData::Cylinder(cylinder) => {
                     let num_segments = 12;
-                    let (top_vertices, bottom_vertices) = Self::get_cylinder_vertices(cylinder.center, cylinder.radius, cylinder.height, num_segments);
+                    let (top_vertices, bottom_vertices) = Self::get_cylinder_vertices(
+                        cylinder.center,
+                        cylinder.radius,
+                        cylinder.height,
+                        num_segments,
+                    );
 
                     let mut projected_top = Vec::new();
                     for v in top_vertices {
@@ -456,68 +568,87 @@ impl SceneEditorApp {
     }
 }
 
-fn material_editor(ui: &mut egui::Ui, material: &mut rt_2::scene::storage::MaterialData, scene_changed: &mut bool) {
+fn material_editor(
+    ui: &mut egui::Ui,
+    material: &mut rt_2::scene::storage::MaterialData,
+    scene_changed: &mut bool,
+) {
     ui.group(|ui| {
         ui.label("Material Properties");
-
-        ui.label("Diffuse:");
-        *scene_changed |= ui
-            .add(
-                egui::DragValue::new(&mut material.diffuse)
-                    .speed(0.01)
-                    .range(0.0..=1.0),
-            )
-            .changed();
-
-        ui.label("Reflectivity:");
-        *scene_changed |= ui
-            .add(
-                egui::DragValue::new(&mut material.reflectivity)
-                    .speed(0.01)
-                    .range(0.0..=1.0),
-            )
-            .changed();
-
-        ui.label("Transparency:");
-        *scene_changed |= ui
-            .add(
-                egui::DragValue::new(&mut material.transparency)
-                    .speed(0.01)
-                    .range(0.0..=1.0),
-            )
-            .changed();
-
-        ui.label("Index of Refraction:");
-        *scene_changed |= ui
-            .add(
-                egui::DragValue::new(&mut material.index_of_refraction)
-                    .speed(0.01)
-                    .range(0.0..=3.0),
-            )
-            .changed();
-
-        ui.label("Emission:");
-        let mut emission_enabled = material.emission.is_some();
-        if ui.checkbox(&mut emission_enabled, "Enable Emission").changed() {
-            if emission_enabled {
-                material.emission = Some(Color::WHITE);
-            } else {
-                material.emission = None;
+        ui.horizontal(|ui| {
+            ui.label("Diffuse:");
+            *scene_changed |= ui
+                .add(
+                    egui::DragValue::new(&mut material.diffuse)
+                        .speed(0.01)
+                        .range(0.0..=1.0),
+                )
+                .changed();
+        });
+        ui.horizontal(|ui| {
+            ui.label("Reflectivity:");
+            *scene_changed |= ui
+                .add(
+                    egui::DragValue::new(&mut material.reflectivity)
+                        .speed(0.01)
+                        .range(0.0..=1.0),
+                )
+                .changed();
+        });
+        ui.horizontal(|ui| {
+            ui.label("Transparency:");
+            *scene_changed |= ui
+                .add(
+                    egui::DragValue::new(&mut material.transparency)
+                        .speed(0.01)
+                        .range(0.0..=1.0),
+                )
+                .changed();
+        });
+        ui.horizontal(|ui| {
+            ui.label("Index of Refraction:");
+            *scene_changed |= ui
+                .add(
+                    egui::DragValue::new(&mut material.index_of_refraction)
+                        .speed(0.01)
+                        .range(0.0..=3.0),
+                )
+                .changed();
+        });
+        ui.horizontal(|ui| {
+            ui.label("Emission:");
+            let mut emission_enabled = material.emission.is_some();
+            if ui
+                .checkbox(&mut emission_enabled, "Enable Emission")
+                .changed()
+            {
+                if emission_enabled {
+                    material.emission = Some(Color::WHITE);
+                } else {
+                    material.emission = None;
+                }
+                *scene_changed = true;
             }
-            *scene_changed = true;
-        }
-
+        });
         if let Some(emission_color) = &mut material.emission {
             let mut intensity = emission_color.r.max(emission_color.g).max(emission_color.b);
-            if intensity == 0.0 { intensity = 1.0; }
-            let mut normalized_color = Color::new(emission_color.r / intensity, emission_color.g / intensity, emission_color.b / intensity);
+            if intensity == 0.0 {
+                intensity = 1.0;
+            }
+            let mut normalized_color = Color::new(
+                emission_color.r / intensity,
+                emission_color.g / intensity,
+                emission_color.b / intensity,
+            );
 
             let initial_intensity = intensity;
             let initial_normalized_color = normalized_color;
 
             ui.horizontal(|ui| {
                 ui.label("Intensity:");
-                *scene_changed |= ui.add(egui::DragValue::new(&mut intensity).speed(0.1)).changed();
+                *scene_changed |= ui
+                    .add(egui::DragValue::new(&mut intensity).speed(0.1))
+                    .changed();
             });
             color_editor(ui, "Color:", &mut normalized_color, scene_changed);
 
@@ -613,9 +744,10 @@ impl Default for SceneEditorApp {
             json_string: String::new(),
             error_message: None,
             current_view: ViewType::TopDown,
-            camera_controls: CameraControls { rotation: 0.0, zoom: 5.0 },
-            is_rendering: false,
-            render_message: None,
+            camera_controls: CameraControls {
+                rotation: 0.0,
+                zoom: 5.0,
+            },
         };
         app.update_json_string(); // Initialize json_string with default scene_data
         app
@@ -632,101 +764,58 @@ impl eframe::App for SceneEditorApp {
             .show(ctx, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     ui.heading("Scene Editor");
-
-                    if ui.button("Load Scene").clicked() {
-                        if let Some(path) = FileDialog::new()
-                            .add_filter("JSON", &["json"])
-                            .pick_file()
-                        {
-                            match fs::read_to_string(path) {
-                                Ok(data) => {
-                                    self.json_string = data.clone();
-                                    match serde_json::from_str::<SceneData>(&data) {
-                                        Ok(scene) => {
-                                            self.scene_data = scene;
-                                            self.error_message = None;
-                                            scene_changed = true; // Indicate change after loading
+                    ui.horizontal(|ui| {
+                        if ui.button("Load Scene").clicked() {
+                            if let Some(path) =
+                                FileDialog::new().add_filter("JSON", &["json"]).pick_file()
+                            {
+                                match fs::read_to_string(path) {
+                                    Ok(data) => {
+                                        self.json_string = data.clone();
+                                        match serde_json::from_str::<SceneData>(&data) {
+                                            Ok(scene) => {
+                                                self.scene_data = scene;
+                                                self.error_message = None;
+                                                scene_changed = true; // Indicate change after loading
+                                            }
+                                            Err(e) => {
+                                                self.error_message = Some(format!(
+                                                    "Failed to parse scene file: {}",
+                                                    e
+                                                ));
+                                            }
                                         }
-                                        Err(e) => {
-                                            self.error_message =
-                                                Some(format!("Failed to parse scene file: {}", e));
-                                        }
-                                    }
-                                }
-                                Err(e) => {
-                                    self.error_message =
-                                        Some(format!("Failed to read scene file: {}", e));
-                                }
-                            }
-                        }
-                    }
-
-                    if ui.button("Save Scene").clicked() {
-                        if let Some(path) = FileDialog::new()
-                            .add_filter("JSON", &["json"])
-                            .save_file()
-                        {
-                            match serde_json::to_string_pretty(&self.scene_data) {
-                                Ok(json) => match fs::write(path, json) {
-                                    Ok(_) => {
-                                        self.error_message = None;
                                     }
                                     Err(e) => {
                                         self.error_message =
-                                            Some(format!("Failed to write scene file: {}", e));
+                                            Some(format!("Failed to read scene file: {}", e));
                                     }
-                                },
-                                Err(e) => {
-                                    self.error_message =
-                                        Some(format!("Failed to serialize scene data: {}", e));
                                 }
                             }
                         }
-                    }
 
-                    if ui.button("Render").clicked() {
-                        if !self.is_rendering {
-                            self.is_rendering = true;
-                            self.render_message = Some("Rendering, please wait...".to_string());
-
-                            let scene_data = self.scene_data.clone();
-                            //let (width, height) = self.scene_data.camera.resolution;
-
-                            thread::spawn(move || {
-                                // Save the current scene to a temporary file
-                                let temp_scene_path = "temp_scene.json";
-                                match serde_json::to_string_pretty(&scene_data) {
-                                    Ok(json) => match fs::write(temp_scene_path, json) {
+                        if ui.button("Save Scene").clicked() {
+                            if let Some(path) =
+                                FileDialog::new().add_filter("JSON", &["json"]).save_file()
+                            {
+                                match serde_json::to_string_pretty(&self.scene_data) {
+                                    Ok(json) => match fs::write(path, json) {
                                         Ok(_) => {
-                                            // Run the ray tracer
-                                            let mut cmd = Command::new("target/debug/rt_2.exe");
-                                            cmd.arg("-s").arg(temp_scene_path);
-                                            match cmd.status() {
-                                                Ok(status) => {
-                                                    if !status.success() {
-                                                        // self.error_message = Some("Failed to render scene".to_string());
-                                                    }
-                                                }
-                                                Err(_e) => {
-                                                    // self.error_message = Some(format!("Failed to run ray tracer: {}", e));
-                                                }
-                                            }
+                                            self.error_message = None;
                                         }
-                                        Err(_e) => {
-                                            // self.error_message = Some(format!("Failed to write temporary scene file: {}", e));
+                                        Err(e) => {
+                                            self.error_message =
+                                                Some(format!("Failed to write scene file: {}", e));
                                         }
                                     },
-                                    Err(_e) => {
-                                        // self.error_message = Some(format!("Failed to serialize scene data: {}", e));
+                                    Err(e) => {
+                                        self.error_message =
+                                            Some(format!("Failed to serialize scene data: {}", e));
                                     }
                                 }
-                            });
+                            }
                         }
-                    }
-
-                    if self.is_rendering {
-                        ui.label(self.render_message.as_deref().unwrap_or(""));
-                    }
+                    });
 
                     if let Some(msg) = &self.error_message {
                         ui.colored_label(egui::Color32::RED, msg);
@@ -736,25 +825,44 @@ impl eframe::App for SceneEditorApp {
 
                     // Camera Editor
                     ui.collapsing("Camera", |ui| {
-                        point3_editor(ui, "Position:", &mut self.scene_data.camera.position, &mut scene_changed);
-                        point3_editor(ui, "Look At:", &mut self.scene_data.camera.look_at, &mut scene_changed);
-                        vec3_editor(ui, "Up Vector:", &mut self.scene_data.camera.up, &mut scene_changed);
-
-                        ui.label("FOV:");
-                        scene_changed |= ui
-                            .add(egui::DragValue::new(&mut self.scene_data.camera.fov).speed(1.0))
-                            .changed();
-
-                        ui.label("Aspect Ratio:");
-                        scene_changed |= ui
-                            .add(
-                                egui::DragValue::new(&mut self.scene_data.camera.aspect_ratio)
-                                    .speed(0.01),
-                            )
-                            .changed();
-
-                        ui.label("Resolution:");
+                        point3_editor(
+                            ui,
+                            "Position:",
+                            &mut self.scene_data.camera.position,
+                            &mut scene_changed,
+                        );
+                        point3_editor(
+                            ui,
+                            "Look At:",
+                            &mut self.scene_data.camera.look_at,
+                            &mut scene_changed,
+                        );
+                        vec3_editor(
+                            ui,
+                            "Up Vector:",
+                            &mut self.scene_data.camera.up,
+                            &mut scene_changed,
+                        );
                         ui.horizontal(|ui| {
+                            ui.label("FOV:");
+                            scene_changed |= ui
+                                .add(
+                                    egui::DragValue::new(&mut self.scene_data.camera.fov)
+                                        .speed(1.0),
+                                )
+                                .changed();
+
+                            ui.label("Aspect Ratio:");
+                            scene_changed |= ui
+                                .add(
+                                    egui::DragValue::new(&mut self.scene_data.camera.aspect_ratio)
+                                        .speed(0.01),
+                                )
+                                .changed();
+                        });
+
+                        ui.horizontal(|ui| {
+                            ui.label("Resolution:");
                             scene_changed |= ui
                                 .add(
                                     egui::DragValue::new(&mut self.scene_data.camera.resolution.0)
@@ -834,14 +942,21 @@ impl eframe::App for SceneEditorApp {
 
                                     match object {
                                         ObjectData::Sphere(sphere) => {
-                                            point3_editor(ui, "Center:", &mut sphere.center, &mut scene_changed);
-                                            ui.label("Radius:");
-                                            scene_changed |= ui
-                                                .add(
-                                                    egui::DragValue::new(&mut sphere.radius)
-                                                        .speed(0.1),
-                                                )
-                                                .changed();
+                                            point3_editor(
+                                                ui,
+                                                "Center:",
+                                                &mut sphere.center,
+                                                &mut scene_changed,
+                                            );
+                                            ui.horizontal(|ui| {
+                                                ui.label("Radius:");
+                                                scene_changed |= ui
+                                                    .add(
+                                                        egui::DragValue::new(&mut sphere.radius)
+                                                            .speed(0.1),
+                                                    )
+                                                    .changed();
+                                            });
                                             ui.group(|ui| {
                                                 ui.label("Texture:");
                                                 texture_editor(
@@ -850,11 +965,25 @@ impl eframe::App for SceneEditorApp {
                                                     &mut scene_changed,
                                                 );
                                             });
-                                            material_editor(ui, &mut sphere.material, &mut scene_changed);
+                                            material_editor(
+                                                ui,
+                                                &mut sphere.material,
+                                                &mut scene_changed,
+                                            );
                                         }
                                         ObjectData::Plane(plane) => {
-                                            point3_editor(ui, "Center:", &mut plane.center, &mut scene_changed);
-                                            vec3_editor(ui, "Size:", &mut plane.size, &mut scene_changed);
+                                            point3_editor(
+                                                ui,
+                                                "Center:",
+                                                &mut plane.center,
+                                                &mut scene_changed,
+                                            );
+                                            vec3_editor(
+                                                ui,
+                                                "Size:",
+                                                &mut plane.size,
+                                                &mut scene_changed,
+                                            );
                                             ui.group(|ui| {
                                                 ui.label("Texture:");
                                                 texture_editor(
@@ -863,16 +992,28 @@ impl eframe::App for SceneEditorApp {
                                                     &mut scene_changed,
                                                 );
                                             });
-                                            material_editor(ui, &mut plane.material, &mut scene_changed);
+                                            material_editor(
+                                                ui,
+                                                &mut plane.material,
+                                                &mut scene_changed,
+                                            );
                                         }
                                         ObjectData::Cube(cube) => {
-                                            point3_editor(ui, "Center:", &mut cube.center, &mut scene_changed);
-                                            ui.label("Size:");
-                                            scene_changed |= ui
-                                                .add(
-                                                    egui::DragValue::new(&mut cube.size).speed(0.1),
-                                                )
-                                                .changed();
+                                            point3_editor(
+                                                ui,
+                                                "Center:",
+                                                &mut cube.center,
+                                                &mut scene_changed,
+                                            );
+                                            ui.horizontal(|ui| {
+                                                ui.label("Size:");
+                                                scene_changed |= ui
+                                                    .add(
+                                                        egui::DragValue::new(&mut cube.size)
+                                                            .speed(0.1),
+                                                    )
+                                                    .changed();
+                                            });
                                             ui.group(|ui| {
                                                 ui.label("Texture:");
                                                 texture_editor(
@@ -881,24 +1022,35 @@ impl eframe::App for SceneEditorApp {
                                                     &mut scene_changed,
                                                 );
                                             });
-                                            material_editor(ui, &mut cube.material, &mut scene_changed);
+                                            material_editor(
+                                                ui,
+                                                &mut cube.material,
+                                                &mut scene_changed,
+                                            );
                                         }
                                         ObjectData::Cylinder(cylinder) => {
-                                            point3_editor(ui, "Center:", &mut cylinder.center, &mut scene_changed);
-                                            ui.label("Radius:");
-                                            scene_changed |= ui
-                                                .add(
-                                                    egui::DragValue::new(&mut cylinder.radius)
-                                                        .speed(0.1),
-                                                )
-                                                .changed();
-                                            ui.label("Height:");
-                                            scene_changed |= ui
-                                                .add(
-                                                    egui::DragValue::new(&mut cylinder.height)
-                                                        .speed(0.1),
-                                                )
-                                                .changed();
+                                            point3_editor(
+                                                ui,
+                                                "Center:",
+                                                &mut cylinder.center,
+                                                &mut scene_changed,
+                                            );
+                                            ui.horizontal(|ui| {
+                                                ui.label("Radius:");
+                                                scene_changed |= ui
+                                                    .add(
+                                                        egui::DragValue::new(&mut cylinder.radius)
+                                                            .speed(0.1),
+                                                    )
+                                                    .changed();
+                                                ui.label("Height:");
+                                                scene_changed |= ui
+                                                    .add(
+                                                        egui::DragValue::new(&mut cylinder.height)
+                                                            .speed(0.1),
+                                                    )
+                                                    .changed();
+                                            });
                                             ui.group(|ui| {
                                                 ui.label("Texture:");
                                                 texture_editor(
@@ -907,7 +1059,11 @@ impl eframe::App for SceneEditorApp {
                                                     &mut scene_changed,
                                                 );
                                             });
-                                            material_editor(ui, &mut cylinder.material, &mut scene_changed);
+                                            material_editor(
+                                                ui,
+                                                &mut cylinder.material,
+                                                &mut scene_changed,
+                                            );
                                         }
                                     }
                                 });
