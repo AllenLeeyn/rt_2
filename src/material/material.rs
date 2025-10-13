@@ -9,10 +9,7 @@ pub struct Material {
     pub reflectivity: f32,        // 0 = none, 1 = mirror
     pub transparency: f32,        // 0 = opaque, 1 = fully transparent
     pub index_of_refraction: f32, // Index of refraction
-    pub emission: Option<Color>,  // Light source?
-
-    pub specular: f32,
-    pub shininess: f32,
+    pub emission: Option<Color>,  // Light source
 }
 
 #[derive(Debug, Clone)]
@@ -114,12 +111,6 @@ impl Material {
             scattered_ray: ray,
             attenuation,
         }
-    }
-
-    pub fn phong_specular(&self, light_dir: Vec3, view_dir: Vec3, normal: Vec3) -> f32 {
-        let reflect_dir = (-light_dir).reflect(normal);
-        let spec_angle = view_dir.dot(reflect_dir).max(0.0);
-        spec_angle.powf(self.shininess) * self.specular
     }
 }
 

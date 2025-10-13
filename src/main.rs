@@ -93,16 +93,8 @@ fn scene_one(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
-
-    /*     scene.add_light(Light::new_directional(
-        Point3::new(0.0, -4.0, -4.0),
-        Color::WHITE,
-        1.0,
-    )); */
 
     scene.add_object(Sphere::new(
         Point3::new(0.0, 5.0, 4.0),
@@ -114,8 +106,6 @@ fn scene_one(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: Some(Color::WHITE * 10.0),
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 }
@@ -143,8 +133,6 @@ fn scene_two(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -159,8 +147,6 @@ fn scene_two(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -180,8 +166,6 @@ fn scene_two(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: Some(Color::WHITE * 4.0),
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 }
@@ -208,8 +192,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -223,8 +205,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -238,8 +218,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -253,8 +231,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -268,8 +244,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -283,8 +257,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: Some(Color::WHITE * 5.0),
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -299,8 +271,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -314,8 +284,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.1,
-            shininess: 16.0,
         },
     ));
 
@@ -329,8 +297,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: Some(Color::ORANGE * 5.0),
-            specular: 0.1,
-            shininess: 16.0,
         },
     ));
 
@@ -344,8 +310,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.92,
             index_of_refraction: 1.49,
             emission: None,
-            specular: 8.0,
-            shininess: 128.0,
         },
     ));
 
@@ -359,8 +323,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.95,
             index_of_refraction: 1.49,
             emission: None,
-            specular: 8.0,
-            shininess: 128.0,
         },
     ));
 
@@ -374,8 +336,6 @@ fn scene_three(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.1,
-            shininess: 0.1,
         },
     ));
 }
@@ -400,8 +360,6 @@ fn scene_four(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -416,8 +374,6 @@ fn scene_four(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -431,8 +387,6 @@ fn scene_four(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -446,8 +400,6 @@ fn scene_four(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -461,8 +413,6 @@ fn scene_four(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: Some(Color::BEIGE * 20.0),
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -476,8 +426,6 @@ fn scene_four(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: Some(Color::PASTEL_GREEN * 20.0),
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 }
@@ -504,8 +452,6 @@ fn scene_five(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -519,8 +465,6 @@ fn scene_five(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -534,8 +478,6 @@ fn scene_five(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -549,8 +491,6 @@ fn scene_five(scene: &mut Scene) {
             transparency: 1.0,
             index_of_refraction: 1.6,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -564,8 +504,6 @@ fn scene_five(scene: &mut Scene) {
             transparency: 0.7,
             index_of_refraction: 1.5,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -579,8 +517,6 @@ fn scene_five(scene: &mut Scene) {
             transparency: 0.6,
             index_of_refraction: 1.5,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -603,8 +539,6 @@ fn scene_five(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: Some(Color::WHITE * 2.0),
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 }
@@ -632,8 +566,6 @@ fn scene_six(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -647,8 +579,6 @@ fn scene_six(scene: &mut Scene) {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: Some(Color::ORANGE * 10.0),
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -662,8 +592,6 @@ fn scene_six(scene: &mut Scene) {
             transparency: 0.9,
             index_of_refraction: 1.5,
             emission: None,
-            specular: 4.0,
-            shininess: 128.0,
         },
     ));
 
@@ -677,8 +605,6 @@ fn scene_six(scene: &mut Scene) {
             transparency: 0.95,
             index_of_refraction: 1.5,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -692,8 +618,6 @@ fn scene_six(scene: &mut Scene) {
             transparency: 0.9,
             index_of_refraction: 1.5,
             emission: None,
-            specular: 4.0,
-            shininess: 128.0,
         },
     ));
 
@@ -707,8 +631,6 @@ fn scene_six(scene: &mut Scene) {
             transparency: 0.95,
             index_of_refraction: 1.5,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -722,8 +644,6 @@ fn scene_six(scene: &mut Scene) {
             transparency: 0.9,
             index_of_refraction: 1.5,
             emission: None,
-            specular: 4.0,
-            shininess: 128.0,
         },
     ));
 
@@ -737,8 +657,6 @@ fn scene_six(scene: &mut Scene) {
             transparency: 0.95,
             index_of_refraction: 1.5,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
     ));
 
@@ -770,8 +688,6 @@ fn scene_six(scene: &mut Scene) {
                 transparency: 0.0,
                 index_of_refraction: 0.0,
                 emission: None,
-                specular: 0.0,
-                shininess: 0.0,
             };
 
             Box::new(Cube::new(Point3::new(x, pos.y(), z), size, material)) as Box<dyn Hittable>
@@ -796,8 +712,6 @@ fn scene_six(scene: &mut Scene) {
                 transparency: 0.0,
                 index_of_refraction: 0.0,
                 emission: Some(Color::WHITE),
-                specular: 0.0,
-                shininess: 0.0,
             };
 
             Box::new(Sphere::new(pos, 0.1, material)) as Box<dyn Hittable>
@@ -825,8 +739,6 @@ fn random_material() -> Material {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 0.0,
-            shininess: 0.0,
         },
         1 => Material {
             texture,
@@ -835,8 +747,6 @@ fn random_material() -> Material {
             transparency: 0.0,
             index_of_refraction: 0.0,
             emission: None,
-            specular: 6.0,
-            shininess: 128.0,
         },
         2 => Material {
             texture,
@@ -845,8 +755,6 @@ fn random_material() -> Material {
             transparency: rng.random_range(0.5..0.95),
             index_of_refraction: rng.random_range(1.3..1.7),
             emission: None,
-            specular: 3.0,
-            shininess: 64.0,
         },
         _ => unreachable!(),
     }
