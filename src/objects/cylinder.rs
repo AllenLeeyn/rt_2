@@ -60,15 +60,16 @@ impl Cylinder {
         if t < t_min || t > t_max {
             return None;
         }
-
+        // Compute the hit point on the cap
         let point = ray.at(t);
         let dx = point.x() - self.center.x();
         let dz = point.z() - self.center.z();
 
+        // Check if the hit point is within the cap radius
         if dx * dx + dz * dz > self.radius * self.radius {
             return None;
         }
-
+        // Normal points up for top cap, down for bottom cap
         let normal = if y > self.center.y() {
             Vec3::new(0.0, 1.0, 0.0)
         } else {
@@ -96,8 +97,7 @@ impl Cylinder {
         let oc_x = ray.origin().x() - self.center.x();
         let oc_z = ray.origin().z() - self.center.z();
 
-        let a =
-            ray.direction().x() * ray.direction().x() + ray.direction().z() * ray.direction().z();
+        let a = ray.direction().x() * ray.direction().x() + ray.direction().z() * ray.direction().z();
         let b = 2.0 * (oc_x * ray.direction().x() + oc_z * ray.direction().z());
         let c = oc_x * oc_x + oc_z * oc_z - self.radius * self.radius;
 
