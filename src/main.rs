@@ -1,5 +1,4 @@
 use clap::Parser;
-use rand::Rng;
 use rt_2::core::*;
 use rt_2::material::*;
 use rt_2::pixels::Texture;
