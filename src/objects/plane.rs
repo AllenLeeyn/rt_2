@@ -1,17 +1,17 @@
 use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
-use crate::pixels::texture::Texture;
+use crate::material::Material;
 
 #[derive(Clone)]
 pub struct Plane {
     center: Point3, // Bottom-left corner or reference point
     size: Vec3,     // Size in X and Z (Y is ignored)
-    texture: Texture,
+    material: Material,
     bounding_box: (Point3, Point3),
 }
 
 impl Plane {
     // Create a new plane centered at 'center' with given 'size' and 'texture'
-    pub fn new(center: Point3, size: Vec3, texture: Texture) -> Self {
+    pub fn new(center: Point3, size: Vec3, material: Material) -> Self {
         let half_size = size / 2.0;
 
         let min = Point3::new(
@@ -29,7 +29,7 @@ impl Plane {
         Self {
             center,
             size,
-            texture,
+            material,
             bounding_box: (min, max),
         }
     }
@@ -38,10 +38,10 @@ impl Plane {
         Vec3::Y
     }
 
-    fn compute_uv(&self, p: Point3) -> (f32, f32) {
+    fn compute_uv(&self, point: Point3) -> (f32, f32) {
         let half_size = self.size / 2.0;
-        let u = (p.x() - (self.center.x() - half_size.x())) / self.size.x();
-        let v = (p.z() - (self.center.z() - half_size.z())) / self.size.z();
+        let u = (point.x() - (self.center.x() - half_size.x())) / self.size.x();
+        let v = (point.z() - (self.center.z() - half_size.z())) / self.size.z();
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 
@@ -53,8 +53,8 @@ impl Plane {
         self.size
     }
 
-    pub fn set_texture(&mut self, texture: Texture) {
-        self.texture = texture;
+    pub fn set_material(&mut self, material: Material) {
+        self.material = material;
     }
 }
 
@@ -74,28 +74,32 @@ impl Hittable for Plane {
         }
 
         // Calculate intersection point
-        let p = ray.at(t);
+        let point = ray.at(t);
 
         // Check if intersection point is within plane bounds
         let (min, max) = self.bounding_box;
-        if p.x() < min.x() || p.x() > max.x() || p.z() < min.z() || p.z() > max.z() {
+        if point.x() < min.x() || point.x() > max.x() || point.z() < min.z() || point.z() > max.z()
+        {
             return None;
         }
+
+        // Sample the texture
+        let (u, v) = self.compute_uv(point);
+        let color = self.material.value_at(u, v);
 
         // Calculate surface properties
         let outward_normal = self.normal();
         let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
-        let (u, v) = self.compute_uv(p);
-        let color = self.texture.value_at(u, v, p);
 
         Some(HitRecord {
-            p,
+            p: point,
             normal,
             t,
             color,
             u,
             v,
             front_face,
+            material: self.material.clone(),
         })
     }
 }

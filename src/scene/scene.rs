@@ -1,14 +1,13 @@
 use crate::core::*;
 use crate::pixels::*;
-use crate::random_double;
+use crate::random_float;
 use crate::scene::*;
 
-use rayon::prelude::*;
 use indicatif::{ProgressBar, ProgressStyle};
+use rayon::prelude::*;
 
 pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
-    lights: Vec<Light>,
     background: Texture,
     camera: Camera,
     max_depth: u32,
@@ -19,7 +18,6 @@ impl Scene {
     pub fn new() -> Self {
         Scene {
             objects: Vec::new(),
-            lights: Vec::new(),
             background: Texture::SolidColor(Color::BLACK),
             camera: Camera::new(),
             max_depth: 1,
@@ -55,17 +53,17 @@ impl Scene {
         self.objects.push(Box::new(object));
     }
 
-    pub fn add_light(&mut self, light: Light) {
-        self.lights.push(light);
+    pub fn add_boxed_object(&mut self, object: Box<dyn Hittable>) {
+        self.objects.push(object);
     }
 
-    pub fn render(&mut self, path: &str) -> std::io::Result<()> {
+    pub fn render(&mut self, path: &str, parallelized: bool) -> std::io::Result<()> {
         let (width, height) = self.camera().resolution();
         let mut image = Image::new(width as usize, height as usize);
 
         // Create progress bar
-        let pb = ProgressBar::new(height as u64);
-        pb.set_style(
+        let prog_bar = ProgressBar::new(height as u64);
+        prog_bar.set_style(
             ProgressStyle::with_template(
                 "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos:>3}/{len:3} lines ({percent}%) {eta}"
             )
@@ -73,65 +71,93 @@ impl Scene {
             .progress_chars("█▉▊▋▌▍▎▏  ")
         );
 
-        println!("🚀 Starting render: {}x{} pixels", width, height);
+        println!("Starting render: {width}x{height} pixels");
+        if parallelized {
+            println!("Using parallelized rendering");
+        } else {
+            println!("Using single-threaded rendering");
+        }
 
-        // Parallelize over rows
-        let rows: Vec<(u32, Vec<Color>)> = (0..height)
-            .into_par_iter()
-            .map(|y| {
-                let mut row_pixels = Vec::with_capacity(width as usize);
-
-                for x in 0..width {
-                    let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                        for _ in 0..self.sample_size {
-                        let u = (x as f32 + random_double()) / width as f32;
-                        let v = 1.0 - ((y as f32 + random_double()) / height as f32);
-                        let ray = self.camera().generate_ray(u, v);
-                        pixel_color = pixel_color + self.ray_color(&ray, u , v, self.max_depth);
-                    }
-                    let color = pixel_color/ self.sample_size as i32;
-                    row_pixels.push(color);
+        // Common rendering logic for each row
+        let render_row = |y: u32| {
+            let mut row_pixels = Vec::with_capacity(width as usize);
+            for x in 0..width {
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                for _ in 0..self.sample_size {
+                    let horizontal_offset = (x as f32 + random_float()) / width as f32;
+                    let vertical_offset = 1.0 - ((y as f32 + random_float()) / height as f32);
+                    let ray = self
+                        .camera()
+                        .generate_ray(horizontal_offset, vertical_offset);
+                    pixel_color = pixel_color
+                        + self.ray_color(&ray, horizontal_offset, vertical_offset, self.max_depth);
                 }
+                let color = pixel_color / self.sample_size as i32;
+                row_pixels.push(color);
+            }
+            prog_bar.inc(1);
+            (y, row_pixels)
+        };
 
-                pb.inc(1);
-                (y, row_pixels)
-            })
-            .collect();
+        let rows: Vec<(u32, Vec<Color>)> = if parallelized {
+            (0..height).into_par_iter().map(render_row).collect()
+        } else {
+            (0..height).map(render_row).collect()
+        };
 
-        pb.finish();
+        prog_bar.finish();
 
-        println!("💾 Saving to: {}", path);
+        println!("Saving to: {path}");
         for (y, row) in rows {
             for (x, color) in row.into_iter().enumerate() {
                 image.set_pixel(x, y as usize, color);
             }
         }
 
-
         image.save_ppm(path)?;
         Ok(())
     }
 
-    pub fn ray_color(&self, ray: &Ray, u: f32, v: f32, _depth: u32) -> Color {
+    pub fn ray_color(
+        &self,
+        ray: &Ray,
+        horizontal_offset: f32,
+        vertical_offset: f32,
+        depth: u32,
+    ) -> Color {
+        if depth == 0 {
+            return Color::BLACK;
+        }
+
         let mut closest_so_far = 50.0;
         let mut final_hit = None;
 
         for object in &self.objects {
-            if let Some(hit) = object.hit(ray, 0.001, closest_so_far) {
+            if let Some(hit) = object.hit(ray, 1e-6, closest_so_far) {
                 closest_so_far = hit.t;
                 final_hit = Some(hit);
             }
         }
 
         if let Some(hit) = final_hit {
-            let mut final_color = Color::BLACK;
+            let glow = hit.material.emission.unwrap_or(Color::BLACK);
 
-            for light in &self.lights {
-                final_color = final_color + light.contribution_from_hit(&self.objects, &hit);
+            let mut final_color = glow;
+
+            if depth > 0 {
+                if let Some(scatter) = hit.material.scatter(ray, &hit) {
+                    let bounced = self.ray_color(
+                        &scatter.scattered_ray,
+                        horizontal_offset,
+                        vertical_offset,
+                        depth - 1,
+                    );
+                    final_color = final_color + scatter.attenuation * bounced;
+                }
             }
 
             return final_color;
         }
-        self.background.value_at(u, v, ray.origin())
+        self.background.value_at(horizontal_offset, vertical_offset)
     }
 }

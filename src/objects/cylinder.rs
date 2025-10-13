@@ -1,17 +1,17 @@
 use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
-use crate::pixels::texture::Texture;
+use crate::material::Material;
 
 #[derive(Clone)]
 pub struct Cylinder {
     center: Point3,
     radius: f32,
     height: f32,
-    texture: Texture,
+    material: Material,
     _bounding_box: (Point3, Point3),
 }
 
 impl Cylinder {
-    pub fn new(center: Point3, radius: f32, height: f32, texture: Texture) -> Self {
+    pub fn new(center: Point3, radius: f32, height: f32, material: Material) -> Self {
         let min = Point3::new(center.x() - radius, center.y(), center.z() - radius);
 
         let max = Point3::new(
@@ -24,28 +24,28 @@ impl Cylinder {
             center,
             radius,
             height,
-            texture,
+            material,
             _bounding_box: (min, max),
         }
     }
 
     // Compute normal vector at a point on the cylinder surface
-    fn compute_normal(&self, p: Point3) -> Vec3 {
-        let dx = p.x() - self.center.x();
-        let dz = p.z() - self.center.z();
+    fn compute_normal(&self, point: Point3) -> Vec3 {
+        let dx = point.x() - self.center.x();
+        let dz = point.z() - self.center.z();
         Vec3::new(dx, 0.0, dz).normalize()
     }
 
     // Compute UV coordinates for a point on the cylinder surface
-    fn compute_uv(&self, p: Point3) -> (f32, f32) {
-        let u = (p.x() - self.center.x() + self.radius) / (2.0 * self.radius);
-        let v = (p.y() - self.center.y()) / self.height;
+    fn compute_uv(&self, point: Point3) -> (f32, f32) {
+        let u = (point.x() - self.center.x() + self.radius) / (2.0 * self.radius);
+        let v = (point.y() - self.center.y()) / self.height;
         (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
     }
 
     // Set a new texture for the cylinder
-    pub fn set_texture(&mut self, texture: Texture) {
-        self.texture = texture;
+    pub fn set_material(&mut self, material: Material) {
+        self.material = material;
     }
 
     // Helper function to check intersection with a cap (top or bottom)
@@ -61,9 +61,9 @@ impl Cylinder {
             return None;
         }
         // Compute the hit point on the cap
-        let p = ray.at(t);
-        let dx = p.x() - self.center.x();
-        let dz = p.z() - self.center.z();
+        let point = ray.at(t);
+        let dx = point.x() - self.center.x();
+        let dz = point.z() - self.center.z();
 
         // Check if the hit point is within the cap radius
         if dx * dx + dz * dz > self.radius * self.radius {
@@ -76,18 +76,19 @@ impl Cylinder {
             Vec3::new(0.0, -1.0, 0.0)
         };
 
-        let (normal, front_face) = HitRecord::face_normal(ray, normal); // determine if ray hits front or back face
-        let (u, v) = self.compute_uv(p);
-        let color = self.texture.value_at(u, v, p);
+        let (normal, front_face) = HitRecord::face_normal(ray, normal);
+        let (u, v) = self.compute_uv(point);
+        let color = self.material.value_at(u, v);
 
         Some(HitRecord {
-            p,
+            p: point,
             normal,
             t,
             color,
             u,
             v,
             front_face,
+            material: self.material.clone(),
         })
     }
 
@@ -112,23 +113,24 @@ impl Cylinder {
         // Try closest intersection first
         for &t in &[t1, t2] {
             if t >= t_min && t <= t_max {
-                let p = ray.at(t);
-                let y = p.y() - self.center.y();
+                let point = ray.at(t);
+                let y = point.y() - self.center.y();
 
                 if y >= 0.0 && y <= self.height {
-                    let normal = self.compute_normal(p);
-                    let (normal, front_face) = HitRecord::face_normal(ray, normal);
-                    let (u, v) = self.compute_uv(p);
-                    let color = self.texture.value_at(u, v, p);
+                    let outward_normal = self.compute_normal(point);
+                    let (normal, front_face) = HitRecord::face_normal(ray, outward_normal);
+                    let (u, v) = self.compute_uv(point);
+                    let color = self.material.value_at(u, v);
 
                     return Some(HitRecord {
-                        p,
+                        p: point,
                         normal,
                         t,
                         color,
                         u,
                         v,
                         front_face,
+                        material: self.material.clone(),
                     });
                 }
             }
