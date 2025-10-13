@@ -8,7 +8,6 @@ use crate::pixels::image::Image;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SceneData {
     pub objects: Vec<ObjectData>,
-    pub lights: Vec<LightData>,
     pub camera: CameraData,
 }
 
@@ -83,29 +82,6 @@ impl Default for TextureData {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum LightData {
-    Point(PointLightData),
-    Directional(DirectionalLightData),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct PointLightData {
-    pub position: Point3,
-    pub color: Color,
-    pub intensity: f32,
-    pub samples: usize,
-    pub radius: f32,
-    pub softness: f32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct DirectionalLightData {
-    pub direction: Vec3,
-    pub color: Color,
-    pub intensity: f32,
-}
-
 impl From<TextureData> for Texture {
     fn from(data: TextureData) -> Self {
         match data {
@@ -155,15 +131,3 @@ impl From<CylinderData> for Cylinder {
         Cylinder::new(data.center, data.radius, data.height, data.material.into())
     }
 }
-
-/* impl From<PointLightData> for Light {
-    fn from(data: PointLightData) -> Self {
-        Light::new_point(data.position, data.color, data.intensity, data.samples, data.radius, data.softness)
-    }
-}
-
-impl From<DirectionalLightData> for Light {
-    fn from(data: DirectionalLightData) -> Self {
-        Light::new_directional(data.direction, data.color, data.intensity)
-    }
-} */

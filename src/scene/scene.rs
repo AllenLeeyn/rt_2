@@ -2,7 +2,7 @@ use crate::core::*;
 use crate::pixels::*;
 use crate::random_float;
 use crate::scene::*;
-use crate::scene::storage::{ObjectData, SceneData};
+use crate::scene::storage::*;
 use crate::objects::{Cube, Cylinder, Plane, Sphere};
 
 use indicatif::{ProgressBar, ProgressStyle};
@@ -36,19 +36,25 @@ impl Scene {
 
         for object in scene_data.objects {
             match object {
-                ObjectData::Sphere(s) => scene.add_object(Sphere::from(s)),
-                ObjectData::Plane(p) => scene.add_object(Plane::from(p)),
-                ObjectData::Cube(c) => scene.add_object(Cube::from(c)),
-                ObjectData::Cylinder(cy) => scene.add_object(Cylinder::from(cy)),
+                ObjectData::Sphere(s) => {
+                    let sphere: Sphere = s.into();
+                    scene.add_object(sphere);
+                }
+                ObjectData::Plane(p) => {
+                    let plane: Plane = p.into();
+                    scene.add_object(plane);
+                }
+                ObjectData::Cube(c) => {
+                    let cube: Cube = c.into();
+                    scene.add_object(cube);
+                }
+                ObjectData::Cylinder(cy) => {
+                    let cylinder: Cylinder = cy.into();
+                    scene.add_object(cylinder);
+                }
             }
         }
 
-/*         for light in scene_data.lights {
-            match light {
-                LightData::Point(l) => scene.add_light(l.into()),
-                LightData::Directional(d) => scene.add_light(d.into()),
-            }
-        } */
         let camera_data = scene_data.camera;
         scene.camera_mut().set(
             camera_data.position,

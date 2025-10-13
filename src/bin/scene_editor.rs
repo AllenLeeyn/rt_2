@@ -9,10 +9,8 @@ use std::thread;
 // Import the SceneData and related structs from the main project
 use rt_2::core::color::Color;
 use rt_2::core::vec3::{Point3, Vec3};
-use rt_2::pixels::Image;
 use rt_2::scene::storage::{
-    CameraData, CubeData, CylinderData, DirectionalLightData, LightData, ObjectData, PlaneData,
-    PointLightData, SceneData, SphereData, TextureData,
+    CameraData, CubeData, CylinderData, ObjectData, PlaneData, SceneData, SphereData, TextureData,
 };
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -85,27 +83,6 @@ impl SceneEditorApp {
             [cam_pos_2d, look_at_pos_2d],
             egui::Stroke::new(1.0, egui::Color32::WHITE),
         );
-
-        // Draw Lights
-        for light in &self.scene_data.lights {
-            match light {
-                LightData::Point(point_light) => {
-                    let light_pos_2d = to_screen_pos(point_light.position);
-                    painter.circle_filled(light_pos_2d, 4.0, egui::Color32::YELLOW);
-                }
-                LightData::Directional(directional_light) => {
-                    let light_dir_start = Point3::new(0.0, 0.0, 0.0); // Arbitrary start for arrow
-                    let light_dir_end = light_dir_start + directional_light.direction * 2.0; // Arrow length
-                    let start_pos_2d = to_screen_pos(light_dir_start);
-                    let end_pos_2d = to_screen_pos(light_dir_end);
-                    painter.arrow(
-                        start_pos_2d,
-                        end_pos_2d - start_pos_2d,
-                        egui::Stroke::new(2.0, egui::Color32::GOLD),
-                    );
-                }
-            }
-        }
 
         // Draw Objects
         for object in &self.scene_data.objects {
@@ -323,6 +300,85 @@ impl SceneEditorApp {
     }
 }
 
+fn material_editor(ui: &mut egui::Ui, material: &mut rt_2::scene::storage::MaterialData, scene_changed: &mut bool) {
+    ui.group(|ui| {
+        ui.label("Material Properties");
+
+        ui.label("Diffuse:");
+        *scene_changed |= ui
+            .add(
+                egui::DragValue::new(&mut material.diffuse)
+                    .speed(0.01)
+                    .range(0.0..=1.0),
+            )
+            .changed();
+
+        ui.label("Reflectivity:");
+        *scene_changed |= ui
+            .add(
+                egui::DragValue::new(&mut material.reflectivity)
+                    .speed(0.01)
+                    .range(0.0..=1.0),
+            )
+            .changed();
+
+        ui.label("Transparency:");
+        *scene_changed |= ui
+            .add(
+                egui::DragValue::new(&mut material.transparency)
+                    .speed(0.01)
+                    .range(0.0..=1.0),
+            )
+            .changed();
+
+        ui.label("Index of Refraction:");
+        *scene_changed |= ui
+            .add(
+                egui::DragValue::new(&mut material.index_of_refraction)
+                    .speed(0.01)
+                    .range(0.0..=3.0),
+            )
+            .changed();
+
+        ui.label("Emission:");
+        let mut emission_enabled = material.emission.is_some();
+        if ui.checkbox(&mut emission_enabled, "Enable Emission").changed() {
+            if emission_enabled {
+                material.emission = Some(Color::WHITE);
+            } else {
+                material.emission = None;
+            }
+            *scene_changed = true;
+        }
+
+        if let Some(emission_color) = &mut material.emission {
+            ui.horizontal(|ui| {
+                *scene_changed |= ui
+                    .add(
+                        egui::DragValue::new(&mut emission_color.r)
+                            .speed(0.01)
+                            .range(0.0..=100.0),
+                    )
+                    .changed();
+                *scene_changed |= ui
+                    .add(
+                        egui::DragValue::new(&mut emission_color.g)
+                            .speed(0.01)
+                            .range(0.0..=100.0),
+                    )
+                    .changed();
+                *scene_changed |= ui
+                    .add(
+                        egui::DragValue::new(&mut emission_color.b)
+                            .speed(0.01)
+                            .range(0.0..=100.0),
+                    )
+                    .changed();
+            });
+        }
+    });
+}
+
 fn texture_editor(ui: &mut egui::Ui, texture: &mut TextureData, scene_changed: &mut bool) {
     let mut current_texture_type = match texture {
         TextureData::SolidColor(_) => "SolidColor",
@@ -517,7 +573,6 @@ impl Default for SceneEditorApp {
         let mut app = Self {
             scene_data: SceneData {
                 objects: Vec::new(),
-                lights: vec![],
                 camera: default_camera,
             },
             json_string: String::new(),
@@ -600,7 +655,7 @@ impl eframe::App for SceneEditorApp {
                             self.render_message = Some("Rendering, please wait...".to_string());
 
                             let scene_data = self.scene_data.clone();
-                            let (width, height) = self.scene_data.camera.resolution;
+                            //let (width, height) = self.scene_data.camera.resolution;
 
                             thread::spawn(move || {
                                 // Save the current scene to a temporary file
@@ -617,16 +672,16 @@ impl eframe::App for SceneEditorApp {
                                                         // self.error_message = Some("Failed to render scene".to_string());
                                                     }
                                                 }
-                                                Err(e) => {
+                                                Err(_e) => {
                                                     // self.error_message = Some(format!("Failed to run ray tracer: {}", e));
                                                 }
                                             }
                                         }
-                                        Err(e) => {
+                                        Err(_e) => {
                                             // self.error_message = Some(format!("Failed to write temporary scene file: {}", e));
                                         }
                                     },
-                                    Err(e) => {
+                                    Err(_e) => {
                                         // self.error_message = Some(format!("Failed to serialize scene data: {}", e));
                                     }
                                 }
@@ -744,241 +799,6 @@ impl eframe::App for SceneEditorApp {
 
                     ui.separator();
 
-                    // Lights Editor
-                    ui.collapsing("Lights", |ui| {
-                        let mut light_to_remove = None;
-                        for (i, light) in self.scene_data.lights.iter_mut().enumerate() {
-                            ui.push_id(i, |ui| {
-                                ui.group(|ui| {
-                                    ui.horizontal(|ui| {
-                                        ui.heading(format!("Light {}", i));
-                                        if ui.button("Remove").clicked() {
-                                            light_to_remove = Some(i);
-                                            scene_changed = true;
-                                        }
-                                    });
-
-                                    let mut current_light_type = match light {
-                                        LightData::Point(_) => "Point",
-                                        LightData::Directional(_) => "Directional",
-                                    };
-
-                                    ui.horizontal(|ui| {
-                                        if ui
-                                            .radio_value(&mut current_light_type, "Point", "Point")
-                                            .changed()
-                                        {
-                                            *light = LightData::Point(PointLightData::default());
-                                            scene_changed = true;
-                                        }
-                                        if ui
-                                            .radio_value(
-                                                &mut current_light_type,
-                                                "Directional",
-                                                "Directional",
-                                            )
-                                            .changed()
-                                        {
-                                            *light = LightData::Directional(
-                                                DirectionalLightData::default(),
-                                            );
-                                            scene_changed = true;
-                                        }
-                                    });
-
-                                    match light {
-                                        LightData::Point(point_light) => {
-                                            ui.label("Position:");
-                                            ui.horizontal(|ui| {
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut point_light.position.x,
-                                                        )
-                                                        .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut point_light.position.y,
-                                                        )
-                                                        .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut point_light.position.z,
-                                                        )
-                                                        .speed(0.1),
-                                                    )
-                                                    .changed();
-                                            });
-
-                                            ui.label("Color:");
-                                            ui.horizontal(|ui| {
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut point_light.color.r,
-                                                        )
-                                                        .speed(0.01)
-                                                        .range(0.0..=1.0),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut point_light.color.g,
-                                                        )
-                                                        .speed(0.01)
-                                                        .range(0.0..=1.0),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut point_light.color.b,
-                                                        )
-                                                        .speed(0.01)
-                                                        .range(0.0..=1.0),
-                                                    )
-                                                    .changed();
-                                            });
-
-                                            ui.label("Intensity:");
-                                            scene_changed |= ui
-                                                .add(
-                                                    egui::DragValue::new(
-                                                        &mut point_light.intensity,
-                                                    )
-                                                    .speed(0.1),
-                                                )
-                                                .changed();
-
-                                            ui.label("Samples:");
-                                            scene_changed |= ui
-                                                .add(
-                                                    egui::DragValue::new(&mut point_light.samples)
-                                                        .speed(1.0),
-                                                )
-                                                .changed();
-
-                                            ui.label("Radius:");
-                                            scene_changed |= ui
-                                                .add(
-                                                    egui::DragValue::new(&mut point_light.radius)
-                                                        .speed(0.1),
-                                                )
-                                                .changed();
-
-                                            ui.label("Softness:");
-                                            scene_changed |= ui
-                                                .add(
-                                                    egui::DragValue::new(&mut point_light.softness)
-                                                        .speed(0.1),
-                                                )
-                                                .changed();
-                                        }
-                                        LightData::Directional(directional_light) => {
-                                            ui.label("Direction:");
-                                            ui.horizontal(|ui| {
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut directional_light.direction.x,
-                                                        )
-                                                        .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut directional_light.direction.y,
-                                                        )
-                                                        .speed(0.1),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut directional_light.direction.z,
-                                                        )
-                                                        .speed(0.1),
-                                                    )
-                                                    .changed();
-                                            });
-
-                                            ui.label("Color:");
-                                            ui.horizontal(|ui| {
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut directional_light.color.r,
-                                                        )
-                                                        .speed(0.01)
-                                                        .range(0.0..=1.0),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut directional_light.color.g,
-                                                        )
-                                                        .speed(0.01)
-                                                        .range(0.0..=1.0),
-                                                    )
-                                                    .changed();
-                                                scene_changed |= ui
-                                                    .add(
-                                                        egui::DragValue::new(
-                                                            &mut directional_light.color.b,
-                                                        )
-                                                        .speed(0.01)
-                                                        .range(0.0..=1.0),
-                                                    )
-                                                    .changed();
-                                            });
-
-                                            ui.label("Intensity:");
-                                            scene_changed |= ui
-                                                .add(
-                                                    egui::DragValue::new(
-                                                        &mut directional_light.intensity,
-                                                    )
-                                                    .speed(0.1),
-                                                )
-                                                .changed();
-                                        }
-                                    }
-                                });
-                            });
-                        }
-
-                        if let Some(i) = light_to_remove {
-                            self.scene_data.lights.remove(i);
-                            scene_changed = true;
-                        }
-
-                        ui.horizontal(|ui| {
-                            if ui.button("Add Point Light").clicked() {
-                                self.scene_data
-                                    .lights
-                                    .push(LightData::Point(PointLightData::default()));
-                                scene_changed = true;
-                            }
-                            if ui.button("Add Directional Light").clicked() {
-                                self.scene_data
-                                    .lights
-                                    .push(LightData::Directional(DirectionalLightData::default()));
-                                scene_changed = true;
-                            }
-                        });
-                    });
-
-                    ui.separator();
-
                     // Objects Editor
                     ui.collapsing("Objects", |ui| {
                         let mut object_to_remove = None;
@@ -1077,6 +897,7 @@ impl eframe::App for SceneEditorApp {
                                                     &mut scene_changed,
                                                 );
                                             });
+                                            material_editor(ui, &mut sphere.material, &mut scene_changed);
                                         }
                                         ObjectData::Plane(plane) => {
                                             ui.label("Center:");
@@ -1129,6 +950,7 @@ impl eframe::App for SceneEditorApp {
                                                     &mut scene_changed,
                                                 );
                                             });
+                                            material_editor(ui, &mut plane.material, &mut scene_changed);
                                         }
                                         ObjectData::Cube(cube) => {
                                             ui.label("Center:");
@@ -1166,6 +988,7 @@ impl eframe::App for SceneEditorApp {
                                                     &mut scene_changed,
                                                 );
                                             });
+                                            material_editor(ui, &mut cube.material, &mut scene_changed);
                                         }
                                         ObjectData::Cylinder(cylinder) => {
                                             ui.label("Center:");
@@ -1217,6 +1040,7 @@ impl eframe::App for SceneEditorApp {
                                                     &mut scene_changed,
                                                 );
                                             });
+                                            material_editor(ui, &mut cylinder.material, &mut scene_changed);
                                         }
                                     }
                                 });
