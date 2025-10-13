@@ -8,7 +8,7 @@ use rt_2::core::*;
 use rt_2::material::*;
 
 pub fn scene_one(scene: &mut Scene) {
-    scene.set_background(Texture::Gradient(Color::WHITE, Color::LIGHT_BLUE, 90.0));
+    scene.set_background(Texture::Gradient(Color::LIGHT_BLUE, Color::NEON_BLUE, 90.0));
 
     scene.camera_mut().set(
         Point3::splat(4.0),
@@ -16,7 +16,7 @@ pub fn scene_one(scene: &mut Scene) {
         Vec3::Y,
         60.0,
         1.0,
-        (400, 300),
+        (800, 600),
     );
 
     scene.add_object(Sphere::new(
@@ -41,7 +41,7 @@ pub fn scene_one(scene: &mut Scene) {
             reflectivity: 0.0,
             transparency: 0.0,
             index_of_refraction: 0.0,
-            emission: Some(Color::WHITE * 10.0),
+            emission: Some(Color::WHITE * 20.0),
         },
     ));
 }
@@ -72,12 +72,13 @@ pub fn scene_two(scene: &mut Scene) {
         },
     ));
 
-    let image = Image::load("assets/test.png").unwrap();
+    //let image = Image::load("assets/test.png").unwrap();
     scene.add_object(Cube::new(
         Point3::new(0.0, 0.5, 0.0),
         1.0,
         Material {
-            texture: Texture::Image(image),
+            //texture: Texture::Image(image),
+            texture: Texture::SolidColor(Color::BEIGE),
             diffuse: 1.0,
             reflectivity: 0.0,
             transparency: 0.0,
@@ -85,12 +86,6 @@ pub fn scene_two(scene: &mut Scene) {
             emission: None,
         },
     ));
-
-    /*     scene.add_light(Light::new_directional(
-        Point3::new(-1.0, -4.0, -4.0),
-        Color::WHITE,
-        1.0,
-    )); */
 
     scene.add_object(Sphere::new(
         Point3::new(-0.7, 4.0, 2.0),

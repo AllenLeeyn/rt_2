@@ -45,4 +45,15 @@ impl Texture {
             }
         }
     }
+
+    pub fn bg_value_at(&self, u: f32, v: f32) -> Color {
+        match self {
+            Texture::Gradient(start, end, _) => {
+                Color::lerp(*start, *end, v)
+                //Color::lerp(Color::BLACK, Color::WHITE, v)
+            }
+
+            _ => self.value_at(u, v)
+        }
+    }
 }

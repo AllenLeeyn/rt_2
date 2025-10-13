@@ -72,6 +72,7 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 fn random_material() -> Material {
     let mut rng = rand::rng();
 

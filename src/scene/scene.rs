@@ -166,8 +166,12 @@ impl Scene {
         let v = 0.5 * (ud.y() + 1.0);
 
         match &self.background {
-            Texture::Gradient(_, _, _) => self.background.value_at(0.5, v),
+            //Texture::Gradient(_, _, _) => self.background.value_at(0.5, v),
+            Texture::Gradient(_, _, _) => self.background.bg_value_at(u, v),
             _ => self.background.value_at(u, v),
         }
+
+
+        //Color::lerp(Color::WHITE, Color::new(0.5, 0.7, 1.0), v)
     }
 }
