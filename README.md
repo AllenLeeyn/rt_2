@@ -45,7 +45,7 @@ will render a default scene and save the output to a file named `output.ppm` in 
 `cargo run --release`
 This enables Rust's optimizations and can provide very significant (roughly 2-10x) speed improvements for the ray tracing workloads.
 
-To render your own scene, you will have to use Scene Editor or define your scene in `scenes.rs` and call render function from `main.rs` `fn main()`.
+To render your own scene, you will have to use [Scene Editor](#scene-editor) or define your scene in `scenes.rs` and call render function from `main.rs` `fn main()`.
 ```rust
 fn main() -> std::io::Result<()> {
     let mut scene = Scene::new();
@@ -153,6 +153,7 @@ Use this syntax to run the Scene Editor:
 cargo run --bin scene_editor
 ```
 
+<img src="assets/scene_editor.png" width="50%"/>
 
 ## Flags
 This project supports several command-line flags to customize rendering without modifying the source code.
