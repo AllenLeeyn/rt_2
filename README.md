@@ -1,6 +1,6 @@
 # rt
 
-rt is a simple ray tracing project designed to build foundational understanding of rendering 3D scenes through ray tracing techniques. Below is the default scene rendered.
+rt is a simple ray tracing project designed to build foundational understanding of rendering 3D scenes through ray tracing techniques.
 
 ![Rendered output](balls.png)
 
@@ -11,12 +11,12 @@ In this project, we implement:
     - Cylinder
     - Sphere
 - Camera
-- Lights:
-    - emission
 - Materials:
-    - lambertian
-    - metal
+    - diffuse
+    - reflective
+    - refractive
     - dielectric
+    - emission (light source)
 - Textures:
     - Solid Color
     - Checked Box
