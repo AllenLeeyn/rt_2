@@ -45,7 +45,7 @@ will render a default scene and save the output to a file named `output.ppm` in 
 `cargo run --release`
 This enables Rust's optimizations and can provide very significant (roughly 2-10x) speed improvements for the ray tracing workloads.
 
-To render your own scene, you will have to define your scene in `main.rs` `fn main()`.
+To render your own scene, you will have to use Scene Editor or define your scene in `scenes.rs` and call render function from `main.rs` `fn main()`.
 ```rust
 fn main() -> std::io::Result<()> {
     let mut scene = Scene::new();
@@ -145,6 +145,15 @@ Read about the [**basic types**](README_basic_types.md) that you will be working
 
 Read about the [**scene elements**](README_scene_elements.md) and how to set them up.
 
+## Scene Editor
+Scene Editor is an interactive GUI app which allows to crete, edit and save scenes in JSON file using user-friendly interface with visualizer.
+
+Use this syntax to run the Scene Editor:
+```rust
+cargo run --bin scene_editor
+```
+
+
 ## Flags
 This project supports several command-line flags to customize rendering without modifying the source code.
 
@@ -158,7 +167,8 @@ cargo run -- [FLAGS]
 |------|-------------|---------|
 | `-i` | This will print the usage info | `-i` | 
 | `-o <filename>` | Specify output filename instead of the default `output.ppm` | `-o result.ppm` |
-| `-s <scene_num>` | Select which scene to render. Valid values: 1 to 4. Defaults to scene 4. | `-s 2` |
+| `-s <scene_num>` | Select which scene to render. Valid values: 1 to 8. Defaults to scene 4. | `-s 2` |
+| `-s <scene_filename>` | Load scene from the JSON file. Renders scene 4 if file is not found. | `-s scene1.json` |
 | `-r <width> <height>` | Set the resolution of the rendered image. Width and height must be positive integers. | `-r 800 600` |
 | `-q <sample_rate>`| Specify the quality/sample rate of the image. This determines how many rays we shoot out per pixel to decide its color. | `-q 128` |
 | `-d <depth>`| Specify the maximum times each ray bounces | `-d 8` |
