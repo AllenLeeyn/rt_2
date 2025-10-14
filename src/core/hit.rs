@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::core::color::Color;
 use crate::core::ray::Ray;
 use crate::core::vec3::{Point3, Vec3};
@@ -21,8 +19,7 @@ pub struct HitRecord {
     /// Texture coordinate v
     pub v: f32,
     pub front_face: bool,
-    pub material: Arc<Material>,
-    //pub material: Material,
+    pub material: Material,
 }
 
 impl HitRecord {

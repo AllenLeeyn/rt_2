@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::core::Color;
 use crate::pixels::image::Image;
 
@@ -6,7 +8,7 @@ pub enum Texture {
     SolidColor(Color),
     Gradient(Color, Color, f32),
     Checkerboard(Color, Color, f32),
-    Image(Image),
+    Image(Arc<Image>),
 }
 
 impl Texture {

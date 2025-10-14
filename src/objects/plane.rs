@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::material::Material;
 
@@ -7,7 +5,7 @@ use crate::material::Material;
 pub struct Plane {
     center: Point3, // Bottom-left corner or reference point
     size: Vec3,     // Size in X and Z (Y is ignored)
-    material: Arc<Material>,
+    material: Material,
     bounding_box: (Point3, Point3),
 }
 
@@ -31,7 +29,7 @@ impl Plane {
         Self {
             center,
             size,
-            material: Arc::new(material),
+            material,
             bounding_box: (min, max),
         }
     }
@@ -56,7 +54,7 @@ impl Plane {
     }
 
     pub fn set_material(&mut self, material: Material) {
-        self.material = Arc::new(material);
+        self.material = material;
     }
 }
 

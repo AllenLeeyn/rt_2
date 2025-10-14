@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::material::Material;
 
@@ -8,7 +6,7 @@ pub struct Cylinder {
     center: Point3,
     radius: f32,
     height: f32,
-    material: Arc<Material>,
+    material: Material,
     _bounding_box: (Point3, Point3),
 }
 
@@ -26,7 +24,7 @@ impl Cylinder {
             center,
             radius,
             height,
-            material: Arc::new(material),
+            material,
             _bounding_box: (min, max),
         }
     }
@@ -47,7 +45,7 @@ impl Cylinder {
 
     // Set a new texture for the cylinder
     pub fn set_material(&mut self, material: Material) {
-        self.material = Arc::new(material);
+        self.material = material;
     }
 
     // Helper function to check intersection with a cap (top or bottom)

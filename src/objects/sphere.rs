@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::material::Material;
 
@@ -7,7 +5,7 @@ use crate::material::Material;
 pub struct Sphere {
     center: Point3,
     radius: f32,
-    material: Arc<Material>,
+    material: Material,
     bounding_box: (Point3, Point3),
 }
 
@@ -17,7 +15,7 @@ impl Sphere {
         Self {
             center,
             radius,
-            material: Arc::new(material),
+            material,
             bounding_box: (center - rvec, center + rvec),
         }
     }
