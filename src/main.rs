@@ -38,7 +38,7 @@ struct Args {
 
 fn show_info() {
     println!("    Scene number or filename to render flag:
-    Shorthand: -s, Full: -\"scene\", Default value: = 3
+    Shorthand: -s, Full: -scene, Default value: 3
     Example: cargo run -- -s 2
     or: cargo run -- -s scene2.json
     Purpose: Select the scene to render
@@ -46,32 +46,32 @@ fn show_info() {
     cargo run --bin scene_editor
 
     Output filename flag:
-    Shorthand: -o, Full: -\"output\", Default value: = \"output.ppm\"
+    Shorthand: -o, Full: -output, Default value: output.ppm
     Example: cargo run -- -o my_render.ppm
     Purpose: Specify the output filename
 
     Resolution width and height flag:
-    Shorthand: -r, Full: -\"resolution\", Default value is set individually for each scene
+    Shorthand: -r, Full: -resolution, Default value is set individually for each scene
     Example: cargo run -- -r 800 600
     Purpose: Specify the resolution width and height
 
     Samples per pixel flag:
-    Shorthand: -q, Full: -\"quality\", Default value: = 32
+    Shorthand: -q, Full: -quality, Default value: 32
     Example: cargo run -- -q 128
     Purpose: Specify the samples per pixel
 
     Depth per pixel flag:
-    Shorthand: -d, Full: -\"depth\", Default value: = 10
+    Shorthand: -d, Full: -depth, Default value: 10
     Example: cargo run -- -d 8
     Purpose: Specify the depth per pixel
 
     Disable parallelization flag:
-    Shorthand: -n, Full: -\"non-parallelized\"
+    Shorthand: -n, Full: -non-parallelized
     Example: cargo run -- -n
     Purpose: Disable parallelization, used for single-threaded rendering, typically for running the program without over-stressing your cpu
 
     Info flag:
-    Shorthand: -i', Full: \"info\"
+    Shorthand: -i, Full: -info
     Example: cargo run -- -i
     Purpose: Print the usage info
     ")
