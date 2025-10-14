@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::core::{HitRecord, Hittable, Point3, Ray, Vec3};
 use crate::material::Material;
 
@@ -5,15 +7,16 @@ use crate::material::Material;
 pub struct Cube {
     pub min: Point3,
     pub max: Point3,
-    material: Material,
+    material: Arc<Material>,
 }
+
 // A cube is defined by its minimum and maximum corner points
 impl Cube {
     pub fn new(center: Point3, size: f32, material: Material) -> Self {
         let half = size / 2.0;
         let min = center - Vec3::new(half, half, half);
         let max = center + Vec3::new(half, half, half);
-        Self { min, max, material }
+        Self { min, max, material: Arc::new(material) }//
     }
 
     fn compute_normal(&self, point: Point3) -> Vec3 {
@@ -62,7 +65,7 @@ impl Cube {
     }
 
     pub fn set_material(&mut self, material: Material) {
-        self.material = material;
+        self.material = Arc::new(material);
     }
 }
 
