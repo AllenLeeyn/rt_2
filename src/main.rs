@@ -35,7 +35,8 @@ struct Args {
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
     let scene_arg = args.scene.as_str();
-    let mut scene = if scene_arg != "1" && scene_arg != "2" && scene_arg != "3" && scene_arg != "4"
+    let scenes = vec!("1", "2", "3", "4", "5", "6", "7", "8");
+    let mut scene = if !scenes.contains(&scene_arg)
     {
         match Scene::load_from_file(&scene_arg) {
             Ok(s) => {
