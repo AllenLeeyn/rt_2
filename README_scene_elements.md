@@ -37,7 +37,7 @@ Example:
 ```
 With this, we create something like a mirror image of the default image.
 
-![Rendered output](demo2.png)
+![Rendered output](/demo_images/demo2.png)
 
 ## **Background**
 You can set the bckground with the different `Texture`types.
@@ -52,7 +52,7 @@ The default background is just black. You can use any of the `Texture`type for t
             Color::CYAN,
             std::f32::consts::FRAC_PI_2));
 ```
-![Rendered output](demo7.png)
+![Rendered output](/demo_images/demo7.png)
 
 ## **Objects**
 The program supports four basic object types:
@@ -84,7 +84,7 @@ A flat surface aligned with the X and Z axes.
         texture: Texture, // Texture applied to the plane surface
     );
 ```
-![Rendered output](demo3.png)
+![Rendered output](/demo_images/demo3.png)
 
 ### Cube
 A six-sided box defined by its center and uniform side length.
@@ -95,7 +95,7 @@ A six-sided box defined by its center and uniform side length.
         texture: Texture, // Texture applied to the cube surfaces
     );
 ```
-![Rendered output](demo4.png)
+![Rendered output](/demo_images/demo4.png)
 
 ### Cylinder
 A vertical cylinder defined by its base center, radius, and height.
@@ -107,7 +107,7 @@ A vertical cylinder defined by its base center, radius, and height.
         texture: Texture,    // Texture applied to the cylinder surface
     );
 ```
-![Rendered output](demo5.png)
+![Rendered output](/demo_images/demo5.png)
 
 ### Sphere
 A perfectly round 3D object defined by its center and radius.
@@ -118,7 +118,7 @@ A perfectly round 3D object defined by its center and radius.
         texture: Texture, // Texture applied to the sphere surface
     );
 ```
-![Rendered output](demo6.png)
+![Rendered output](/demo_images/demo6.png)
 
 ## **Materials**
 

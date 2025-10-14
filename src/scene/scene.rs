@@ -89,8 +89,7 @@ impl Scene {
                     let ray = self
                         .camera()
                         .generate_ray(horizontal_offset, vertical_offset);
-                    pixel_color = pixel_color
-                        + self.ray_color(&ray, horizontal_offset, vertical_offset, self.max_depth);
+                    pixel_color = pixel_color + self.ray_color(&ray, self.max_depth);
                 }
                 let color = pixel_color / self.sample_size as i32;
                 row_pixels.push(color);
@@ -121,8 +120,6 @@ impl Scene {
     pub fn ray_color(
         &self,
         ray: &Ray,
-        horizontal_offset: f32,
-        vertical_offset: f32,
         depth: u32,
     ) -> Color {
         if depth == 0 {
@@ -141,23 +138,26 @@ impl Scene {
 
         if let Some(hit) = final_hit {
             let glow = hit.material.emission.unwrap_or(Color::BLACK);
-
             let mut final_color = glow;
 
-            if depth > 0 {
-                if let Some(scatter) = hit.material.scatter(ray, &hit) {
-                    let bounced = self.ray_color(
-                        &scatter.scattered_ray,
-                        horizontal_offset,
-                        vertical_offset,
-                        depth - 1,
-                    );
-                    final_color = final_color + scatter.attenuation * bounced;
-                }
+            if let Some(scatter) = hit.material.scatter(ray, &hit) {
+                let bounced = self.ray_color(
+                    &scatter.scattered_ray,
+                    depth - 1,
+                );
+                final_color = final_color + scatter.attenuation * bounced;
             }
 
             return final_color;
         }
-        self.background.value_at(horizontal_offset, vertical_offset)
+
+        let ud = ray.direction().normalize();
+        let u = 0.5 * (ud.x() + 1.0);
+        let v = 0.5 * (ud.y() + 1.0);
+
+        match &self.background {
+            Texture::Gradient(_, _, _) => self.background.bg_value_at(u, v),
+            _ => self.background.value_at(u, v),
+        }
     }
 }
