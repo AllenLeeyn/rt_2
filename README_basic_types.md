@@ -31,7 +31,7 @@ The different texture types:
     Texture::SolidColor(Color);
     Texture::Gradient(Color, Color, f32); // Color_1, Color_2, angle_radian
     Texture::Checkerboard(Color, Color, 1.f32); // Color_1, Color_2, scale
-    Texture::Image(Image);
+    Texture::Image(Arc<Image>);
 ```
 Do note that the textures are projected flatly onto an object.
 
