@@ -45,7 +45,7 @@ will render a default scene and save the output to a file named `output.ppm` in 
 `cargo run --release`
 This enables Rust's optimizations and can provide very significant (roughly 2-10x) speed improvements for the ray tracing workloads.
 
-To render your own scene, you will have to define your scene in `main.rs` `fn main()`.
+To render your own scene, you will have to use [Scene Editor](#scene-editor) or define your scene in `scenes.rs` and call render function from `main.rs` `fn main()`.
 ```rust
 fn main() -> std::io::Result<()> {
     let mut scene = Scene::new();
@@ -116,7 +116,7 @@ fn scene_three(scene: &mut Scene) {
 ```
 
 ### Controlling Brightness and Lightning
-Control scene brightness by adjusting light emission values:
+Control scene brightness by adjusting light emission values and scene background:
 
 ```rust
 // Dim light
@@ -140,10 +140,30 @@ emission: Some(Color::WHITE * 10.0),  // Medium brightness
 emission: Some(Color::WHITE * 20.0),  // High brightness
 ```
 
+```rust
+// Bright background
+scene.set_background(Texture::Gradient(Color::LIGHT_BLUE, Color::NEON_BLUE, PI));
+
+// Dark background
+scene.set_background(Texture::Gradient(Color::DARK_GRAY * 0.5, Color::DARK_BLUE * 0.4, PI,));
+
+// No light at all from background
+scene.set_background(Texture::SolidColor(Color::BLACK));
+```
 
 Read about the [**basic types**](README_basic_types.md) that you will be working with.
 
 Read about the [**scene elements**](README_scene_elements.md) and how to set them up.
+
+## Scene Editor
+Scene Editor is an interactive GUI app which allows to crete, edit and save scenes in JSON file using user-friendly interface with visualizer.
+
+Use this syntax to run the Scene Editor:
+```rust
+cargo run --bin scene_editor
+```
+
+<img src="assets/scene_editor.png" width="50%"/>
 
 ## Flags
 This project supports several command-line flags to customize rendering without modifying the source code.
@@ -158,7 +178,8 @@ cargo run -- [FLAGS]
 |------|-------------|---------|
 | `-i` | This will print the usage info | `-i` | 
 | `-o <filename>` | Specify output filename instead of the default `output.ppm` | `-o result.ppm` |
-| `-s <scene_num>` | Select which scene to render. Valid values: 1 to 4. Defaults to scene 4. | `-s 2` |
+| `-s <scene_num>` | Select which scene to render. Valid values: 1 to 8. Defaults to scene 4. | `-s 2` |
+| `-s <scene_filename>` | Load scene from the JSON file. Renders scene 4 if file is not found. | `-s scene1.json` |
 | `-r <width> <height>` | Set the resolution of the rendered image. Width and height must be positive integers. | `-r 800 600` |
 | `-q <sample_rate>`| Specify the quality/sample rate of the image. This determines how many rays we shoot out per pixel to decide its color. | `-q 128` |
 | `-d <depth>`| Specify the maximum times each ray bounces | `-d 8` |
@@ -252,3 +273,10 @@ For each intersection with a material:
 - Scene 5 - Cornell Box with mixed materials and glass sphere
 - Scene 6 - Complex scene with particle system and multiple glass objects
 - Scene 7 - Recreation of example render from assignment
+
+### Authors
+- [Allen Leeyn](https://github.com/AllenLeeyn)
+- [Johannes Sundbäck](https://github.com/JSundb)
+- [Roope Hongisto](https://github.com/RuBoMa)
+- [Oleg Balandin](https://github.com/olegamobile)
+- [Markus Amberla](https://github.com/MarkusYPA)

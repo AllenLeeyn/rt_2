@@ -37,10 +37,13 @@ struct Args {
 }
 
 fn show_info() {
-    println!("    Scene number to render flag:
+    println!("    Scene number or filename to render flag:
     Shorthand: -s, Full: -scene, Default value: 3
     Example: cargo run -- -s 2
+    or: cargo run -- -s scene2.json
     Purpose: Select the scene to render
+    To run GUI scene editor use the following syntax:
+    cargo run --bin scene_editor
 
     Output filename flag:
     Shorthand: -o, Full: -output, Default value: output.ppm
