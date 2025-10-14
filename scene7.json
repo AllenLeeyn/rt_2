@@ -1,0 +1,61 @@
+{
+  "background": {
+    "Gradient": [
+      { "r": 1.0, "g": 1.0, "b": 1.0 },
+      { "r": 0.529, "g": 0.808, "b": 0.922 },
+      3.1415927
+    ]
+  },
+  "objects": [
+    {
+      "Plane": {
+        "center": { "x": 0.0, "y": -0.5, "z": 0.0 },
+        "size": { "x": 20.0, "y": 0.0, "z": 20.0 },
+        "material": {
+          "texture": { "SolidColor": { "r": 0.98, "g": 1.022, "b": 1.33 } },
+          "diffuse": 1.0,
+          "reflectivity": 0.0,
+          "transparency": 0.0,
+          "index_of_refraction": 0.0,
+          "emission": null
+        }
+      }
+    },
+    {
+      "Sphere": {
+        "center": { "x": -0.5, "y": 0.0, "z": 0.0 },
+        "radius": 0.5,
+        "material": {
+          "texture": { "SolidColor": { "r": 0.8, "g": 0.68, "b": 0.616 } },
+          "diffuse": 0.0,
+          "reflectivity": 0.9,
+          "transparency": 0.0,
+          "index_of_refraction": 0.0,
+          "emission": null
+        }
+      }
+    },
+    {
+      "Sphere": {
+        "center": { "x": 1.0, "y": 0.0, "z": 0.0 },
+        "radius": 0.5,
+        "material": {
+          "texture": { "SolidColor": { "r": 0.8, "g": 0.9, "b": 0.25 } },
+          "diffuse": 0.25,
+          "reflectivity": 0.95,
+          "transparency": 0.0,
+          "index_of_refraction": 0.0,
+          "emission": null
+        }
+      }
+    }
+  ],
+  "camera": {
+    "position": { "x": 2.5, "y": 0.5, "z": 2.8 },
+    "look_at": { "x": 0.25, "y": 0.0, "z": 0.0 },
+    "up": { "x": 0.0, "y": 1.0, "z": 0.0 },
+    "fov": 40.0,
+    "aspect_ratio": 1.0,
+    "resolution": [ 800, 600 ]
+  }
+}
