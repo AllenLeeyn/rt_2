@@ -34,6 +34,8 @@ impl Scene {
 
         let mut scene = Scene::new();
 
+        scene.set_background(scene_data.background.into());
+
         for object in scene_data.objects {
             match object {
                 ObjectData::Sphere(s) => {

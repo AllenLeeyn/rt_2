@@ -10,6 +10,18 @@ use crate::pixels::image::Image;
 pub struct SceneData {
     pub objects: Vec<ObjectData>,
     pub camera: CameraData,
+    #[serde(default)]
+    pub background: TextureData,
+}
+
+impl Default for SceneData {
+    fn default() -> Self {
+        Self {
+            objects: Vec::new(),
+            camera: Default::default(),
+            background: TextureData::default(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -20,6 +32,19 @@ pub struct CameraData {
     pub fov: f32,
     pub aspect_ratio: f32,
     pub resolution: (u32, u32),
+}
+
+impl Default for CameraData {
+    fn default() -> Self {
+        Self {
+            position: Point3::new(0.0, 0.0, 0.0),
+            look_at: Point3::new(0.0, 0.0, -1.0),
+            up: Vec3::new(0.0, 1.0, 0.0),
+            fov: 90.0,
+            aspect_ratio: 1.777,
+            resolution: (400, 300),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use rt_2::core::color::Color;
 use rt_2::core::vec3::{Point3, Vec3};
 use rt_2::scene::storage::{
-    CameraData, CubeData, CylinderData, ObjectData, PlaneData, SceneData, SphereData, TextureData,
+    CubeData, CylinderData, ObjectData, PlaneData, SceneData, SphereData, TextureData,
 };
 
 fn point3_editor(ui: &mut egui::Ui, label: &str, point: &mut Point3, scene_changed: &mut bool) {
@@ -932,19 +932,8 @@ fn texture_editor(
 
 impl Default for SceneEditorApp {
     fn default() -> Self {
-        let default_camera = CameraData {
-            position: Point3::new(0.0, 0.0, 0.0),
-            look_at: Point3::new(0.0, 0.0, -1.0),
-            up: Vec3::new(0.0, 1.0, 0.0),
-            fov: 90.0,
-            aspect_ratio: 1.777,
-            resolution: (400, 300),
-        };
         let mut app = Self {
-            scene_data: SceneData {
-                objects: Vec::new(),
-                camera: default_camera,
-            },
+            scene_data: SceneData::default(),
             json_string: String::new(),
             error_message: None,
             current_view: ViewType::TopDown,
@@ -1080,6 +1069,19 @@ impl eframe::App for SceneEditorApp {
                     if let Some(msg) = &self.error_message {
                         ui.colored_label(egui::Color32::RED, msg);
                     }
+
+                    ui.separator();
+
+                    // Background Editor
+                    ui.collapsing("Background", |ui| {
+                        texture_editor(
+                            ui,
+                            &mut self.scene_data.background,
+                            &mut scene_changed,
+                            ctx,
+                            &mut self.image_previews,
+                        );
+                    });
 
                     ui.separator();
 
