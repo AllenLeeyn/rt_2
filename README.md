@@ -116,7 +116,7 @@ fn scene_three(scene: &mut Scene) {
 ```
 
 ### Controlling Brightness and Lightning
-Control scene brightness by adjusting light emission values:
+Control scene brightness by adjusting light emission values and scene background:
 
 ```rust
 // Dim light
@@ -140,6 +140,16 @@ emission: Some(Color::WHITE * 10.0),  // Medium brightness
 emission: Some(Color::WHITE * 20.0),  // High brightness
 ```
 
+```rust
+// Bright background
+scene.set_background(Texture::Gradient(Color::LIGHT_BLUE, Color::NEON_BLUE, PI));
+
+// Dark background
+scene.set_background(Texture::Gradient(Color::DARK_GRAY * 0.5, Color::DARK_BLUE * 0.4, PI,));
+
+// No light at all from background
+scene.set_background(Texture::SolidColor(Color::BLACK));
+```
 
 Read about the [**basic types**](README_basic_types.md) that you will be working with.
 
@@ -263,3 +273,10 @@ For each intersection with a material:
 - Scene 5 - Cornell Box with mixed materials and glass sphere
 - Scene 6 - Complex scene with particle system and multiple glass objects
 - Scene 7 - Recreation of example render from assignment
+
+### Authors
+- [Allen Leeyn](https://github.com/AllenLeeyn)
+- [Johannes Sundbäck](https://github.com/JSundb)
+- [Roope Hongisto](https://github.com/RuBoMa)
+- [Oleg Balandin](https://github.com/olegamobile)
+- [Markus Amberla](https://github.com/MarkusYPA)
