@@ -15,9 +15,9 @@ impl Cylinder {
         let min = Point3::new(center.x() - radius, center.y(), center.z() - radius);
 
         let max = Point3::new(
-            center.x() + radius,
-            center.y() + height,
-            center.z() + radius,
+            center.x + radius,
+            center.y + height,
+            center.z + radius,
         );
 
         Self {
@@ -51,11 +51,11 @@ impl Cylinder {
     // Helper function to check intersection with a cap (top or bottom)
     fn hit_cap(&self, ray: &Ray, t_min: f32, t_max: f32, y: f32) -> Option<HitRecord> {
         // Skip if ray direction is too small (parallel to plane)
-        if ray.direction().y().abs() < 0.001 {
+        if ray.direction().y.abs() < 0.001 {
             return None;
         }
 
-        let t = (y - ray.origin().y()) / ray.direction().y();
+        let t = (y - ray.origin().y) / ray.direction().y;
 
         if t < t_min || t > t_max {
             return None;
@@ -94,15 +94,15 @@ impl Cylinder {
 
     fn hit_side(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         // Simple cylinder-ray intersection (infinite cylinder, then clip by height)
-        let oc_x = ray.origin().x() - self.center.x();
-        let oc_z = ray.origin().z() - self.center.z();
+        let oc_x = ray.origin().x - self.center.x;
+        let oc_z = ray.origin().z - self.center.z;
 
         let a =
             ray.direction().x() * ray.direction().x() + ray.direction().z() * ray.direction().z();
         let b = 2.0 * (oc_x * ray.direction().x() + oc_z * ray.direction().z());
         let c = oc_x * oc_x + oc_z * oc_z - self.radius * self.radius;
 
-        let discriminant = b * b - 4.0 * a * c;
+        let discriminant: f32 = b * b - 4.0 * a * c;
         if discriminant < 0.0 || a.abs() < 0.001 {
             return None;
         }
@@ -153,13 +153,13 @@ impl Hittable for Cylinder {
         }
 
         // Check intersection with bottom cap
-        if let Some(bottom_hit) = self.hit_cap(ray, t_min, closest_t, self.center.y()) {
+        if let Some(bottom_hit) = self.hit_cap(ray, t_min, closest_t, self.center.y) {
             closest_t = bottom_hit.t;
             closest_hit = Some(bottom_hit);
         }
 
         // Check intersection with top cap
-        if let Some(top_hit) = self.hit_cap(ray, t_min, closest_t, self.center.y() + self.height) {
+        if let Some(top_hit) = self.hit_cap(ray, t_min, closest_t, self.center.y + self.height) {
             closest_hit = Some(top_hit);
         }
 

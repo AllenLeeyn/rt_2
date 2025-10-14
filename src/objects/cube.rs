@@ -52,7 +52,7 @@ impl Cube {
         } else if abs.y() > abs.z() {
             Vec3::new(0.0, diff.y().signum(), 0.0)
         } else {
-            Vec3::new(0.0, 0.0, diff.z().signum())
+            Vec3::new(0.0, 0.0, diff.z.signum())
         }
     }
 

@@ -7,9 +7,9 @@ mod scenes;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Scene number to render (1-4)
-    #[arg(short = 's', long = "scene", default_value_t = 3)]
-    scene: u32,
+    /// Scene number to render (1-4), or 0 to load from file
+    #[arg(short = 's', long = "scene", default_value = "3")]
+    scene: String,
 
     /// Output filename
     #[arg(short = 'o', long = "output", default_value = "output.ppm")]
@@ -34,24 +34,43 @@ struct Args {
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
-
-    let mut scene = Scene::new();
-
-    // Select scene
-    match args.scene {
-        1 => scene_one(&mut scene),
-        2 => scene_two(&mut scene),
-        3 => scene_three(&mut scene),
-        4 => scene_four(&mut scene),
-        5 => scene_five(&mut scene),
-        6 => scene_six(&mut scene),
-        7 => scene_seven(&mut scene),
-        8 => scene_eight(&mut scene),
-        _ => {
-            eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
-            scene_three(&mut scene);
+    let scene_arg = args.scene.as_str();
+    let scenes = vec!("1", "2", "3", "4", "5", "6", "7", "8");
+    let mut scene = if !scenes.contains(&scene_arg)
+    {
+        match Scene::load_from_file(&scene_arg) {
+            Ok(s) => {
+                println!("Loaded scene from {}.", scene_arg);
+                s
+            }
+            Err(e) => {
+                eprintln!(
+                    "Could not load scene from {}: {}. Falling back to scene three.",
+                    scene_arg, e
+                );
+                let mut s = Scene::new();
+                scene_three(&mut s);
+                s
+            }
         }
-    }
+    } else {
+        let mut s = Scene::new();
+        match scene_arg {
+            "1" => scene_one(&mut s),
+            "2" => scene_two(&mut s),
+            "3" => scene_three(&mut s),
+            "4" => scene_four(&mut s),
+            "5" => scene_five(&mut s),
+            "6" => scene_six(&mut s),
+            "7" => scene_seven(&mut s),
+            "8" => scene_eight(&mut s),
+            _ => {
+                eprintln!("Unknown scene {}, defaulting to scene_three", args.scene);
+                scene_three(&mut s);
+            }
+        }
+        s
+    };
 
     // Set resolution if provided and exactly 2 values passed
     if let Some(res) = &args.resolution {

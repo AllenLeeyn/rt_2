@@ -2,8 +2,11 @@ use crate::core::*;
 use crate::pixels::*;
 use crate::random_float;
 use crate::scene::*;
+use crate::scene::storage::*;
+use crate::objects::{Cube, Cylinder, Plane, Sphere};
 
 use indicatif::{ProgressBar, ProgressStyle};
+use std::fs;
 use rayon::prelude::*;
 
 pub struct Scene {
@@ -24,6 +27,49 @@ impl Scene {
             sample_size: 8,
         }
     }
+
+    pub fn load_from_file(path: &str) -> Result<Scene, Box<dyn std::error::Error>> {
+        let data = fs::read_to_string(path)?;
+        let scene_data: SceneData = serde_json::from_str(&data)?;
+
+        let mut scene = Scene::new();
+
+        scene.set_background(scene_data.background.into());
+
+        for object in scene_data.objects {
+            match object {
+                ObjectData::Sphere(s) => {
+                    let sphere: Sphere = s.into();
+                    scene.add_object(sphere);
+                }
+                ObjectData::Plane(p) => {
+                    let plane: Plane = p.into();
+                    scene.add_object(plane);
+                }
+                ObjectData::Cube(c) => {
+                    let cube: Cube = c.into();
+                    scene.add_object(cube);
+                }
+                ObjectData::Cylinder(cy) => {
+                    let cylinder: Cylinder = cy.into();
+                    scene.add_object(cylinder);
+                }
+            }
+        }
+
+        let camera_data = scene_data.camera;
+        scene.camera_mut().set(
+            camera_data.position,
+            camera_data.look_at,
+            camera_data.up,
+            camera_data.fov,
+            camera_data.aspect_ratio,
+            camera_data.resolution,
+        );
+
+        Ok(scene)
+    }
+
 
     pub fn set_background(&mut self, texture: Texture) {
         self.background = texture;
