@@ -38,12 +38,12 @@ Do note that the textures are projected flatly onto an object.
 ## **Color**
 There is predefined list of colors:
 - greyscale: `WHITE`, `LIGHT_GRAY`, `GRAY`, `DARK_GRAY`, `BLACK`
-- nuetral: `IVORY`, `BEIGE`, `TAUPE`, `CHARCOAL`, `SLATE`
+- neutral: `IVORY`, `BEIGE`, `TAUPE`, `CHARCOAL`, `SLATE`
 - basic: `RED`, `GREEN`, `BLUE`, `YELLOW`, `CYAN`, `MAGENTA`, `ORANGE`
 - light: `LIGHT_<basic>`
 - dark: `DARK_<basic>`
 - pastel: `PASTEL_<basic>`
-- neom: `NEON_<basic>`
+- neon: `NEON_<basic>`
 
 Or you can use your own color with `Color::new(R: u8, G: u8, B: u8)`.
 

@@ -11,7 +11,7 @@ Read about the [**basic types**](README_basic_types.md) (Vec3, Point3, Color, Te
 ## **Camera**
 The camera defines the viewer's perspective—essentially acting as a window into the 3D scene.
 
-To update camera settings (poisition, direction, orientation, fov), you can use `Scene.camera_mut().set`
+To update camera settings (position, direction, orientation, fov), you can use `Scene.camera_mut().set`
 ```rust
     scene.camera_mut().set(
         origin: Vec3            // Camera position
@@ -40,7 +40,7 @@ With this, we create something like a mirror image of the default image.
 ![Rendered output](/demo_images/demo2.png)
 
 ## **Background**
-You can set the bckground with the different `Texture`types.
+You can set the background with the different `Texture`types.
 ```rust
     scene.set_background(Texture::SolidColor(Color::BLACK));
 ```

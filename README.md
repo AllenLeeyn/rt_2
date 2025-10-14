@@ -59,7 +59,7 @@ fn main() -> std::io::Result<()> {
 ## Example scene
 ```rust
 fn scene_one(scene: &mut Scene) {
-    scene.set_background(Texture::Gradient(Color::WHITE, Color::LIGHT_BLUE, 90.0));
+    scene.set_background(Texture::Gradient(Color::WHITE, Color::LIGHT_BLUE, PI));
 
     scene.camera_mut().set(
         Point3::splat(4.0),
@@ -161,7 +161,7 @@ cargo run -- [FLAGS]
 | `-s <scene_num>` | Select which scene to render. Valid values: 1 to 4. Defaults to scene 4. | `-s 2` |
 | `-r <width> <height>` | Set the resolution of the rendered image. Width and height must be positive integers. | `-r 800 600` |
 | `-q <sample_rate>`| Specify the quality/sample rate of the image. This determines how many rays we shoot out per pixel to decide its color. | `-q 128` |
-| `-d <depth>`| Specify how many times each ray bounces | `-d 8` |
+| `-d <depth>`| Specify the maximum times each ray bounces | `-d 8` |
 | `-n <non_parallelized>`|  Disable parallelization (use single-threaded rendering, for testing without over-stressing cpu) | `-n` |
 
 
@@ -205,7 +205,7 @@ For each ray:
 4. Surface Properties Calculation
 At each selected intersection point:
 
-- Surface normal is computed (which way the surface faces compared to the ray direction)
+- Surface normal is computed (which way the surface faces)
 - u and v (texture coordinates) are calculated for texture mapping
 - Material properties are retrieved (texture/color, reflectivity, transparency, etc.)
 - Front/back face determination for proper lighting and refraction
@@ -247,7 +247,8 @@ For each intersection with a material:
 
 - Scene 1 - Simple sphere with area lighting
 - Scene 2 - Textured cube on checkerboard plane
-- Scene 3 - Cornell Box with mixed materials and glass sphere
-- Scene 4 - Multi-object scene with dual lighting
-- Scene 5 - Material showcase (diffuse, reflective, glass)
+- Scene 3 - The four basic objects with different textures and a light
+- Scene 4 - Same as scene 3 from a different angle
+- Scene 5 - Cornell Box with mixed materials and glass sphere
 - Scene 6 - Complex scene with particle system and multiple glass objects
+- Scene 7 - Recreation of example render from assignment
