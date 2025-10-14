@@ -346,6 +346,7 @@ impl SceneEditorApp {
                         egui::Rect::from_min_max(rect_min, rect_max),
                         0.0,
                         egui::Stroke::new(1.0, egui::Color32::GREEN),
+                        egui::StrokeKind::Middle,
                     );
                 }
                 ObjectData::Cube(cube) => {
@@ -357,6 +358,7 @@ impl SceneEditorApp {
                         egui::Rect::from_min_max(rect_min, rect_max),
                         0.0,
                         egui::Stroke::new(1.0, egui::Color32::RED),
+                        egui::StrokeKind::Middle,
                     );
                 }
                 ObjectData::Cylinder(cylinder) => match view_type {
@@ -390,6 +392,7 @@ impl SceneEditorApp {
                             rect,
                             0.0,
                             egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                            egui::StrokeKind::Middle,
                         );
                     }
                     ViewType::Side => {
@@ -413,6 +416,7 @@ impl SceneEditorApp {
                             rect,
                             0.0,
                             egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 0, 255)),
+                            egui::StrokeKind::Middle,
                         );
                     }
                     _ => {}
