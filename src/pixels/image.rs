@@ -67,6 +67,7 @@ impl Image {
         })
     }
 
+    #[inline]
     pub fn get_pixel(&self, x: usize, y: usize) -> Color {
         self.pixels[y * self.width + x]
     }
