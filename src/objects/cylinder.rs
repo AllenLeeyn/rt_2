@@ -97,7 +97,8 @@ impl Cylinder {
         let oc_x = ray.origin().x - self.center.x;
         let oc_z = ray.origin().z - self.center.z;
 
-        let a = ray.direction().x() * ray.direction().x() + ray.direction().z() * ray.direction().z();
+        let a =
+            ray.direction().x() * ray.direction().x() + ray.direction().z() * ray.direction().z();
         let b = 2.0 * (oc_x * ray.direction().x() + oc_z * ray.direction().z());
         let c = oc_x * oc_x + oc_z * oc_z - self.radius * self.radius;
 

@@ -1,4 +1,5 @@
 use std::f32::consts::PI;
+use std::sync::Arc;
 
 use rt_2::core::*;
 use rt_2::material::*;
@@ -76,7 +77,8 @@ pub fn scene_two(scene: &mut Scene) {
         },
     ));
 
-    let image = Image::load("assets/stars_s.png").unwrap();
+    //let image = Image::load("assets/stars_s.png").unwrap();
+    let image = Arc::new(Image::load("assets/stars.png").unwrap());
     scene.add_object(Cube::new(
         Point3::new(0.1, 0.5, -0.16),
         1.0,

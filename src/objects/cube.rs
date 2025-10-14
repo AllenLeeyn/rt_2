@@ -7,13 +7,14 @@ pub struct Cube {
     pub max: Point3,
     material: Material,
 }
+
 // A cube is defined by its minimum and maximum corner points
 impl Cube {
     pub fn new(center: Point3, size: f32, material: Material) -> Self {
         let half = size / 2.0;
         let min = center - Vec3::new(half, half, half);
         let max = center + Vec3::new(half, half, half);
-        Self { min, max, material }
+        Self { min, max, material}//
     }
 
     fn compute_normal(&self, point: Point3) -> Vec3 {
