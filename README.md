@@ -2,7 +2,7 @@
 
 rt is a simple ray tracing project designed to build foundational understanding of rendering 3D scenes through ray tracing techniques. Below is the default scene rendered.
 
-![Rendered output](demo1.png)
+![Rendered output](balls.png)
 
 In this project, we implement:
 - simple objects:
@@ -31,7 +31,10 @@ We explore the following concepts:
 ## Installation
 This project is written entirely in Rust. To get started:
 - Make sure Rust is installed.
-- Clone the repository
+```bash
+git clone https://github.com/AllenLeeyn/rt_2.git
+cd rt_2
+```
 
 ## Usage
 Running the project with:
@@ -49,6 +52,91 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 ```
+## Example scene
+```rust
+fn scene_one(scene: &mut Scene) {
+    scene.set_background(Texture::Gradient(Color::WHITE, Color::LIGHT_BLUE, 90.0));
+
+    scene.camera_mut().set(
+        Point3::splat(4.0),
+        Vec3::ZERO,
+        Vec3::Y,
+        60.0,
+        1.0,
+        (400, 300),
+    );
+
+    scene.add_object(Sphere::new(
+        Point3::ZERO,
+        2.0,
+        Material {
+            texture: Texture::SolidColor(Color::PASTEL_LIME),
+            diffuse: 1.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: None,
+        },
+    ));
+
+    scene.add_object(Sphere::new(
+        Point3::new(0.0, 5.0, 4.0),
+        1.0,
+        Material {
+            texture: Texture::SolidColor(Color::WHITE),
+            diffuse: 0.0,
+            reflectivity: 0.0,
+            transparency: 0.0,
+            index_of_refraction: 0.0,
+            emission: Some(Color::WHITE * 10.0),
+        },
+    ));
+}
+```
+
+### Moving the camera
+
+The camera is controlled using the `camera_mut().set()` method with 6 parameters:
+
+```rust
+fn scene_three(scene: &mut Scene) {
+    scene.camera_mut().set(
+        Point3::new(0.0, 2.0, 4.0), // 1. Camera position (where camera is)
+        Vec3::new(0.0, 1.5, 0.0),   // 2. Look-at target (where camera points)
+        Vec3::Y,                    // 3. Up vector (camera orientation)
+        60.0,                       // 4. Field of view (zoom level)
+        1.0,                        // 5. Aspect ratio (width/height)
+        (400, 300),                 // 6. Resolution (image size)
+    );
+}
+```
+
+### Controlling Brightness and Lightning
+Control scene brightness by adjusting light emission values:
+
+```rust
+// Dim light
+scene.add_object(Sphere::new(
+    Point3::new(0.0, 5.0, 0.0),
+    1.0,
+    Material {
+        texture: Texture::SolidColor(Color::WHITE),
+        diffuse: 0.0,
+        reflectivity: 0.0,
+        transparency: 0.0,
+        index_of_refraction: 0.0,
+        emission: Some(Color::WHITE * 2.0),  // Low brightness
+    },
+));
+
+// Medium brightness
+emission: Some(Color::WHITE * 10.0),  // Medium brightness
+
+// Very bright light
+emission: Some(Color::WHITE * 20.0),  // High brightness
+```
+
+
 Read about the [**basic types**](README_basic_types.md) that you will be working with.
 
 Read about the [**scene elements**](README_scene_elements.md) and how to set them up.
@@ -68,9 +156,9 @@ cargo run -- [FLAGS]
 | `-o <filename>` | Specify output filename instead of the default `output.ppm` | `-o result.ppm` |
 | `-s <scene_num>` | Select which scene to render. Valid values: 1 to 4. Defaults to scene 4. | `-s 2` |
 | `-r <width> <height>` | Set the resolution of the rendered image. Width and height must be positive integers. | `-r 800 600` |
-| `-q <sample_rate>`| Specify the quality/sample rate of the image. This determines how many rays we shoot out per pixel to decide its color. |
-| `-d <depth>`| Specify how many times each ray bounces |
-| `-n <non_parallelized>`|  Disable parallelization (use single-threaded rendering, for testing without over-stressing cpu) |
+| `-q <sample_rate>`| Specify the quality/sample rate of the image. This determines how many rays we shoot out per pixel to decide its color. | `-q 128` |
+| `-d <depth>`| Specify how many times each ray bounces | `-d 8` |
+| `-n <non_parallelized>`|  Disable parallelization (use single-threaded rendering, for testing without over-stressing cpu) | `-n` |
 
 
 #### Example Usage
@@ -130,3 +218,12 @@ At each intersection point:
 
 - Rendered pixels are written to PPM format file
 - Progress bar shows rendering completion status
+
+### Scene Descriptions
+
+- Scene 1 - Simple sphere with area lighting
+- Scene 2 - Textured cube on checkerboard plane
+- Scene 3 - Cornell Box with mixed materials and glass sphere
+- Scene 4 - Multi-object scene with dual lighting
+- Scene 5 - Material showcase (diffuse, reflective, glass)
+- Scene 6 - Complex scene with particle system and multiple glass objects
