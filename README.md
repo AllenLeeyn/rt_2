@@ -2,7 +2,7 @@
 
 rt is a simple ray tracing project designed to build foundational understanding of rendering 3D scenes through ray tracing techniques.
 
-![Rendered output](balls.png)
+![Rendered output](assets/balls.png)
 
 In this project, we implement:
 - Simple objects:
