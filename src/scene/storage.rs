@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use crate::core::color::Color;
 use crate::core::vec3::{Point3, Vec3};
 use crate::pixels::texture::Texture;
@@ -88,7 +89,7 @@ impl From<TextureData> for Texture {
             TextureData::SolidColor(c) => Texture::SolidColor(c),
             TextureData::Gradient(c1, c2, angle) => Texture::Gradient(c1, c2, angle),
             TextureData::Checkerboard(c1, c2, freq) => Texture::Checkerboard(c1, c2, freq),
-            TextureData::Image(path) => Texture::Image(Image::load(&path).unwrap()),
+            TextureData::Image(path) => Texture::Image(Arc::new(Image::load(&path).unwrap())),
         }
     }
 }
