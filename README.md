@@ -32,8 +32,8 @@ We explore the following concepts:
 This project is written entirely in Rust. To get started:
 - Make sure Rust is installed.
 ```bash
-git clone https://github.com/AllenLeeyn/rt_2.git
-cd rt_2
+git clone https://01.gritlab.ax/git/ylee/rt
+cd rt
 ```
 
 ## Usage
@@ -50,7 +50,7 @@ To render your own scene, you will have to use [Scene Editor](#scene-editor) or 
 fn main() -> std::io::Result<()> {
     let mut scene = Scene::new();
 
-    default_scene(&mut scene); // replace this with your scene setup
+    scene_one(&mut scene); // replace this with your scene setup
     scene.render("output.ppm")?; 
 
     Ok(())
