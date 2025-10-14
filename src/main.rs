@@ -23,21 +23,69 @@ struct Args {
     #[arg(short = 'q', long = "quality", default_value_t = 32)]
     samples: u32,
 
-    /// depth per pixel
+    /// Depth per pixel
     #[arg(short = 'd', long = "depth", default_value_t = 10)]
     depth: u32,
 
-    /// Disable parallelization (use single-threaded rendering, for testing without over-stressing gpu)
+    /// Disable parallelization
     #[arg(short = 'n', long = "non-parallelized")]
     non_parallelized: bool,
+
+    /// Info
+    #[arg(short = 'i', long = "info")]
+    info: bool,
+}
+
+fn show_info() {
+    println!("    Scene number to render flag:
+    Shorthand: -s, Full: -\"scene\", Default value: = 3
+    Example: cargo run ---s 2
+    Purpose: Select the scene to render
+
+    Output filename flag:
+    Shorthand: -o, Full: -\"output\", Default value: = \"output.ppm\"
+    Example: cargo run -- -o my_render.ppm
+    Purpose: Specify the output filename
+
+    Resolution width and height flag:
+    Shorthand: -r, Full: -\"resolution\", Default value is set individually for each scene
+    Example: cargo run -- -r 800 600
+    Purpose: Specify the resolution width and height
+
+    Samples per pixel flag:
+    Shorthand: -q, Full: -\"quality\", Default value: = 32
+    Example: cargo run -- -q 128
+    Purpose: Specify the samples per pixel
+
+    Depth per pixel flag:
+    Shorthand: -d, Full: -\"depth\", Default value: = 10
+    Example: cargo run -- -d 8
+    Purpose: Specify the depth per pixel
+
+    Disable parallelization flag:
+    Shorthand: -n, Full: -\"non-parallelized\"
+    Example: cargo run -- -n
+    Purpose: Disable parallelization, used for single-threaded rendering, typically for running the program without over-stressing your cpu
+
+    Info flag:
+    Shorthand: -i', Full: \"info\"
+    Example: cargo run -- -i
+    Purpose: Print the usage info
+    ")
 }
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
+
+    // Handle info flag
+    if args.info {
+        show_info();
+        return Ok(());
+    }
+
     let scene_arg = args.scene.as_str();
-    let scenes = vec!("1", "2", "3", "4", "5", "6", "7", "8");
-    let mut scene = if !scenes.contains(&scene_arg)
-    {
+    let scenes = vec!["1", "2", "3", "4", "5", "6", "7", "8"];
+    let mut scene = if !scenes.contains(&scene_arg) {
         match Scene::load_from_file(&scene_arg) {
             Ok(s) => {
                 println!("Loaded scene from {}.", scene_arg);

@@ -3,14 +3,15 @@ The scene consists of:
 - [Camera](#camera)
 - [Background](#background)
 - [Objects](#objects)
-- [Lights](#lights)
+- [Materials](#materials)
+- [Particle Systems](#particle-systems)
 
 Read about the [**basic types**](README_basic_types.md) (Vec3, Point3, Color, Texture) that you will be need to define for the scene elements.
 
 ## **Camera**
 The camera defines the viewer's perspective—essentially acting as a window into the 3D scene.
 
-To update camera settings (poisition, direction, orientation, fov), you can use `Scene.camera_mut().set`
+To update camera settings (position, direction, orientation, fov), you can use `Scene.camera_mut().set`
 ```rust
     scene.camera_mut().set(
         origin: Vec3            // Camera position
@@ -39,7 +40,7 @@ With this, we create something like a mirror image of the default image.
 ![Rendered output](/demo_images/demo2.png)
 
 ## **Background**
-You can set the bckground with the different `Texture`types.
+You can set the background with the different `Texture`types.
 ```rust
     scene.set_background(Texture::SolidColor(Color::BLACK));
 ```
@@ -119,50 +120,207 @@ A perfectly round 3D object defined by its center and radius.
 ```
 ![Rendered output](/demo_images/demo6.png)
 
-## **Lights**
-Lighting is essential for bringing realism and depth to your ray-traced scene. You can add different types of lights—point lights and directional lights—to simulate various lighting conditions.
+## **Materials**
 
-Multiple lights can be added to a scene to create more complex lighting.
+Materials define how objects interact with light in your ray tracer. Each material has five key properties that control appearance and behavior:
 
-### Adding a light
-To add a light to the scene, use:
 ```rust
-scene.add_light(Light)
+pub struct Material {
+    pub texture: Texture,         // Base color or texture pattern
+    pub diffuse: f32,             // Matte surface scattering (0.0 - 1.0)
+    pub reflectivity: f32,        // Mirror-like reflections (0.0 - 1.0)
+    pub transparency: f32,        // Light transmission (0.0 - 1.0)
+    pub index_of_refraction: f32, // How much light bends when passing through
+    pub emission: Option<Color>,  // Light emission (None or Some(Color))
+}
 ```
 
-Example:
+### **Diffuse Property**
+Controls how much light scatters randomly from the surface (matte appearance).
+
 ```rust
-scene.add_light(Light::new_point(
-    Point3::new(0.0, 4.0, 0.0), // Light position
-    Color::WHITE,               // Light color
-    30.0,                      // Intensity
-    512,                       // Shadow samples for soft shadows
-    0.6,                       // Radius of the light source
-    50.0                       // Softness of shadows
-));
+// Completely matte (chalk, paper)
+diffuse: 1.0,
+
+// Partially matte (worn metal)
+diffuse: 0.3,
+
+// No diffuse scattering (mirror, glass)
+diffuse: 0.0,
 ```
 
-### Point light
-A point light emits light in all directions from a single point in space. It can simulate lamps, candles, or glowing objects with configurable softness and shadow sampling.
-```rust
-    Light::new_point(
-        position: Point3,   // position
-        color: Color,       // color
-        intensity: f32,     // intensity
-        samples: usize,     // number of soft shadow samples
-        radius: f32,        // radius (for area light)
-        softness: f32,      // softness factor
-    )
-``` 
-The samples, radius, and softness parameters control how soft or sharp the shadows appear.
+**Visual Effect:** Higher values create softer, more natural-looking surfaces that scatter light evenly in all directions.
 
-### Directional Light
-A directional light simulates a distant light source like the sun, shining uniformly in one direction. It produces hard shadows and does not use samples, radius, or softness.
+### **Reflectivity Property**
+Controls mirror-like reflections from the surface.
+
 ```rust
-    Light::new_directional(
-        direction: Vec3,    // direction
-        color: Color,       // color
-        intensty: f32,      // intensity
-    )
+// Perfect mirror
+reflectivity: 1.0,
+
+// Polished metal
+reflectivity: 0.8,
+
+// Matte surface (no reflections)
+reflectivity: 0.0,
 ```
-Directional lights emit parallel rays from an infinite distance, ideal for simulating sunlight or moonlight.
+
+**Visual Effect:** Higher values create clearer reflections of other objects in the scene.
+
+### **Transparency & Index of Refraction**
+Work together to create glass-like materials that bend and transmit light.
+
+#### **Transparency:**
+```rust
+// Completely opaque (solid objects)
+transparency: 0.0,
+
+// Semi-transparent (tinted glass)
+transparency: 0.5,
+
+// Fully transparent (clear glass)
+transparency: 1.0,
+```
+
+#### **Index of Refraction:**
+Controls how much light bends when passing through transparent materials.
+
+```rust
+// Air
+index_of_refraction: 1.0,
+
+// Water
+index_of_refraction: 1.33,
+
+// Glass
+index_of_refraction: 1.5,
+
+// Diamond
+index_of_refraction: 2.4,
+```
+
+**Visual Effect:** Higher values create more dramatic light bending and stronger reflections at grazing angles.
+
+### **Emission Property**
+Makes objects act as light sources (area lights).
+
+```rust
+// Non-emissive object
+emission: None,
+
+// Soft white light
+emission: Some(Color::WHITE * 5.0),
+
+// Bright colored light
+emission: Some(Color::ORANGE * 20.0),
+
+// Very bright light source
+emission: Some(Color::WHITE * 50.0),
+```
+
+**Visual Effect:** Emissive objects illuminate other objects in the scene. Higher multiplier values create brighter lights.
+
+### **Material Examples**
+
+#### **Matte Colored Surface:**
+```rust
+Material {
+    texture: Texture::SolidColor(Color::RED),
+    diffuse: 1.0,         // Completely matte
+    reflectivity: 0.0,    // No reflections
+    transparency: 0.0,    // Opaque
+    index_of_refraction: 0.0,
+    emission: None,       // Not a light source
+}
+```
+
+#### **Polished Metal:**
+```rust
+Material {
+    texture: Texture::SolidColor(Color::SILVER),
+    diffuse: 0.1,         // Slight matte component
+    reflectivity: 0.9,    // Very reflective
+    transparency: 0.0,    // Opaque
+    index_of_refraction: 0.0,
+    emission: None,
+}
+```
+
+#### **Clear Glass:**
+```rust
+Material {
+    texture: Texture::SolidColor(Color::WHITE),
+    diffuse: 0.0,         // No diffuse scattering
+    reflectivity: 0.0,    // Handled by transparency
+    transparency: 1.0,    // Fully transparent
+    index_of_refraction: 1.5,  // Glass refraction
+    emission: None,
+}
+```
+
+#### **Area Light:**
+```rust
+Material {
+    texture: Texture::SolidColor(Color::WHITE),
+    diffuse: 0.0,         // Lights don't scatter
+    reflectivity: 0.0,    // Lights don't reflect
+    transparency: 0.0,    // Lights are solid
+    index_of_refraction: 0.0,
+    emission: Some(Color::WHITE * 15.0),  // Bright white light
+}
+```
+
+#### **Realistic Materials:**
+```rust
+// Frosted glass
+Material {
+    texture: Texture::SolidColor(Color::WHITE),
+    diffuse: 0.1,         // Slight frosting
+    reflectivity: 0.1,    // Some surface reflection
+    transparency: 0.8,    // Mostly transparent
+    index_of_refraction: 1.5,
+    emission: None,
+}
+
+// Colored glass
+Material {
+    texture: Texture::SolidColor(Color::BLUE),
+    diffuse: 0.0,
+    reflectivity: 0.0,
+    transparency: 0.9,
+    index_of_refraction: 1.5,
+    emission: None,
+}
+```
+
+### **Material Tips**
+- **Higher diffuse + lower reflectivity** = Natural matte surfaces
+- **Lower diffuse + higher reflectivity** = Shiny metallic surfaces  
+- **High transparency + appropriate IOR** = Realistic glass/water
+- **Emission values** should be much brighter than surface colors (multiply by 5-50)
+- **Combine properties** for complex materials (slightly reflective matte surfaces, tinted glass, etc.)
+
+## **Particle Systems**
+
+Generate multiple objects distributed randomly within a defined space, with automatic collision avoidance.
+
+```rust
+use crate::particle_system::ParticleSys;
+
+let particle_system = ParticleSys::new(
+    Point3::new(-5.0, 0.0, -5.0),  // min bounds
+    Point3::new(5.0, 5.0, 5.0),    // max bounds  
+    50,                            // particle count
+    |index, position| {            // pattern function
+        Box::new(Sphere::new(position, 0.2, Texture::SolidColor(Color::RED)))
+    },
+    0.5                           // minimum distance between particles
+);
+
+// Add all generated particles to scene
+for particle in particle_system.generate() {
+    scene.add_object(particle);
+}
+```
+
+The pattern function receives the particle index and position, allowing you to create different object types or vary properties based on position or index.

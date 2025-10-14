@@ -31,19 +31,19 @@ The different texture types:
     Texture::SolidColor(Color);
     Texture::Gradient(Color, Color, f32); // Color_1, Color_2, angle_radian
     Texture::Checkerboard(Color, Color, 1.f32); // Color_1, Color_2, scale
-    Texture::Image(Image);
+    Texture::Image(Arc<Image>);
 ```
 Do note that the textures are projected flatly onto an object.
 
 ## **Color**
 There is predefined list of colors:
 - greyscale: `WHITE`, `LIGHT_GRAY`, `GRAY`, `DARK_GRAY`, `BLACK`
-- nuetral: `IVORY`, `BEIGE`, `TAUPE`, `CHARCOAL`, `SLATE`
+- neutral: `IVORY`, `BEIGE`, `TAUPE`, `CHARCOAL`, `SLATE`
 - basic: `RED`, `GREEN`, `BLUE`, `YELLOW`, `CYAN`, `MAGENTA`, `ORANGE`
 - light: `LIGHT_<basic>`
 - dark: `DARK_<basic>`
 - pastel: `PASTEL_<basic>`
-- neom: `NEON_<basic>`
+- neon: `NEON_<basic>`
 
 Or you can use your own color with `Color::new(R: u8, G: u8, B: u8)`.
 
